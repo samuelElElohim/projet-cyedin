@@ -1,0 +1,58 @@
+# ===========================
+# Environnement & Config
+# ===========================
+.env
+*.env.local
+*.env.*.local
+
+# ===========================
+# Dépendances
+# ===========================
+/vendor/
+/node_modules/
+
+# ===========================
+# Build / Compiled
+# ===========================
+/public/build/
+/public/hot
+/public/storage
+*.min.js.map
+*.min.css.map
+
+# ===========================
+# Logs & Cache
+# ===========================
+*.log
+/storage/*.key
+/storage/logs/
+/storage/framework/cache/
+/storage/framework/sessions/
+/storage/framework/views/
+/bootstrap/cache/
+
+# ===========================
+# IDE / Éditeurs
+# ===========================
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# ===========================
+# Tests
+# ===========================
+/coverage/
+.phpunit.result.cache
+
+# ===========================
+# Divers
+# ===========================
+*.zip
+*.tar.gz
+tmp/
