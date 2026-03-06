@@ -20,6 +20,9 @@ Route::get('/', function () {
     return Inertia::render('Home');
 });
 
+Route::get('/oeoeoe', function () {
+    return Inertia::render('Oeoe');
+});
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
