@@ -1,10 +1,10 @@
-# ✅ TODO – StageTrack
+# TODO – StageTrack
 
 > Cochez les cases au fur et à mesure. Synchronisez avec votre outil de gestion (Trello/Notion).
 
 ---
 
-## 🏁 Sprint 0 – Setup & Organisation
+## Sprint 0 – Setup & Organisation
 
 - [x] Créer le dépôt GitLab et inviter les membres
 - [x] Définir la stack technique finale (framework, BDD)
@@ -17,7 +17,7 @@
 
 ---
 
-## 🗄️ Sprint 1 – Base de données & Architecture
+## Sprint 1 – Base de données & Architecture
 
 - [ ] Concevoir le schéma MCD / MLD
 - [ ] Créer les migrations : `users`, `roles`, `stages`, `offres`, `documents`
@@ -27,7 +27,7 @@
 
 ---
 
-## 🔐 Sprint 2 – Authentification
+## Sprint 2 – Authentification
 
 - [ ] Page de connexion (formulaire + validation)
 - [ ] Authentification à deux niveaux (mot de passe + vérification email ou 2FA)
@@ -38,7 +38,7 @@
 
 ---
 
-## 👨‍💼 Sprint 3 – Espace Administrateur
+## Sprint 3 – Espace Administrateur
 
 - [ ] Dashboard admin (statistiques, flux de requêtes)
 - [ ] Gestion des utilisateurs (CRUD)
@@ -49,7 +49,7 @@
 
 ---
 
-## 🎓 Sprint 4 – Espace Étudiant
+## Sprint 4 – Espace Étudiant
 
 - [ ] Dashboard étudiant
 - [ ] Consultation et recherche des offres (filière, durée, missions)
@@ -61,7 +61,7 @@
 
 ---
 
-## 🏢 Sprint 5 – Espace Entreprise
+## Sprint 5 – Espace Entreprise
 
 - [ ] Dashboard entreprise
 - [ ] Dépôt d'offre de stage
@@ -72,7 +72,7 @@
 
 ---
 
-## 👨‍🏫 Sprint 6 – Espace Tuteur
+## Sprint 6 – Espace Tuteur
 
 - [ ] Dashboard tuteur
 - [ ] Validation des conventions de stage
@@ -84,7 +84,7 @@
 
 ---
 
-## ⚖️ Sprint 7 – Espace Jury
+## Sprint 7 – Espace Jury
 
 - [ ] Dashboard jury
 - [ ] Consultation des documents et cahiers de stage
@@ -94,7 +94,7 @@
 
 ---
 
-## 🎨 Sprint 8 – UI / UX & Responsive
+## Sprint 8 – UI / UX & Responsive
 
 - [ ] Design cohérent sur toutes les pages
 - [ ] Responsive mobile (Mobile First)
@@ -104,7 +104,7 @@
 
 ---
 
-## 🧪 Sprint 9 – Tests & Finalisation
+## Sprint 9 – Tests & Finalisation
 
 - [ ] Tests sur Chrome, Firefox, Safari
 - [ ] Tests mobile, tablette, desktop
@@ -116,8 +116,4 @@
 
 ---
 
-## 📎 Notes
-
-> Ajoutez ici les décisions techniques, blocages, ou points à discuter en réunion.
-
--
+## Notes
