@@ -6,13 +6,12 @@
 
 ## 🏁 Sprint 0 – Setup & Organisation
 
-- [ ] Créer le dépôt GitLab et inviter les membres
-- [ ] Définir la stack technique finale (framework, BDD)
-- [ ] Rédiger le `.gitignore` adapté au stack
-- [ ] Créer les branches `main` et `develop`
-- [ ] Préparer l'environnement local (WAMP / XAMPP / Docker)
-- [ ] Créer le fichier `.env.example`
-- [ ] Mettre en place l'outil de gestion de projet (Trello / Notion)
+- [x] Créer le dépôt GitLab et inviter les membres
+- [x] Définir la stack technique finale (framework, BDD)
+- [x] Rédiger le `.gitignore` adapté au stack
+- [x] Créer les branches `main` et `develop`
+- [x] Préparer l'environnement local (WAMP / XAMPP / Docker)
+- [x] Créer le fichier `.env.example`
 - [ ] Réaliser le diagramme de Gantt initial
 - [ ] Réaliser les wireframes des pages principales
 
