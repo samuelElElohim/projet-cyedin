@@ -1,6 +1,6 @@
-# 🤝 Guide de Contribution – Convention Git
+# Guide de Contribution – Convention Git
 
-## 🌿 Stratégie de branches (Git Flow simplifié)
+## Stratégie de branches (Git Flow simplifié)
 
 ```
 main
@@ -54,7 +54,7 @@ db(migration): création de la table offres_stages
 style(dashboard): responsive mobile du dashboard tuteur
 ```
 
-## 🔄 Workflow pour contribuer
+## Workflow pour contribuer
 
 ```bash
 # 1. Se mettre à jour depuis develop
@@ -72,14 +72,14 @@ git commit -m "feat(scope): description claire"
 git push origin feature/ma-feature
 ```
 
-## ✅ Merge Request (MR)
+## Merge Request (MR)
 
 - Toujours merger vers `develop`, jamais vers `main` directement
 - Le titre de la MR doit décrire ce qu'elle apporte
 - Faire relire par au moins **1 autre membre** avant de merger
 - `main` ← `develop` uniquement en fin de sprint ou pour la démo
 
-## 🚫 À ne jamais faire
+## À ne jamais faire
 
 - `git push --force` sur `main` ou `develop`
 - Committer des fichiers `.env` ou credentials
