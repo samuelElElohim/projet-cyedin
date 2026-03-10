@@ -22,7 +22,7 @@ Route::get('/', function () {
 
 Route::get('/oeoeoe', function () {
     return Inertia::render('Oeoe');
-});
+})->middleware('checkAge');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
