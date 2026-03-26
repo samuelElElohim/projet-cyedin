@@ -1,0 +1,30 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('entreprises', function (Blueprint $table) {
+            $table->foreignId('utilisateurs_id')->constraint('utilisateurs')->onDelete('cascade');// permet de limiter l'existance d'un admin que si un utilisateur de meme id existe deja
+            $table->string('nom_entreprise'); // taille max par default 255 char, pas besoin de specifie?
+            $table->string('addresse');
+            $table->string('secteur'); // a gerer plutard, soit on prevoit des cst de secteur i.e au formation proposer??
+            //sinon pas besoin de meme specifie le secteur
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('entreprises');
+    }
+};
