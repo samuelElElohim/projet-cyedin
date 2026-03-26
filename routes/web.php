@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\OffreController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -23,6 +24,10 @@ Route::get('/', function () {
 Route::get('/oeoeoe', function () {
     return Inertia::render('Oeoe');
 })->middleware('checkAge');
+
+Route::get('/offres/create',[OffreController::class, 'create'])->name('offres.create');
+Route::post('/offres',[OffreController::class, 'store'])->name('offres.store');
+Route::get('/offres', [OffreController::class,'index'])->name('offres.index');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
