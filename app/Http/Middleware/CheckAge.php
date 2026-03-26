@@ -15,9 +15,12 @@ class CheckAge
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Regarde si le "count" (qu'on a setup dans Home.jsx et passé dans l'url ...?count=...) est supérieur à 18
         if($request->count < 18) {
             return redirect("/");
         }
+
+        // Si Oui : on continue la requête ie. passer à la page /oeoeoe?count=...
         return $next($request);
     }
 }
