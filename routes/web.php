@@ -29,6 +29,11 @@ Route::get('/offres/create',[OffreController::class, 'create'])->name('offres.cr
 Route::post('/offres',[OffreController::class, 'store'])->name('offres.store');
 Route::get('/offres', [OffreController::class,'index'])->name('offres.index');
 
+
+Route::get('admin/dashboard', function () {
+    return Inertia::render('adminMain');
+});
+
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');

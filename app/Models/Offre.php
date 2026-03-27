@@ -9,6 +9,4 @@ class Offre extends Model
    protected $fillable = [
     'titre', 'description', 'entreprise', 'duree_semaines'
    ] ;
-
-   
 }
