@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('dossier_stages', function (Blueprint $table) {
 
             $table->id();
-            $table->foreignId('etudiant_id')->unique()->constrained('etudiants')->onDelete('cascade');
+            $table->foreignId('etudiants_id')->unique()->constrained('etudiants')->onDelete('cascade');
 
             $table->boolean('est_valide')->default(false); // doit etre modifiable par le jury uniquement
             $table->timestamp('date_soumission')->nullable(); // la date ou le dossier de stage est soumis
