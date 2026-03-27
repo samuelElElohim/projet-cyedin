@@ -16,9 +16,9 @@ return new class extends Migration
             $table->string('sujet');
             $table->timestamp('dateDebut'); // date du debut de stage
             $table->integer('duree_en_semaine'); // vu qu'on a la duree, on peut trouver facilement la date de la fin, pas besoin de la stocker...
-            $table->integer('etudiant_id'); // l'id de l'etudiant qui (a) fait ce stage
-            $table->integer('entreprise_id'); // l'id l'entreprise ou se passe le stage
-            $table->integer('tuteur_id'); //l'id du tuteur responsable de l'etudiant
+            $table->integer('etudiants_id'); // l'id de l'etudiant qui (a) fait ce stage
+            $table->integer('entreprises_id'); // l'id l'entreprise ou se passe le stage
+            $table->integer('tuteurs_id'); //l'id du tuteur responsable de l'etudiant
         });
     }
 
