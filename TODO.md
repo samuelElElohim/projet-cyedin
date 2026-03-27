@@ -12,8 +12,8 @@
 - [x] Créer les branches `main` et `develop`
 - [x] Préparer l'environnement local (WAMP / XAMPP / Docker)
 - [x] Créer le fichier `.env.example`
-- [ ] Réaliser le diagramme de Gantt initial
-- [ ] Réaliser les wireframes des pages principales
+- [x] Réaliser le diagramme de Gantt initial
+- [-] Réaliser les wireframes des pages principales
 
 ---
 
