@@ -18,10 +18,22 @@ class Utilisaleur extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'nom',
+        'prenom',
         'email',
-        'password',
+        'mot_de_passe',
+        'role', // role doit avoir un seul char
+        // imposer que si le role =/= d'entreprise, alors le nom et prenom doivent etre =/= null
+        'est_active'
     ];
+
+    protected $guarded =
+    [
+        'id', // doit etre imposer numeriquement par le system lorsqu'un utilisateur est cree
+
+        'date_creation' // la date de creation d'un compte ne doit pas etre modifiable
+    ];
+
 
     /**
      * The attributes that should be hidden for serialization.
@@ -29,7 +41,7 @@ class Utilisaleur extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password',
+        'mot_de_passe',
         'remember_token',
     ];
 
@@ -42,7 +54,7 @@ class Utilisaleur extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'mot_de_passe' => 'hashed',
         ];
     }
 }
