@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\OffreController;
 use Illuminate\Foundation\Application;
@@ -33,6 +34,11 @@ Route::get('/offres', [OffreController::class,'index'])->name('offres.index');
 Route::get('admin/dashboard', function () {
     return Inertia::render('adminMain');
 });
+Route::get('admin/dashboard/showUsDB', [AdminDashboardController::class, 'index_user'])->name('admin.index.user');
+Route::get('admin/dashboard/addUsDB', [AdminDashboardController::class,'create_user'])->name('admin.create.user');
+Route::get('admin/dashboard/showUsDB', [AdminDashboardController::class,'store_user'])->name('admin.store.user');
+
+
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
