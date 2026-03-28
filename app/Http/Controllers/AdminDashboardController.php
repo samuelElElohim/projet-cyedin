@@ -23,12 +23,15 @@ class AdminDashboardController extends Controller
 
     public function store_user(Request $request) {
         //Validate data :
-        $validated = request()->validate([
+        $validated = $request->validate([
             "nom"=> 'required|string|max:255',
             "prenom" => 'required|string|max:255',
             "email" => 'required|string|max:255',
             "role" => 'required|integer|min:1'
         ]);
+
+        $validated['mot_de_passe'] = "null";
+        $validated['date_creation'] = "0000_00_00_000000";
 
         Utilisateur::create($validated);
         return redirect()->route('admin.index.user')

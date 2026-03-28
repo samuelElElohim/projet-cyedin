@@ -26,10 +26,11 @@ return new class extends Migration
             // a voir
 
             $table->string('mot_de_passe'); 
+            $table->timestamps();
             $table->string('role',1); // peut etre assigner en un seul char? en angalis: A: admin, J: jury, S:student, E:entreprise, T: tutor
             // dans la creation faudra juste donner une liste, le choix dans la liste donne la lettre?
 
-            $table->timestamp('date_creation');
+            //$table->timestamp('date_creation');
             $table->boolean('est_active')->default(false); // peut etre qu'il faut activer le compte par un prompte en premier? sinon changer le default a true 
 
 

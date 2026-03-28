@@ -36,7 +36,7 @@ Route::get('admin/dashboard', function () {
 });
 Route::get('admin/dashboard/showUsDB', [AdminDashboardController::class, 'index_user'])->name('admin.index.user');
 Route::get('admin/dashboard/addUsDB', [AdminDashboardController::class,'create_user'])->name('admin.create.user');
-Route::get('admin/dashboard/showUsDB', [AdminDashboardController::class,'store_user'])->name('admin.store.user');
+Route::post('admin/dashboard/showUsDB', [AdminDashboardController::class,'store_user'])->name('admin.store.user');
 
 
 

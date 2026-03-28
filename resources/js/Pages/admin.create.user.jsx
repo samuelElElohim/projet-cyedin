@@ -7,6 +7,7 @@ export default function AdminCreate(){
         prenom: '',
         email: '',
         role: '',
+        psw : '',
     })
 
     function handleSubmit(e) {
@@ -45,6 +46,7 @@ export default function AdminCreate(){
                 onChange={e => setData('role', e.target.value)}
                 placeholder="Role Utilisateur"
             />
+
 
             <button type="submit">Ajouter Utilisateur</button>
         </form>
