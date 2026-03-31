@@ -12,8 +12,8 @@ class AdminDashboardController extends Controller
     public function index_user() {
         
         $users = Utilisateur::all();
-
-        return Inertia::render( "admin.index.user", ["users"=> $users ]);
+        $count = Utilisateur::count();
+        return Inertia::render( "admin.index.user", ["users"=> $users, "count" => $count ]);
 
     }
 

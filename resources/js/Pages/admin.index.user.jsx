@@ -1,4 +1,4 @@
-export default function AdminIndexUser({ users }){
+export default function AdminIndexUser({ users, count }){
     return (
         <div>
             <h1>
@@ -28,6 +28,9 @@ export default function AdminIndexUser({ users }){
                 ))}
                 </tbody>
             </table>
+            <div>
+                <p> Number of users : {count}</p>
+            </div>
         </div>
     )
 }
