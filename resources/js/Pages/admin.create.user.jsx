@@ -1,6 +1,6 @@
 import { useForm } from "@inertiajs/react"
 
-export default function AdminCreate(){
+export default function AdminCreateUser(){
     // useForm gère les données + erreurs + @csrf automatiquement
     const { data, setData, post, errors } = useForm({
         nom: '',

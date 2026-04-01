@@ -4,6 +4,9 @@ export default function AdminIndexUser({ users, count }){
             <h1>
                 Liste Utilisateurs
             </h1>
+            <div>
+                <p> Number of users : {count}</p>
+            </div>
             <table>
                 <thead>
                     <tr>
@@ -28,9 +31,7 @@ export default function AdminIndexUser({ users, count }){
                 ))}
                 </tbody>
             </table>
-            <div>
-                <p> Number of users : {count}</p>
-            </div>
+            
         </div>
     )
 }

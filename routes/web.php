@@ -32,12 +32,15 @@ Route::get('/offres', [OffreController::class,'index'])->name('offres.index');
 
 
 Route::get('admin/dashboard', function () {
-    return Inertia::render('adminMain');
+    return Inertia::render('admin.main');
 });
-Route::get('admin/dashboard/showUsDB', [AdminDashboardController::class, 'index_user'])->name('admin.index.user');
-Route::get('admin/dashboard/addUsDB', [AdminDashboardController::class,'create_user'])->name('admin.create.user');
-Route::post('admin/dashboard/showUsDB', [AdminDashboardController::class,'store_user'])->name('admin.store.user');
 
+Route::get('admin/dashboard/user/show', [AdminDashboardController::class, 'index_user'])->name('admin.index.user');
+Route::post('admin/dashboard/user/show', [AdminDashboardController::class,'store_user'])->name('admin.store.user');
+Route::get('admin/dashboard/user/add', [AdminDashboardController::class,'create_user'])->name('admin.create.user');
+Route::get('admin/dashboard/user', function () {
+    return Inertia::render('admin.main.user');
+})->name("admin.main.user");
 
 
 Route::get('/dashboard', function () {
