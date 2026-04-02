@@ -32,7 +32,7 @@ return new class extends Migration
 
             //$table->timestamp('date_creation');
             $table->boolean('est_active')->default(false); // peut etre qu'il faut activer le compte par un prompte en premier? sinon changer le default a true 
-
+            $table->boolean('premier_mdp_changer')->default(false); // pour savoir si le mot de passe a ete change ou pas, par defaut false, et a la premiere connexion on demande de le changer?
 
 
         });

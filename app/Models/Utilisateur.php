@@ -24,7 +24,8 @@ class Utilisateur extends Authenticatable
         'mot_de_passe',
         'role', // role doit avoir un seul char
         // imposer que si le role =/= d'entreprise, alors le nom et prenom doivent etre =/= null
-        'est_active'
+        'est_active',
+        'premier_mdp_changer'
     ];
 
     protected $guarded =
@@ -56,5 +57,11 @@ class Utilisateur extends Authenticatable
             'email_verified_at' => 'datetime',
             'mot_de_passe' => 'hashed',
         ];
+    }
+
+    // par default, laravel utilise "password", donc j'ai indique le changement.
+    public function getAuthPassword()
+    {
+        return $this->mot_de_passe;
     }
 }
