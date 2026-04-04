@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { router } from "@inertiajs/react";
+import { Link, router } from "@inertiajs/react";
 
 
 
@@ -87,7 +87,10 @@ export default function AdminIndexUser({ users, count }){
                     ))}
                 </tbody>
             </table>
-            
+            <Link href={route("admin.main.user")}
+            className="px-4 py-2 bg-blue-600 text-white rounded">
+            Retour
+            </Link>
         </div>
     )
 
