@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('administrateurs', function (Blueprint $table) {
-
+            $table->unsignedBigInteger('utilisateurs_id')->primary();
             // check si l'heritage marche de cette facon?
-            $table->foreignId('utilisateurs_id')->constrained('utilisateurs')->onDelete('cascade'); // permet de limiter l'existance d'un admin que si un utilisateur de meme id existe deja
+            $table->foreign('utilisateurs_id')->references('id')->on('utilisateurs')->onDelete('cascade'); // permet de limiter l'existance d'un admin que si un utilisateur de meme id existe deja
 
             // $table->integer('niveau')->default(1); 3 niveau d'admin? a gerer apres
 
-            $table->timestamp('derniere_action_log'); // ???
+            $table->timestamps(); // ???
         });
     }
 

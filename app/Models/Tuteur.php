@@ -10,7 +10,6 @@ class Tuteur extends Utilisateur
 
         'utilisateurs_id',
         'departement',
-        'date_affectation' // je vois pas vraiment l'interet??? 
 
 
     ];

@@ -12,8 +12,4 @@ class Etudiant extends Model
         'niveau_etud'
     ];
 
-
-    protected $guarded = [
-        'id'  // doit etre systematiquement identique au foreignId 'utilisateurs_id' et emmuable
-    ];
 }
