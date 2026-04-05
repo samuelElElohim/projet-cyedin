@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('addresse');
             $table->string('secteur'); // a gerer plutard, soit on prevoit des cst de secteur i.e au formation proposer??
             //sinon pas besoin de meme specifie le secteur
+            $table->timestamps();
         });
     }
 

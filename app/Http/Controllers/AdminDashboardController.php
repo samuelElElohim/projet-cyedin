@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Entreprise;
 use App\Models\Utilisateur;
 
 use Illuminate\Http\Request;
@@ -21,6 +22,12 @@ class AdminDashboardController extends Controller
 
     }
 
+    public function index_entreprise(){
+        $entreprise = Entreprise::orderBy('utilisateurs_id', 'asc')->get();
+        $count = Utilisateur::count();
+        return Inertia::render("admin.index.entreprise", ["entreprise"=> $entreprise, "count"=> $count]);
+    }
+    
     public function edit_user(Request $request){
         //Validate data :
         $validated = $request->validate([
@@ -38,6 +45,27 @@ class AdminDashboardController extends Controller
     public function create_user(){
         return Inertia::render("admin.create.user");
     }
+
+    public function create_entreprise(){
+        return Inertia::render("admin.create.entreprise");
+    }
+
+   public function store_entreprise(Request $request){
+    try {
+        $validated = $request->validate([
+            "nom_entreprise" => 'required|string|max:255',
+            "addresse"       => 'required|string|max:255',
+            "secteur"        => 'required|string|max:255',
+            "utilisateurs_id"=> 'required|integer',
+        ]);
+
+        Entreprise::create($validated);
+        return redirect()->route('admin.index.entreprise')
+                         ->with('success', 'Entreprise ajoutée !');
+    } catch (\Exception $e) {
+        dd($e->getMessage()); // ← affiche l'erreur exacte
+    }
+}
 
     public function store_user(Request $request) {
         //Validate data :
