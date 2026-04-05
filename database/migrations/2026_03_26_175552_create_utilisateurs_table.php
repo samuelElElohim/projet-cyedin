@@ -17,7 +17,9 @@ return new class extends Migration
         Schema::create('utilisateurs', function (Blueprint $table) {
             $table->id(); // par defaut compris comme cle prim, pas besoin de faire ->unique() ?
 
-            $table->string('nom',15)->nullable(); //pas necessaire donner un grand N de char jps. peut etre null en cas d'entreprise
+            $table->string('nom',25); //pas necessaire donner un grand N de char jps. peut etre null en cas d'entreprise
+            // le nom de l'entreprise est aussi mis dans nom, pour eviter de faire une jointure pour recuperer le nom de l'entreprise, et aussi pour eviter de faire une colonne nom_entreprise dans la table entreprise, qui ne serait pas utilise pour les autres types d'utilisateur
+
             $table->string('prenom',15)->nullable(); //pas necessaire donner un grand N de char jps. peut etre null en cas d'entreprise
 
             $table->string('email',42)->unique(); // chaque email doit etre unique, donc il faut soit gerer le cas ou deux etudiants on le meme nom et prenom, donc ajouter un chiffre avant le @

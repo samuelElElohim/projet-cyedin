@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('filiere',10); // filiere de l'etudiant, abrv ou complete?
             $table->unsignedTinyInteger('niveau_etud'); // il y'en a au plus 5 niveau d'etude, sauf s'il existe une formation qui necessite +9 ans?
 
+            $table->timestamps(); 
+
         });
     }
 

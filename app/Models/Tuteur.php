@@ -10,7 +10,7 @@ class Tuteur extends Utilisateur
 
         'utilisateurs_id',
         'departement',
-
+        'est_jury',
 
     ];
     //

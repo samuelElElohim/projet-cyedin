@@ -16,8 +16,10 @@ return new class extends Migration
             $table->foreign('utilisateurs_id')->references('id')->on('utilisateurs')->onDelete('cascade');// permet de limiter l'existance d'un admin que si un utilisateur de meme id existe deja
             $table->string('departement'); // le departement du tuteur: maths, info, biochimie, boulangerie ...
 
-            $table->timestamp('date_affectation'); // peut etre la date du debut de son role comme tuteur? sinon il y a deja la date de creation de son compte? a voir
-        
+            $table->timestamps();
+
+            $table->boolean('est_jury')->default(false); // pour savoir si le tuteur est aussi jury ou pas.
+
         });
     }
 
