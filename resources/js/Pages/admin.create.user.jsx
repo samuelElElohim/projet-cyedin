@@ -1,5 +1,14 @@
 import { useForm } from "@inertiajs/react"
 
+
+
+const ROLES = [
+    { value: 'admin', label: 'Administrateur' },
+    { value: 'entreprise', label: 'Entreprise' },
+    { value: 'tuteur', label: 'Tuteur' },
+    { value: 'etudiant', label: 'Étudiant' },
+]
+
 export default function AdminCreateUser(){
     // useForm gère les données + erreurs + @csrf automatiquement
     const { data, setData, post, errors } = useForm({
@@ -8,16 +17,56 @@ export default function AdminCreateUser(){
         email: '',
         role: '',
         psw : '',
+
+        // Champs spécifiques étudiants : 
+        filiere : '',
+        niveau_etud: '',
+
+        // Champs spécifiques entreprises :
+        addresse : '',
+        secteur:'',
+
+        // Champs spécifiques tuteur : 
+
+        departement : '',
+        est_jury :'',
+
+        // Champs spécifiques admin :
+        //niveau
+
     })
+
+
 
     function handleSubmit(e) {
         e.preventDefault() //Empeche le formulaire de se déclencher par défaut
         post(route('admin.store.user'))  // envoie vers la route Laravel
     }
 
+    function handleRoleChange(e) {
+    setData({
+        ...data,
+        role: e.target.value,
+        // Champs entreprise
+        addresse: '',
+        secteur: '',
+        // Champs tuteur
+        departement:'',
+        est_jury:'',
+        // Champs etudiant
+        filiere:'',
+        niveau_etud:'',
+    })
+}
+
     return (
+
+
         <form onSubmit={handleSubmit}>
 
+
+            {// Input communs à tous les utilisateurs : 
+            }
             <input
                 type="text"
                 value={data.nom}
@@ -40,12 +89,78 @@ export default function AdminCreateUser(){
                 placeholder="Email Utilisateur"
             />
 
+            <select
+                value={data.role}
+                onChange={handleRoleChange}
+            >
+                <option value="">-- Choisir un rôle --</option>
+                {ROLES.map(r => (
+                    <option key={r.value} value={r.value}>{r.label}</option>
+                ))}
+            </select>
+            {errors.role && <span>{errors.role}</span>}
+
+            {/*
             <input
                 type="number"
                 value={data.role}
                 onChange={e => setData('role', e.target.value)}
                 placeholder="Role Utilisateur"
             />
+            */}
+
+            {/* Champs dynamiques selon le rôle */}
+            {/*data.role === 'admin' && (
+                <input>
+                </input>
+            )*/}
+
+            {data.role === 'entreprise' && (
+                <>
+                <input
+                type="text"
+                value={data.addresse}
+                onChange={e => setData('addresse', e.target.value)}
+                placeholder="Addresse"
+                />
+
+                <input
+                type="text"
+                value={data.secteur}
+                onChange={e => setData('secteur', e.target.value)}
+                placeholder="Secteur (Béta)"
+                />
+                </>
+            )}
+
+            {data.role === 'tuteur' && (
+                <>
+                    <input type="text"
+                    value={data.departement}
+                    onChange={e=>setData('departement', e.target.value)}
+                    placeholder="Departement (Bêta)"
+                    />
+                    <input type="checkbox"
+                    checked={data.est_jury}
+                    onChange={e=>setData('est_jury', e.target.checked)}
+                    />
+                </>
+            )}
+
+            {data.role === 'etudiant' && (
+                <>
+                    <input type="text"
+                    value={data.filiere}
+                    onChange={e=>setData('filiere', e.target.value)}
+                    placeholder="Filière (Bêta)"
+                    />
+
+                    <input type='number'
+                    value={data.niveau_etud}
+                    onChange={e=>setData('niveau_etud', e.target.value)}
+                    placeholder="Niveau Etude (Bêta)" />
+                </>
+            )}
 
 
             <button type="submit">Ajouter Utilisateur</button>
