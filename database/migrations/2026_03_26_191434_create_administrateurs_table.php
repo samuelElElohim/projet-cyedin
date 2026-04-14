@@ -18,7 +18,7 @@ return new class extends Migration
 
             // $table->integer('niveau')->default(1); 3 niveau d'admin? a gerer apres
 
-            $table->timestamp('derniere_action_log'); // ???
+            $table->timestamps(); // ???
         });
     }
 

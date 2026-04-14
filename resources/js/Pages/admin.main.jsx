@@ -10,12 +10,14 @@ export default function AdminMain() {
             >
                 Gérer Utilisateur
             </Link>
-
+            {/*
+            En fait on a pas besoin de ça comme on les ajoutes dans les users... 
+            Il faut juste qu'on fasse un truc clean pour l'affichage de la DB user (filtre?Bouton?)
             <Link
                 href={route("admin.main.entreprise")}
                 className="px-4 py-2 bg-blue-600 text-white rounded">
                 Gérer Entreprises
-            </Link>
+            </Link>*/}
         </div>
     );
 }

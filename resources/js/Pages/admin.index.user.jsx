@@ -2,11 +2,21 @@ import { useState } from "react";
 import { Link, router } from "@inertiajs/react";
 
 
+const ROLES = [
+        {value: 'U', label: 'Utilisateur'},
+        { value: 'A', label: 'Administrateur' },
+        { value: 'E', label: 'Entreprise' },
+        { value: 'T', label: 'Tuteur' },
+        { value: 'S', label: 'Étudiant' },
+        { value: 'J', label: 'Jury' },
+    ]
+
 
 export default function AdminIndexUser({ users, count }){
     const [editingId, setEditingId] = useState(null); // On set les valeurs et les tableaus à null et {}
     const [editData, setEditData] = useState({});
-
+    const [activeTable, setActiveTable] = useState('U');
+    
     // Quand on clique sur modifier on tombe là dessus, ça initialise le dataset qu'on a.
     function handleEdit(user) {
         setEditingId(user.id);
@@ -27,7 +37,29 @@ export default function AdminIndexUser({ users, count }){
             <div>
                 <p> Number of users : {count}</p>
             </div>
-            <table>
+
+            {/* Boutons de sélection de table */}
+            <div style={{ display: 'flex', gap: '8px', margin: '16px 0' }}>
+                {ROLES.map(t => (
+                    <button
+                        key={t.value}
+                        //onClick={() => setActiveTable(t.value)}
+                        style={{
+                            padding: '6px 14px',
+                            borderRadius: '6px',
+                            border: 'none',
+                            cursor: 'pointer',
+                            background: activeTable === t.value ? '#2563eb' : '#e5e7eb',
+                            color: activeTable === t.value ? '#fff' : '#111',
+                            fontWeight: activeTable === t.value ? '700' : '400',
+                        }}
+                    >
+                        {t.label}
+                    </button>
+                ))}
+            </div>
+            {/* CONTENU DYNAMIQUE SELON LA TABLE ACTIVE*/}
+            {activeTable==="U" && (<table>
                 <thead>
                     <tr>
                         <th className="px-4 py-2">ID</th>
@@ -86,7 +118,8 @@ export default function AdminIndexUser({ users, count }){
                     </tr>
                     ))}
                 </tbody>
-            </table>
+            </table>)}
+            
             <Link href={route("admin.main.user")}
             className="px-4 py-2 bg-blue-600 text-white rounded">
             Retour

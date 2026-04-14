@@ -3,10 +3,10 @@ import { useForm } from "@inertiajs/react"
 
 
 const ROLES = [
-    { value: 'admin', label: 'Administrateur' },
-    { value: 'entreprise', label: 'Entreprise' },
-    { value: 'tuteur', label: 'Tuteur' },
-    { value: 'etudiant', label: 'Étudiant' },
+    { value: 'A', label: 'Administrateur' },
+    { value: 'E', label: 'Entreprise' },
+    { value: 'T', label: 'Tuteur' },
+    { value: 'S', label: 'Étudiant' },
 ]
 
 export default function AdminCreateUser(){
@@ -57,8 +57,8 @@ export default function AdminCreateUser(){
         filiere:'',
         niveau_etud:'',
     })
-}
-
+    }
+    
     return (
 
 
@@ -115,7 +115,7 @@ export default function AdminCreateUser(){
                 </input>
             )*/}
 
-            {data.role === 'entreprise' && (
+            {data.role === 'E' && (
                 <>
                 <input
                 type="text"
@@ -133,13 +133,14 @@ export default function AdminCreateUser(){
                 </>
             )}
 
-            {data.role === 'tuteur' && (
+            {data.role === 'T' && (
                 <>
                     <input type="text"
                     value={data.departement}
                     onChange={e=>setData('departement', e.target.value)}
                     placeholder="Departement (Bêta)"
                     />
+                    <label>Est Jury</label>
                     <input type="checkbox"
                     checked={data.est_jury}
                     onChange={e=>setData('est_jury', e.target.checked)}
@@ -147,7 +148,7 @@ export default function AdminCreateUser(){
                 </>
             )}
 
-            {data.role === 'etudiant' && (
+            {data.role === 'S' && (
                 <>
                     <input type="text"
                     value={data.filiere}
@@ -165,6 +166,7 @@ export default function AdminCreateUser(){
 
             <button type="submit">Ajouter Utilisateur</button>
         </form>
+        
     )
 
 }
