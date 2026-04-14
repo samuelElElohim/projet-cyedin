@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Entreprise extends  Utilisateur
+class Entreprise extends Model
 { 
     protected $primaryKey = 'utilisateurs_id'; // ← indique la vraie PK
     protected $fillable = [
@@ -13,5 +13,8 @@ class Entreprise extends  Utilisateur
         'addresse',
         'secteur'
     ];
+    public function utilisateur() {
+        return $this->belongsTo(Utilisateur::class, 'utilisateurs_id');
+    }
 
 }

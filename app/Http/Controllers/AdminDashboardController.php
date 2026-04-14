@@ -26,19 +26,14 @@ class AdminDashboardController extends Controller
         $admins = Administrateur::orderBy('utilisateurs_id')->get();
         $students = Etudiant::orderBy('id')->get();
         $tutors =  Tuteur::orderBy('utilisateurs_id')->get();
+        //$entreprises = Entreprise::orderBy('utilisateurs_id')->get();
+        $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateurs_id')->get();
+        $admins =  Administrateur::orderBy('utilisateurs_id')->get();
 
         $count = Utilisateur::count();
-        public function index_user() {
-            return Inertia::render("Admin/IndexUser", [
-                "users"       => Utilisateur::orderBy('id')->get(),
-                "etudiants"   => Etudiant::orderBy('id')->get(),
-                "tuteurs"     => Tuteur::orderBy('utilisateurs_id')->get(),
-                "entreprises" => Entreprise::orderBy('utilisateurs_id')->get(),
-                "admins"      => Administrateur::orderBy('utilisateurs_id')->get(),
-                "count"       => Utilisateur::count(),
-            ]);
-        }
-        return Inertia::render( "admin.index.user", ["users"=> $users, "count" => $count ]);
+
+
+        return Inertia::render( "admin.index.user", ["users"=> $users, "admins"=> $admins, "students" => $students, "tutors"=> $tutors, "entreprises"=>$entreprises, "count" => $count ]);
 
     }
 
