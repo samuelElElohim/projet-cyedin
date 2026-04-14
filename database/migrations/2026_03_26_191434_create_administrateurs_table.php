@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('administrateurs', function (Blueprint $table) {
 
+            $table->id();
             // check si l'heritage marche de cette facon?
             $table->foreignId('utilisateurs_id')->constrained('utilisateurs')->onDelete('cascade'); // permet de limiter l'existance d'un admin que si un utilisateur de meme id existe deja
 

@@ -23,7 +23,21 @@ class AdminDashboardController extends Controller
     public function index_user() {
         
         $users = Utilisateur::orderBy('id', 'asc')->get();
+        $admins = Administrateur::orderBy('utilisateurs_id')->get();
+        $students = Etudiant::orderBy('id')->get();
+        $tutors =  Tuteur::orderBy('utilisateurs_id')->get();
+
         $count = Utilisateur::count();
+        public function index_user() {
+            return Inertia::render("Admin/IndexUser", [
+                "users"       => Utilisateur::orderBy('id')->get(),
+                "etudiants"   => Etudiant::orderBy('id')->get(),
+                "tuteurs"     => Tuteur::orderBy('utilisateurs_id')->get(),
+                "entreprises" => Entreprise::orderBy('utilisateurs_id')->get(),
+                "admins"      => Administrateur::orderBy('utilisateurs_id')->get(),
+                "count"       => Utilisateur::count(),
+            ]);
+        }
         return Inertia::render( "admin.index.user", ["users"=> $users, "count" => $count ]);
 
     }
@@ -108,7 +122,7 @@ class AdminDashboardController extends Controller
         match($validated['role']) {
             'A' => Administrateur::create([
                         'utilisateurs_id'     => $utilisateur->id,
-                        'derniere_action_log' => now(),
+                        //'derniere_action_log' => now(),
                 ]),
             'S' => Etudiant::create([
                         'utilisateurs_id' => $utilisateur->id,
@@ -125,7 +139,7 @@ class AdminDashboardController extends Controller
                 Tuteur::create([
                     'utilisateurs_id'  => $utilisateur->id,
                     'departement'      => $validated['departement'],
-                    'date_affectation' => now(),
+                    //  'date_affectation' => now(),
                 ]);
                 /*
                 if (!empty($validated['est_jury'])) {
