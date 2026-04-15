@@ -280,7 +280,7 @@ export default function AdminIndexUser({ users, admins, entreprises, tutors, stu
                         <th className="px-4 py-2">Prenom</th>
                         <th className="px-4 py-2">email</th>
                         <th className="px-4 py-2">role</th>
-                        <th className="px-4 py-2">secteur</th>
+                        <th className="px-4 py-2">departement</th>
                         {/*<th className="px-4 py-2"> est_jury </th>*/}
                         <th className="px-4 py-2"></th>
                     </tr>
