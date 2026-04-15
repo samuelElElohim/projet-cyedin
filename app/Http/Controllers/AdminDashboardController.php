@@ -65,7 +65,7 @@ class AdminDashboardController extends Controller
             $request->only(['addresse', 'secteur'])
         ),
         'tuteur' => Tuteur::where('utilisateurs_id', $id)->update(
-            $request->only(['secteur'])
+            $request->only(['departement'])
         ),
         'etudiant' => Etudiant::where('utilisateurs_id', $id)->update(
             $request->only(['filiere', 'niveau_etud'])

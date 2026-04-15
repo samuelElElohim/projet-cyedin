@@ -127,7 +127,7 @@ export default function AdminIndexUser({ users, admins, entreprises, tutors, stu
                             <button onClick={() => handleSave()}> [Sauvegarder] </button>
                             :
                             <button onClick={() => handleEditUser(user)}> [Modifier] </button>
-                            }
+                            }   
                         </td>
                     </tr>
                     ))}
@@ -325,7 +325,7 @@ export default function AdminIndexUser({ users, admins, entreprises, tutors, stu
                             editingId === tut.utilisateur.id
                                 ? <input value={editData.addresse} on onChange={e=>setEditData({...editData, role : e.target.value})}/>
                                 :
-                                tut.secteur
+                                tut.departement
                             }
                         </td>
                         {/*<td className="px-4 py-2">{
