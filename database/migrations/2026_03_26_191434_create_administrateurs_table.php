@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('administrateurs', function (Blueprint $table) {
-            $table->unsignedBigInteger('utilisateurs_id')->primary();
+
+            $table->id();
             // check si l'heritage marche de cette facon?
             $table->foreign('utilisateurs_id')->references('id')->on('utilisateurs')->onDelete('cascade'); // permet de limiter l'existance d'un admin que si un utilisateur de meme id existe deja
 

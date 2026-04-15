@@ -26,6 +26,7 @@ return new class extends Migration
             // exemple: jack.rousseau0@etu.cyu.fr et jack.rousseau1@etu.cyu.fr, deux email different pour deux etudiants diff.
             // peut etre ca serait pratique de mettre en place lors de la generation de l'email, par deffaut apres le nom un entier positif, et remets dans cet entier la valeur de retour de count(nom='jack',prenom='rousseau')
             // a voir
+            // Samuel : Je pense que pour le mvp on a même pas besoin de faire des envois d'emails etc. concentrons-nous sur la base qui est poster annonce et postuler et tuteur qui valide des trucs...  
 
             $table->string('mot_de_passe'); 
             $table->timestamps();

@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Traits\HasUtilisateur;
 class Jury extends Model
 {   
-        protected $fillable = [
-            'utilisateur_id',
-            'departement'
-        ];
-    //
+    use HasUtilisateur;
+    protected $fillable = [
+        'utilisateur_id',
+        'departement'
+    ];
+
 }
