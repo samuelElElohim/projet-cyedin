@@ -41,12 +41,12 @@ Route::get('admin/dashboard', function () {
 Route::get('admin/dashboard/user/show', [AdminDashboardController::class, 'index_user'])->name('admin.index.user');
 Route::post('admin/dashboard/user/add', [AdminDashboardController::class,'store_user'])->name('admin.store.user');
 Route::get('admin/dashboard/user/add', [AdminDashboardController::class,'create_user'])->name('admin.create.user');
-Route::post('admin/dashboard/user/show', [AdminDashboardController::class, 'edit_user'])->name('admin.edit.user');
+Route::post('admin/dashboard/user/{id}', [AdminDashboardController::class, 'edit_user'])->name('admin.edit.user');
 Route::get('admin/dashboard/user', function () {
     return Inertia::render('admin.main.user');
 })->name("admin.main.user");
 
-//Enterprises
+//Enterprises (OBSOLETE)
 Route::get('admin/dashboard/entreprise/show', [AdminDashboardController::class, "index_entreprise"])->name('admin.index.entreprise');
 Route::post('admin/dashboard/entreprise/show', [AdminDashboardController::class,'store_entreprise'])->name('admin.store.entreprise'); 
 Route::get('admin/dashboard/entreprise/add', [AdminDashboardController::class,'create_entreprise'])->name('admin.create.entreprise');

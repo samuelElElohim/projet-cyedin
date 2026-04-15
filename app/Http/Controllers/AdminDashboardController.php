@@ -22,13 +22,23 @@ class AdminDashboardController extends Controller
 {
     public function index_user() {
         
+        //J'ai crée un Trait (une fonction qui peut s'appliquer à plusieurs Models) et je l'applique
+        // à chaque table pertinente pour récupérer toutes les infos à chaque fois (redondant mais pour l'instant le mieux que je
+        // puisse faire...)
+
+        // Piste d'amélioration : vérifier ICI ce qu'on demande et utiliser les boutons pour re-appeler index_user() et donc
+        // ne donner qu'à chaque fois qu'une table
+
+
         $users = Utilisateur::orderBy('id', 'asc')->get();
-        $admins = Administrateur::orderBy('utilisateurs_id')->get();
-        $students = Etudiant::orderBy('id')->get();
-        $tutors =  Tuteur::orderBy('utilisateurs_id')->get();
+        //$admins = Administrateur::orderBy('utilisateurs_id')->get();
+        $admins = Administrateur::with("utilisateur")->orderBy('utilisateurs_id')->get();
+        //$students = Etudiant::orderBy('id')->get();
+        $students = Etudiant::with("utilisateur")->orderBy('id')->get();
+        $tutors =  Tuteur::with("utilisateur")->orderBy('utilisateurs_id')->get();
+        //$tutors =  Tuteur::orderBy('utilisateurs_id')->get();
         //$entreprises = Entreprise::orderBy('utilisateurs_id')->get();
         $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateurs_id')->get();
-        $admins =  Administrateur::orderBy('utilisateurs_id')->get();
 
         $count = Utilisateur::count();
 
@@ -43,19 +53,26 @@ class AdminDashboardController extends Controller
         return Inertia::render("admin.index.entreprise", ["entreprise"=> $entreprise, "count"=> $count]);
     }
     
-    public function edit_user(Request $request){
-        //Validate data :
-        $validated = $request->validate([
-            "nom"=> 'required|string|max:255',
-            "prenom" => 'required|string|max:255',
-            "email" => 'required|string|max:255',
-            "role" => 'required|string|in:A,J,T,E,S'
-        ]);
+    public function edit_user(Request $request, $id) {
+    // Toujours mettre à jour utilisateurs
+    Utilisateur::where('id', $id)->update(
+        $request->only(['nom', 'prenom', 'email', 'role'])
+    );
 
-        $user = Utilisateur::find($request->id);
-        $user->update($validated);
-        return redirect()->route('admin.index.user'); // renvoie vers la page
-    }
+    // Mettre à jour la table spécifique selon le role
+    match($request->role) {
+        'entreprise' => Entreprise::where('utilisateurs_id', $id)->update(
+            $request->only(['addresse', 'secteur'])
+        ),
+        'tuteur' => Tuteur::where('utilisateurs_id', $id)->update(
+            $request->only(['secteur'])
+        ),
+        'etudiant' => Etudiant::where('utilisateurs_id', $id)->update(
+            $request->only(['filiere', 'niveau_etud'])
+        ),
+        default => null,
+    };
+}
 
     public function create_user(){
         return Inertia::render("admin.create.user");
@@ -143,6 +160,7 @@ class AdminDashboardController extends Controller
                         'departement'    => $validated['departement'],
                     ]);
                 }*/
+                // AJOUTER LES JURYS SI EST_JURY
             })(),
             
             default => null

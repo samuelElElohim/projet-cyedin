@@ -18,14 +18,27 @@ export default function AdminIndexUser({ users, admins, entreprises, tutors, stu
     const [activeTable, setActiveTable] = useState('users');
     
     // Quand on clique sur modifier on tombe là dessus, ça initialise le dataset qu'on a.
-    function handleEdit(user) {
+    // Factoré pour tous les types de tables avec le ...Object.fromEntries etc.
+    function handleEdit(row, extraFields = []) {
+        setEditingId(row.utilisateur.id);
+        setEditData({
+            utilisateur_id: row.utilisateur.id,
+            nom: row.utilisateur.nom,
+            prenom: row.utilisateur.prenom,
+            email: row.utilisateur.email,
+            role: row.utilisateur.role,
+            ...Object.fromEntries(extraFields.map(f => [f, row[f]])),
+        });
+    }
+    // Pour users, pas de .utilisateur
+    function handleEditUser(user) {
         setEditingId(user.id);
-        setEditData(user);
+        setEditData({ utilisateur_id: user.id, nom: user.nom, prenom: user.prenom, email: user.email, role: user.role });
     }
 
     // Quand on clique on enregistre.
-    function handleSave(user){
-        router.post(route('admin.edit.user', {id : user.id}), editData);
+    function handleSave(){
+        router.post(route('admin.edit.user', {id : editData.utilisateur_id}), editData);
         setEditingId(null);
     }
 
@@ -111,9 +124,9 @@ export default function AdminIndexUser({ users, admins, entreprises, tutors, stu
                             {
                             editingId===user.id
                             ?
-                            <button onClick={() => handleSave(user)}> [Sauvegarder] </button>
+                            <button onClick={() => handleSave()}> [Sauvegarder] </button>
                             :
-                            <button onClick={() => handleEdit(user)}> [Modifier] </button>
+                            <button onClick={() => handleEditUser(user)}> [Modifier] </button>
                             }
                         </td>
                     </tr>
@@ -134,47 +147,47 @@ export default function AdminIndexUser({ users, admins, entreprises, tutors, stu
                 </thead>
                 <tbody>
                     {admins.map((admin)=>(
-                    <tr key={admin.id}>
+                    <tr key={admin.utilisateur.id}>
                         <td className="px-4 py-2">
-                        {admin.id}
+                        {admin.utilisateur.id}
                         </td>
                         <td className="px-4 py-2">
                             {
-                                editingId === admin.id
+                                editingId === admin.utilisateur.id
                                 // Si on est sur le user à modifier  :
                                 // On edit les data (...editData permet de sauvegarder tout SAUF le nom)
                                 ? <input value={editData.nom} onChange={e=> setEditData({...editData, nom : e.target.value})}/> 
                                 :
                                 // Sinon, on affiche juste le nom.
-                                admin.nom
+                                admin.utilisateur.nom
                             }
                         </td>
                         <td className="px-4 py-2">
                             {
                                 
-                                editingId === admin.id
+                                editingId === admin.utilisateur.id
                                 ? <input value={editData.prenom} onChange={e=> setEditData({...editData, prenom : e.target.value})}/>
                                 :
-                                admin.prenom
+                                admin.utilisateur.prenom
                             }
                         </td>
                         <td className="px-4 py-2">{
-                                editingId === admin.id
+                                editingId === admin.utilisateur.id
                                 ? <input value={editData.email} onChange={e=> setEditData({...editData, email : e.target.value})}/>
                                 :
-                                admin.email}</td>
+                                admin.utilisateur.email}</td>
                         <td className="px-4 py-2">{
-                        editingId === admin.id
+                        editingId === admin.utilisateur.id
                                 ? <input value={editData.role} onChange={e=> setEditData({...editData, role : e.target.value})}/>
                                 :
-                                admin.role}</td>
+                                admin.utilisateur.role}</td>
                         <td className="px-4 py-2">
                             {
-                            editingId===admin.id
+                            editingId===admin.utilisateur.id
                             ?
-                            <button onClick={() => handleSave(admin)}> [Sauvegarder] </button>
+                            <button onClick={() => handleSave()}> [Sauvegarder] </button>
                             :
-                            <button onClick={() => handleEdit(admin)}> [Modifier] </button>
+                            <button onClick={() => handleEdit(admin, [])}> [Modifier] </button>
                             }
                         </td>
                     </tr>
@@ -233,14 +246,14 @@ export default function AdminIndexUser({ users, admins, entreprises, tutors, stu
                                 ent.utilisateur.role}</td>
                         <td className="px-4 py-2">{
                             editingId === ent.utilisateur.id
-                                ? <input value={editData.addresse} on onChange={e=>setEditData({...editData, role : e.target.value})}/>
+                                ? <input value={editData.addresse} onChange={e=>setEditData({...editData, role : e.target.value})}/>
                                 :
                                 ent.addresse
                             }
                         </td>
                         <td className="px-4 py-2">{
                             editingId === ent.utilisateur.id
-                                ? <input value={editData.secteur} on onChange={e=>setEditData({...editData, secteur : e.target.value})}/>
+                                ? <input value={editData.secteur} onChange={e=>setEditData({...editData, secteur : e.target.value})}/>
                                 :
                                 ent.secteur
                             }
@@ -249,9 +262,166 @@ export default function AdminIndexUser({ users, admins, entreprises, tutors, stu
                             {
                             editingId===ent.utilisateur.id
                             ?
-                            <button onClick={() => handleSave(ent)}> [Sauvegarder] </button>
+                            <button onClick={() => handleSave()}> [Sauvegarder] </button>
                             :
-                            <button onClick={() => handleEdit(ent)}> [Modifier] </button>
+                            <button onClick={() => handleEdit(ent, ["addresse", "secteur"])}> [Modifier] </button>
+                            }
+                        </td>
+                    </tr>
+                    ))}
+                </tbody>
+            </table>)}
+
+            {activeTable==="tutors" && (<table>
+                <thead>
+                    <tr>
+                        <th className="px-4 py-2">ID</th>
+                        <th className="px-4 py-2">Nom</th>
+                        <th className="px-4 py-2">Prenom</th>
+                        <th className="px-4 py-2">email</th>
+                        <th className="px-4 py-2">role</th>
+                        <th className="px-4 py-2">secteur</th>
+                        {/*<th className="px-4 py-2"> est_jury </th>*/}
+                        <th className="px-4 py-2"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {tutors.map((tut)=>(
+                    <tr key={tut.utilisateur.id}>
+                        <td className="px-4 py-2">
+                        {tut.utilisateur.id}
+                        </td>
+                        <td className="px-4 py-2">
+                            {
+                                editingId === tut.utilisateur.id
+                                // Si on est sur le user à modifier  :
+                                // On edit les data (...editData permet de sauvegarder tout SAUF le nom)
+                                ? <input value={editData.nom} onChange={e=> setEditData({...editData, nom : e.target.value})}/> 
+                                :
+                                // Sinon, on affiche juste le nom.
+                                tut.utilisateur.nom
+                            }
+                        </td>
+                        <td className="px-4 py-2">
+                            {
+                                
+                                editingId === tut.utilisateur.id
+                                ? <input value={editData.prenom} onChange={e=> setEditData({...editData, prenom : e.target.value})}/>
+                                :
+                                tut.utilisateur.prenom
+                            }
+                        </td>
+                        <td className="px-4 py-2">{
+                                editingId === tut.utilisateur.id
+                                ? <input value={editData.email} onChange={e=> setEditData({...editData, email : e.target.value})}/>
+                                :
+                                tut.utilisateur.email}</td>
+                        <td className="px-4 py-2">{
+                        editingId === tut.utilisateur.id
+                                ? <input value={editData.role} onChange={e=> setEditData({...editData, role : e.target.value})}/>
+                                :
+                                tut.utilisateur.role}</td>
+                        <td className="px-4 py-2">{
+                            editingId === tut.utilisateur.id
+                                ? <input value={editData.addresse} on onChange={e=>setEditData({...editData, role : e.target.value})}/>
+                                :
+                                tut.secteur
+                            }
+                        </td>
+                        {/*<td className="px-4 py-2">{
+                            editingId === tut.utilisateur.id
+                                ? <input value={editData.est_jury} on onChange={e=>setEditData({...editData, secteur : e.target.value})}/>
+                                :
+                                tut.est_jury
+                            }
+                        </td>*/}
+                        <td className="px-4 py-2">
+                            {
+                            editingId===tut.utilisateur.id
+                            ?
+                            <button onClick={() => handleSave()}> [Sauvegarder] </button>
+                            :
+                            <button onClick={() => handleEdit(tut, ["secteur"])}> [Modifier] </button>
+                            }
+                        </td>
+                    </tr>
+                    ))}
+                </tbody>
+            </table>)}
+
+            {activeTable==="students" && (<table>
+                <thead>
+                    <tr>
+                        <th className="px-4 py-2">ID</th>
+                        <th className="px-4 py-2">Nom</th>
+                        <th className="px-4 py-2">Prenom</th>
+                        <th className="px-4 py-2">email</th>
+                        <th className="px-4 py-2">role</th>
+                        <th className="px-4 py-2">filiere</th>
+                        <th className="px-4 py-2">niveau étude</th>
+
+                        <th className="px-4 py-2"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {students.map((stu)=>(
+                    <tr key={stu.utilisateur.id}>
+                        <td className="px-4 py-2">
+                        {stu.utilisateur.id}
+                        </td>
+                        <td className="px-4 py-2">
+                            {
+                                editingId === stu.utilisateur.id
+                                // Si on est sur le user à modifier  :
+                                // On edit les data (...editData permet de sauvegarder tout SAUF le nom)
+                                ? <input value={editData.nom} onChange={e=> setEditData({...editData, nom : e.target.value})}/> 
+                                :
+                                // Sinon, on affiche juste le nom.
+                                stu.utilisateur.nom
+                            }
+                        </td>
+                        <td className="px-4 py-2">
+                            {
+                                
+                                editingId === stu.utilisateur.id
+                                ? <input value={editData.prenom} onChange={e=> setEditData({...editData, prenom : e.target.value})}/>
+                                :
+                                stu.utilisateur.prenom
+                            }
+                        </td>
+                        <td className="px-4 py-2">{
+                                editingId === stu.utilisateur.id
+                                ? <input value={editData.email} onChange={e=> setEditData({...editData, email : e.target.value})}/>
+                                :
+                                stu.utilisateur.email}</td>
+                        <td className="px-4 py-2">{
+                        editingId === stu.utilisateur.id
+                                ? <input value={editData.role} onChange={e=> setEditData({...editData, role : e.target.value})}/>
+                                :
+                                stu.utilisateur.role}</td>
+
+                        <td className="px-4 py-2">{
+                            editingId === stu.utilisateur.id
+                                ? <input value={editData.addresse} on onChange={e=>setEditData({...editData, role : e.target.value})}/>
+                                :
+                                stu.filiere
+                            }
+                        </td>
+                        <td className="px-4 py-2">{
+                            editingId === stu.utilisateur.id
+                                ? <input value={editData.addresse} on onChange={e=>setEditData({...editData, role : e.target.value})}/>
+                                :
+                                stu.niveau_etud
+                            }
+                        </td>
+                       
+                        <td className="px-4 py-2">
+                            {
+                            editingId===stu.utilisateur.id
+                            ?
+                            <button onClick={() => handleSave()}> [Sauvegarder] </button>
+                            :
+                            <button onClick={() => handleEdit(stu, ["filiere", "niveau_etud"])}> [Modifier] </button>
                             }
                         </td>
                     </tr>
