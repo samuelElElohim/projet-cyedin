@@ -30,7 +30,9 @@ return new class extends Migration
 
             $table->string('mot_de_passe'); 
             $table->timestamps();
-            $table->string('role',1); // peut etre assigner en un seul char? en angalis: A: admin, J: jury, S:student, E:entreprise, T: tutor
+            // À la place de string('role', 1)
+            $table->enum('role', ['A', 'J', 'S', 'E', 'T'])->default('S');
+            // peut etre assigner en un seul char? en angalis: A: admin, J: jury, S:student, E:entreprise, T: tutor
             // dans la creation faudra juste donner une liste, le choix dans la liste donne la lettre?
 
             //$table->timestamp('date_creation');
