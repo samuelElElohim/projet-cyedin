@@ -17,6 +17,7 @@ export default function AdminIndexUser({ users, admins, entreprises, tutors, stu
     const [editData, setEditData] = useState({});
     const [activeTable, setActiveTable] = useState('users');
     
+
     // Quand on clique sur modifier on tombe là dessus, ça initialise le dataset qu'on a.
     // Factoré pour tous les types de tables avec le ...Object.fromEntries etc.
     function handleEdit(row, extraFields = []) {
@@ -27,6 +28,7 @@ export default function AdminIndexUser({ users, admins, entreprises, tutors, stu
             prenom: row.utilisateur.prenom,
             email: row.utilisateur.email,
             role: row.utilisateur.role,
+            est_active: row.utilisateur.est_active,
             ...Object.fromEntries(extraFields.map(f => [f, row[f]])),
         });
     }
@@ -41,6 +43,10 @@ export default function AdminIndexUser({ users, admins, entreprises, tutors, stu
         router.post(route('admin.edit.user', {id : editData.utilisateur_id}), editData);
         setEditingId(null);
     }
+
+    function handleToggleActive(user) {
+    router.post(route('admin.toggle.user', { id: user.id }));
+}
 
     return (
         <div>
@@ -81,7 +87,9 @@ export default function AdminIndexUser({ users, admins, entreprises, tutors, stu
                         <th className="px-4 py-2">Prenom</th>
                         <th className="px-4 py-2">email</th>
                         <th className="px-4 py-2">role</th>
-                        <th className="px-4 py-2"></th>
+                        <th className="px-4 py-2">Statut</th>
+                        <th name= "modifier" className="px-4 py-2"></th>
+                        <th name= "toggle" className="px-4 py-2"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -121,6 +129,12 @@ export default function AdminIndexUser({ users, admins, entreprises, tutors, stu
                                 :
                                 user.role}</td>
                         <td className="px-4 py-2">
+                            <span style={{ color: user.est_active ? 'green' : 'red' }}>
+                                {user.est_active ? '● Actif' : '○ Inactif'}
+                            </span>
+                        </td>
+
+                        <td className="px-4 py-2">
                             {
                             editingId===user.id
                             ?
@@ -128,7 +142,19 @@ export default function AdminIndexUser({ users, admins, entreprises, tutors, stu
                             :
                             <button onClick={() => handleEditUser(user)}> [Modifier] </button>
                             }   
+                            <button onClick={() => handleToggleActive(user)}>
+                                {user.est_active ? '[Désactiver]' : '[Activer]'}
+                            </button>
                         </td>
+
+                      {/*  <td className="px-4 py-2">
+                            {editingId===user.id ?
+                            <button onClick={() => handleDeactivate()}>[Déactiver Compte]</button>    
+                            :
+                            user.est_active
+                            }
+                        </td>*/}
+
                     </tr>
                     ))}
                 </tbody>

@@ -47,6 +47,13 @@ class AdminDashboardController extends Controller
 
     }
 
+    public function toggle_user(Request $request, $id){
+        $user = Utilisateur::findOrFail($id);
+        $user->est_active = !$user->est_active;
+        $user->save();
+        return redirect()->route('admin.index.user');
+    }
+
     public function index_entreprise(){
         $entreprise = Entreprise::orderBy('utilisateurs_id', 'asc')->get();
         $count = Utilisateur::count();
@@ -81,7 +88,7 @@ class AdminDashboardController extends Controller
     public function create_entreprise(){
         return Inertia::render("admin.create.entreprise");
     }
-
+/*
    public function store_entreprise(Request $request){
     try {
         $validated = $request->validate([
@@ -97,7 +104,7 @@ class AdminDashboardController extends Controller
     } catch (\Exception $e) {
         dd($e->getMessage()); // ← affiche l'erreur exacte
     }
-}
+}*/
 
     public function store_user(Request $request) {
         //dd($request->all());
@@ -126,7 +133,7 @@ class AdminDashboardController extends Controller
             'email'               => $validated['email'],
             'role'                => $validated['role'],
             'mot_de_passe'        => Hash::make($temporaryPassword),
-            'est_active'          => false,
+            'est_active'          => true,
             'premier_mdp_changer' => false,
         ]);
 

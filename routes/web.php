@@ -42,6 +42,8 @@ Route::get('admin/dashboard/user/show', [AdminDashboardController::class, 'index
 Route::post('admin/dashboard/user/add', [AdminDashboardController::class,'store_user'])->name('admin.store.user');
 Route::get('admin/dashboard/user/add', [AdminDashboardController::class,'create_user'])->name('admin.create.user');
 Route::post('admin/dashboard/user/{id}', [AdminDashboardController::class, 'edit_user'])->name('admin.edit.user');
+Route::post('admin/dashboard/user/toggle/{id}', [AdminDashboardController::class, 'toggle_user'])
+    ->name('admin.toggle.user');
 Route::get('admin/dashboard/user', function () {
     return Inertia::render('admin.main.user');
 })->name("admin.main.user");
