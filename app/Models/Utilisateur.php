@@ -13,7 +13,7 @@ class Utilisateur extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $table = 'utilisateurs'; // C'est mieux de le déclarer explicitement.
-
+    protected $authPasswordName = 'mot_de_passe';
     /**
      * The attributes that are mass assignable.
      *
@@ -57,18 +57,24 @@ class Utilisateur extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'mot_de_passe' => 'hashed',
+            //'mot_de_passe' => 'hashed',
             'est_active' => 'boolean',
             'premier_mdp_changer' => 'boolean'
         ];
     }
 
     // par default, laravel utilise "password", donc j'ai indique le changement.
-    public function getAuthPassword()
+    public function getAuthPassword() :string
     {
         return $this->mot_de_passe;
     }
     
+    
+    public function getAuthPasswordName(): string
+{
+    return 'mot_de_passe';
+}
+
     // Retourne le profil lié selon le rôle
     public function profil(): mixed
     {

@@ -31,6 +31,8 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        //dd(Auth::user()); // ← ajoute ça temporairement
+
         $request->session()->regenerate();
 
         return match(Auth::user()->role) {
