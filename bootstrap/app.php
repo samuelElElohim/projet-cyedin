@@ -15,10 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
-    
-    $middleware->alias([
-        'checkAge' => CheckAge::class,
-    ]);
+        
+        $middleware->alias([
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
+        ]);
+
 
     $middleware->web(append: [
         \App\Http\Middleware\HandleInertiaRequests::class,

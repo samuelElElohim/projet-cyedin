@@ -35,7 +35,7 @@ class AdminDashboardController extends Controller
         $admins = Administrateur::with("utilisateur")->orderBy('utilisateurs_id')->get();
         //$students = Etudiant::orderBy('id')->get();
         $students = Etudiant::with("utilisateur")->orderBy('id')->get();
-        $tutors =  Tuteur::with("utilisateur")->orderBy('utilisateurs_id')->get();
+        $tutors =  Tuteur::with("utilisateur")->orderBy('id')->get();
         //$tutors =  Tuteur::orderBy('utilisateurs_id')->get();
         //$entreprises = Entreprise::orderBy('utilisateurs_id')->get();
         $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateurs_id')->get();
@@ -126,7 +126,8 @@ class AdminDashboardController extends Controller
         ]);
 
         // Création utilisateur de base
-        $temporaryPassword = Str::password(7);
+        //$temporaryPassword = Str::password(7);
+        $temporaryPassword = "password";
         $utilisateur = Utilisateur::create([
             'nom'                 => $validated['nom'],
             'prenom'              => $validated['prenom'] ?? null,
