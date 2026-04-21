@@ -39,7 +39,6 @@ Route::middleware(['auth', 'role:A'])->group(function () {
     Route::get('admin/dashboard', function () {
     return Inertia::render('admin.main');
 })->name('admin.dashboard');
-
 Route::get('admin/dashboard/user/show', [AdminDashboardController::class, 'index_user'])->name('admin.index.user');
 Route::post('admin/dashboard/user/add', [AdminDashboardController::class,'store_user'])->name('admin.store.user');
 Route::get('admin/dashboard/user/add', [AdminDashboardController::class,'create_user'])->name('admin.create.user');
