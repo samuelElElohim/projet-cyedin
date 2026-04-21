@@ -92,6 +92,29 @@ class Utilisateur extends Authenticatable
         return $this->hasOne(Administrateur::class, 'utilisateurs_id');
     }
 
+    // ajouter les autres profils (tuteur, jury) 
+    public function tuteur()
+    {
+        return $this->hasOne(Tuteur::class, 'utilisateurs_id');
+    }
+   
+    public function jury()
+    {
+        return $this->hasOne(Jury::class, 'utilisateurs_id');
+    }
+
+    // ajouter les items qui appartiennent a un utilisateur (notficiations, documents)
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'utilisateurs_id');
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'utilisateurs_id');
+    }
+
+
 
 
     // Retourne le profil lié selon le rôle
@@ -106,4 +129,29 @@ class Utilisateur extends Authenticatable
             default => null,
         };
     }
+
+
+
+
+    // scopes
+
+    // scope pour filtrer les utilisateurs actifs
+    public function scopeActif($query)
+    {
+        return $query->where('est_active', true);
+    }
+
+    // scope pour filtrer les utilisateurs qui n'ont pas encore changé leur mot de passe
+    public function scopePremierConnexion($query)
+    {
+        return $query->where('premier_mdp_changer', false);
+    }
+
+    // scope pour filtrer les utilisateurs par role
+    // jsp si c'est utile vu le deploie deja effectue dans le mvp
+    public function scopeRole($query, string $role)
+    {
+        return $query->where('role', $role);
+    }
+
 }

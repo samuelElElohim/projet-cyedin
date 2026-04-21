@@ -12,4 +12,16 @@ class Jury extends Model
         'departement'
     ];
 
+
+    public function utilisateur()
+    {
+        return $this->belongsTo(Utilisateur::class, 'utilisateurs_id');
+    }
+
+    //scopes
+    // Scope pour filtrer les jurys par departement
+    public function scopeDepartement($query, string $departement)
+    {
+        return $query->where('departement', $departement);
+    }
 }
