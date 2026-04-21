@@ -15,8 +15,7 @@ return new class extends Migration
 
             $table->id();
             // check si l'heritage marche de cette facon?
-            $table->foreign('utilisateurs_id')->references('id')->on('utilisateurs')->onDelete('cascade'); // permet de limiter l'existance d'un admin que si un utilisateur de meme id existe deja
-
+            $table->foreignId('utilisateurs_id')->constrained('utilisateurs')->onDelete('cascade');
             // $table->integer('niveau')->default(1); 3 niveau d'admin? a gerer apres
 
             $table->timestamps(); // ???
