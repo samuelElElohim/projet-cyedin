@@ -61,6 +61,8 @@ Route::middleware(['auth', 'role:E'])->group(function() {
     })->name('entreprise.dashboard');
 
     Route::get('entreprise/dashboard/offre', [EntrepriseDashboardController::class, 'index_offre'])->name('entreprise.index.offre');
+    Route::post('enteprise.dashboard/offres/add', [EntrepriseDashboardController::class, 'store_offre'])
+        ->name('entreprise.store.offre');
 });
 
 //DASHBOARDS PLACEHOLDER

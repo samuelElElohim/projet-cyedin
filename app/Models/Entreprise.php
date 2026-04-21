@@ -7,7 +7,7 @@ use App\Traits\HasUtilisateur;
 class Entreprise extends Model
 { 
     use HasUtilisateur;
-    protected $primaryKey = 'utilisateurs_id'; // ← indique la vraie PK
+    //protected $primaryKey = 'utilisateurs_id'; // ← indique la vraie PK
     protected $fillable = [
         'utilisateurs_id',
         'nom_entreprise',
@@ -18,7 +18,8 @@ class Entreprise extends Model
         return $this->belongsTo(Utilisateur::class, 'utilisateurs_id');
     }
 
-    public function get_offres(){
-        return $this->hasMany(Offre::class);
+    public function offres()
+    {
+        return $this->hasMany(Offre::class, 'entreprise_id', 'id');
     }
 }

@@ -15,17 +15,41 @@ class EntrepriseDashboardController extends Controller
 {
     
     public function index_offre()
-{
-    $entreprise = auth()->user()->entreprise;
+    {
+        $entreprise = auth()->user()->entreprise;
 
-    if (!$entreprise) {
-        abort(403, 'Entreprise inexistante');
+        if (!$entreprise) {
+            abort(403, 'Entreprise inexistante');
+        }
+
+        $offres = $entreprise->offres;
+
+        return Inertia::render('entreprise.index.offre', [
+            'offres' => $offres
+        ]);
     }
 
-    $offres = $entreprise->offres;
+    public function store_offre(Request $request)
+    {
+        $request->validate([
+            'titre' => 'required|string|max:255',
+            'description' => 'required|string',
+            'duree_semaines' => 'required|integer|min:1',
+        ]);
 
-    return Inertia::render('entreprise.index.offre', [
-        'offres' => $offres
-    ]);
-}
+        $entreprise = auth()->user()->entreprise;
+
+        if (!$entreprise) {
+            abort(403, "Entreprise introuvable");
+        }
+
+        Offre::create([
+            'titre' => $request->titre,
+            'description' => $request->description,
+            'duree_semaines' => $request->duree_semaines,
+            'entreprise_id' => $entreprise->id,
+        ]);
+
+        return redirect()->route('entreprise.index.offre');
+    }
 }
