@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\EntrepriseDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\OffreController;
 use Illuminate\Foundation\Application;
@@ -53,15 +54,21 @@ Route::get('admin/dashboard/user', function () {
 
 
 
+
+Route::middleware(['auth', 'role:E'])->group(function() {
+    Route::get('/entreprise/dashboard', function () {
+    return Inertia::render('entreprise.main');
+    })->name('entreprise.dashboard');
+
+    Route::get('entreprise/dashboard/offre', [EntrepriseDashboardController::class, 'index_offre'])->name('entreprise.index.offre');
+});
+
 //DASHBOARDS PLACEHOLDER
+/*
 Route::get('/tuteur/dashboard', function () {
     return Inertia::render('Dashboard'); // page placeholder pour l'instant
 })->middleware('auth')->name('tuteur.dashboard');
-
-Route::get('/entreprise/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware('auth')->name('entreprise.dashboard');
-
+*/
 Route::get('/jury/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware('auth')->name('jury.dashboard');

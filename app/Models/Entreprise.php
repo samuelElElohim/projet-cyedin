@@ -18,4 +18,7 @@ class Entreprise extends Model
         return $this->belongsTo(Utilisateur::class, 'utilisateurs_id');
     }
 
+    public function get_offres(){
+        return $this->hasMany(Offre::class);
+    }
 }

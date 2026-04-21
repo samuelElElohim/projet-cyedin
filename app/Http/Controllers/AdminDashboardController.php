@@ -54,11 +54,12 @@ class AdminDashboardController extends Controller
         return redirect()->route('admin.index.user');
     }
 
+    /*
     public function index_entreprise(){
         $entreprise = Entreprise::orderBy('utilisateurs_id', 'asc')->get();
         $count = Utilisateur::count();
         return Inertia::render("admin.index.entreprise", ["entreprise"=> $entreprise, "count"=> $count]);
-    }
+    }*/
     
     public function edit_user(Request $request, $id) {
     // Toujours mettre à jour utilisateurs
@@ -84,11 +85,11 @@ class AdminDashboardController extends Controller
     public function create_user(){
         return Inertia::render("admin.create.user");
     }
-
+/*
     public function create_entreprise(){
         return Inertia::render("admin.create.entreprise");
     }
-/*
+
    public function store_entreprise(Request $request){
     try {
         $validated = $request->validate([
@@ -127,7 +128,7 @@ class AdminDashboardController extends Controller
 
         // Création utilisateur de base
         //$temporaryPassword = Str::password(7);
-        $temporaryPassword = "password";
+        $temporaryPassword = "password";    
         $utilisateur = Utilisateur::create([
             'nom'                 => $validated['nom'],
             'prenom'              => $validated['prenom'] ?? null,

@@ -70,10 +70,29 @@ class Utilisateur extends Authenticatable
     }
     
     
+    // Pour dire à laravel que le psw c mot_de_passe.
     public function getAuthPasswordName(): string
-{
-    return 'mot_de_passe';
-}
+    {
+        return 'mot_de_passe';
+    }
+
+        public function entreprise()
+    {
+        return $this->hasOne(Entreprise::class, 'utilisateurs_id');
+    }
+
+    public function etudiant()
+    {
+        return $this->hasOne(Etudiant::class, 'utilisateurs_id');
+    }
+
+
+    public function administrateur()
+    {
+        return $this->hasOne(Administrateur::class, 'utilisateurs_id');
+    }
+
+
 
     // Retourne le profil lié selon le rôle
     public function profil(): mixed

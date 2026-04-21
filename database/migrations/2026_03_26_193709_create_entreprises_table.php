@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('entreprises', function (Blueprint $table) {
+            $table->id();
             $table->foreignId('utilisateurs_id')->constrained('utilisateurs')->onDelete('cascade');// permet de limiter l'existance d'un admin que si un utilisateur de meme id existe deja
             $table->string('nom_entreprise'); // taille max par default 255 char, pas besoin de specifie?
             $table->string('addresse');

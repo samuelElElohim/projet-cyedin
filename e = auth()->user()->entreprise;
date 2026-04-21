@@ -1,0 +1,21 @@
+[90m= [39m[34;4mPDO[39;24m {#5468
+    [34minTransaction[39m: [36mfalse[39m,
+    [34mattributes[39m: {
+      [34mCASE[39m: [36mNATURAL[39m,
+      [34mERRMODE[39m: [36mEXCEPTION[39m,
+      [34mPERSISTENT[39m: [36mfalse[39m,
+      [34mDRIVER_NAME[39m: "[32mpgsql[39m",
+      [34mSERVER_INFO[39m: "[32mPID: 14433; Client Encoding: UTF8; Is Superuser: on; Session Authorization: postgres; Date Style: ISO, DMY[39m",
+      [34mORACLE_NULLS[39m: [36mNATURAL[39m,
+      [34mCLIENT_VERSION[39m: "[32m16.11[39m",
+      [34mSERVER_VERSION[39m: "[32m16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)[39m",
+      [34mSTATEMENT_CLASS[39m: [
+        "[32mPDOStatement[39m",
+      ],
+      [34mEMULATE_PREPARES[39m: [36mfalse[39m,
+      [34mCONNECTION_STATUS[39m: "[32mConnection OK; waiting to send.[39m",
+      [34mSTRINGIFY_FETCHES[39m: [36mfalse[39m,
+      [34mDEFAULT_FETCH_MODE[39m: [36mBOTH[39m,
+    },
+  }
+
