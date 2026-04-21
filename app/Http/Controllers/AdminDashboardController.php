@@ -35,7 +35,7 @@ class AdminDashboardController extends Controller
         $admins = Administrateur::with("utilisateur")->orderBy('utilisateurs_id')->get();
         //$students = Etudiant::orderBy('id')->get();
         $students = Etudiant::with("utilisateur")->orderBy('id')->get();
-        $tutors =  Tuteur::with("utilisateur")->orderBy('utilisateurs_id')->get();
+        $tutors =  Tuteur::with("utilisateur")->orderBy('id')->get();
         //$tutors =  Tuteur::orderBy('utilisateurs_id')->get();
         //$entreprises = Entreprise::orderBy('utilisateurs_id')->get();
         $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateurs_id')->get();
@@ -47,11 +47,19 @@ class AdminDashboardController extends Controller
 
     }
 
+    public function toggle_user(Request $request, $id){
+        $user = Utilisateur::findOrFail($id);
+        $user->est_active = !$user->est_active;
+        $user->save();
+        return redirect()->route('admin.index.user');
+    }
+
+    /*
     public function index_entreprise(){
         $entreprise = Entreprise::orderBy('utilisateurs_id', 'asc')->get();
         $count = Utilisateur::count();
         return Inertia::render("admin.index.entreprise", ["entreprise"=> $entreprise, "count"=> $count]);
-    }
+    }*/
     
     public function edit_user(Request $request, $id) {
     // Toujours mettre à jour utilisateurs
@@ -77,7 +85,7 @@ class AdminDashboardController extends Controller
     public function create_user(){
         return Inertia::render("admin.create.user");
     }
-
+/*
     public function create_entreprise(){
         return Inertia::render("admin.create.entreprise");
     }
@@ -97,7 +105,7 @@ class AdminDashboardController extends Controller
     } catch (\Exception $e) {
         dd($e->getMessage()); // ← affiche l'erreur exacte
     }
-}
+}*/
 
     public function store_user(Request $request) {
         //dd($request->all());
@@ -119,14 +127,15 @@ class AdminDashboardController extends Controller
         ]);
 
         // Création utilisateur de base
-        $temporaryPassword = Str::password(7);
+        //$temporaryPassword = Str::password(7);
+        $temporaryPassword = "password";    
         $utilisateur = Utilisateur::create([
             'nom'                 => $validated['nom'],
             'prenom'              => $validated['prenom'] ?? null,
             'email'               => $validated['email'],
             'role'                => $validated['role'],
             'mot_de_passe'        => Hash::make($temporaryPassword),
-            'est_active'          => false,
+            'est_active'          => true,
             'premier_mdp_changer' => false,
         ]);
 

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tuteurs', function (Blueprint $table) {
-            $table->id();
+            //$table->id();
             $table->foreignId('utilisateurs_id')->constrained('utilisateurs')->onDelete('cascade');// permet de limiter l'existance d'un admin que si un utilisateur de meme id existe deja
             $table->string('departement'); // le departement du tuteur: maths, info, biochimie, boulangerie ...
 

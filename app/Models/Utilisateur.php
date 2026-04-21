@@ -12,12 +12,14 @@ class Utilisateur extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    protected $table = 'utilisateurs'; // C'est mieux de le déclarer explicitement.
+    protected $authPasswordName = 'mot_de_passe';
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
-    protected $fillable = [
+    protected $fillable = [ 
         'nom',
         'prenom',
         'email',
@@ -55,13 +57,53 @@ class Utilisateur extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'mot_de_passe' => 'hashed',
+            //'mot_de_passe' => 'hashed',
+            'est_active' => 'boolean',
+            'premier_mdp_changer' => 'boolean'
         ];
     }
 
     // par default, laravel utilise "password", donc j'ai indique le changement.
-    public function getAuthPassword()
+    public function getAuthPassword() :string
     {
         return $this->mot_de_passe;
+    }
+    
+    
+    // Pour dire à laravel que le psw c mot_de_passe.
+    public function getAuthPasswordName(): string
+    {
+        return 'mot_de_passe';
+    }
+
+        public function entreprise()
+    {
+        return $this->hasOne(Entreprise::class, 'utilisateurs_id');
+    }
+
+    public function etudiant()
+    {
+        return $this->hasOne(Etudiant::class, 'utilisateurs_id');
+    }
+
+
+    public function administrateur()
+    {
+        return $this->hasOne(Administrateur::class, 'utilisateurs_id');
+    }
+
+
+
+    // Retourne le profil lié selon le rôle
+    public function profil(): mixed
+    {
+        return match($this->role) {
+            'A' => $this->administrateur,
+            'S' => $this->etudiant,
+            'T' => $this->tuteur,
+            'E' => $this->entreprise,
+            'J' => $this->jury,
+            default => null,
+        };
     }
 }

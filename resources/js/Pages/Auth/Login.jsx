@@ -9,7 +9,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
-        password: '',
+        mot_de_passe: '',
         remember: false,
     });
 
@@ -17,7 +17,7 @@ export default function Login({ status, canResetPassword }) {
         e.preventDefault();
 
         post(route('login'), {
-            onFinish: () => reset('password'),
+            onFinish: () => reset('mot_de_passe'),
         });
     };
 
@@ -55,11 +55,11 @@ export default function Login({ status, canResetPassword }) {
                     <TextInput
                         id="password"
                         type="password"
-                        name="password"
-                        value={data.password}
+                        name="mot_de_passe"
+                        value={data.mot_de_passe}
                         className="mt-1 block w-full"
                         autoComplete="current-password"
-                        onChange={(e) => setData('password', e.target.value)}
+                        onChange={(e) => setData('mot_de_passe', e.target.value)}
                     />
 
                     <InputError message={errors.password} className="mt-2" />
