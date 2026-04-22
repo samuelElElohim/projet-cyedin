@@ -14,12 +14,47 @@ class Entreprise extends Model
         'addresse',
         'secteur'
     ];
+
+
+
+
     public function utilisateur() {
         return $this->belongsTo(Utilisateur::class, 'utilisateurs_id');
     }
 
     public function offres()
     {
-        return $this->hasMany(Offre::class, 'entreprise_id', 'id');
+        return $this->hasMany(Offre::class, 'entreprise_id');
     }
+
+     public function stages()
+    {
+        return $this->hasMany(Stage::class, 'entreprises_id');
+    }
+
+
+    //scopes
+    // Scope pour filtrer les entreprises par secteur
+    public function scopeSecteur($query, string $secteur)
+    {
+        return $query->where('secteur', $secteur);
+    }
+
+    // Scope pour filtrer les entreprises qui ont des offres
+    public function scopeAvecOffres($query)
+    {
+        return $query->whereHas('offres');
+    }
+
+    // Scope pour filtrer les entreprises qui ont des stages en cours
+    public function scopeAvecStages($query)
+    {
+        return $query->whereHas('stages');
+    }
+
+
+
+
+
+
 }

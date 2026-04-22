@@ -12,6 +12,22 @@ class Offre extends Model
    ] ;
 
    public function entreprise(){
-      return $this->belongsTo(Entreprise::class);
+      return $this->belongsTo(Entreprise::class, 'entreprise_id');
+    }
+
+
+    //scopes
+
+    // Scope pour filtrer les offres récentes (par défaut, les offres créées dans les 30 derniers jours)
+    public function scopeRecente($query, int $jours = 30)
+    {
+        return $query->where('created_at', '>=', now()->subDays($jours));
+    }
+
+
+   // Scope pour filtrer les offres par secteur d'activité de l'entreprise
+    public function scopeDureeMax($query, int $semaines)
+    {
+        return $query->where('duree_semaines', '<=', $semaines);
     }
 }
