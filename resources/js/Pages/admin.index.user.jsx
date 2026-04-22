@@ -439,7 +439,7 @@ export default function AdminIndexUser({ users, admins, entreprises, tutors, stu
                                 :
                                 stu.niveau_etud
                             }
-                        </td>
+                        </td>    
                        
                         <td className="px-4 py-2">
                             {

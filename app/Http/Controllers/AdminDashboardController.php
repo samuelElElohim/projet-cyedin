@@ -8,7 +8,7 @@ use App\Models\Administrateur;
 use App\Models\Jury;
 use App\Models\Tuteur;
 use App\Models\Etudiant;
-
+use App\Models\Offre;
 
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\User;
@@ -34,8 +34,8 @@ class AdminDashboardController extends Controller
         //$admins = Administrateur::orderBy('utilisateurs_id')->get();
         $admins = Administrateur::with("utilisateur")->orderBy('utilisateurs_id')->get();
         //$students = Etudiant::orderBy('id')->get();
-        $students = Etudiant::with("utilisateur")->orderBy('id')->get();
-        $tutors =  Tuteur::with("utilisateur")->orderBy('id')->get();
+        $students = Etudiant::with("utilisateur")->orderBy('utilisateurs_id')->get();
+        //$tutors =  Tuteur::with("utilisateur")->orderBy('id')->get();
         //$tutors =  Tuteur::orderBy('utilisateurs_id')->get();
         //$entreprises = Entreprise::orderBy('utilisateurs_id')->get();
         $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateurs_id')->get();
@@ -43,8 +43,22 @@ class AdminDashboardController extends Controller
         $count = Utilisateur::count();
 
 
-        return Inertia::render( "admin.index.user", ["users"=> $users, "admins"=> $admins, "students" => $students, "tutors"=> $tutors, "entreprises"=>$entreprises, "count" => $count ]);
+        return Inertia::render( "admin.index.user", ["users"=> $users, "admins"=> $admins, "students" => $students, /*"tutors"=> $tutors,*/ "entreprises"=>$entreprises, "count" => $count ]);
 
+    }
+
+    public function index_offre()
+    {
+        $entreprises = Entreprise::with('offres')
+            ->orderBy('id', 'asc')
+            ->get();
+        //$entreprises = Entreprise::with('offres')->get();
+
+        //dd($entreprises->toArray());
+
+        return Inertia::render('admin.index.offre', [
+            'entreprises' => $entreprises
+        ]);
     }
 
     public function toggle_user(Request $request, $id){
@@ -53,6 +67,16 @@ class AdminDashboardController extends Controller
         $user->save();
         return redirect()->route('admin.index.user');
     }
+
+    public function toggle_offre($id)
+{
+    $offre = Offre::findOrFail($id);
+
+    $offre->est_active = !$offre->est_active;
+    $offre->save();
+
+    return back();
+}
 
     /*
     public function index_entreprise(){

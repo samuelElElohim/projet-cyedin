@@ -40,6 +40,8 @@ Route::middleware(['auth', 'role:A'])->group(function () {
     Route::get('admin/dashboard', function () {
     return Inertia::render('admin.main');
 })->name('admin.dashboard');
+
+// Dashboard Admin - Users
 Route::get('admin/dashboard/user/show', [AdminDashboardController::class, 'index_user'])->name('admin.index.user');
 Route::post('admin/dashboard/user/add', [AdminDashboardController::class,'store_user'])->name('admin.store.user');
 Route::get('admin/dashboard/user/add', [AdminDashboardController::class,'create_user'])->name('admin.create.user');
@@ -49,6 +51,12 @@ Route::post('admin/dashboard/user/toggle/{id}', [AdminDashboardController::class
 Route::get('admin/dashboard/user', function () {
     return Inertia::render('admin.main.user');
 })->name("admin.main.user");
+
+// Dashboard Admin - Offres
+Route::get('admin/dashboard/offres/show', [AdminDashboardController::class, 'index_offre'])->name('admin.index.offre');
+Route::post('/admin/dashboard/offre/toggle/{id}', [AdminDashboardController::class, 'toggle_offre'])
+    ->name('admin.toggle.offre');
+
 });
 
 

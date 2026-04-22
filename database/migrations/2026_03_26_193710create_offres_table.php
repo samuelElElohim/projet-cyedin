@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('titre');
             $table->text('description');
             $table->integer('duree_semaines');
-
+            $table->boolean('est_active')->default(false);
             $table->timestamps();
         });
     }

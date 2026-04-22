@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Offre;
+
+// OBSOLETE NE PAS UTILISER
+
 class OffreController extends Controller
 {
     public function create()
