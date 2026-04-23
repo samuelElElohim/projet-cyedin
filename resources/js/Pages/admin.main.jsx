@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import {router} from "@inertiajs/react";
 
 export default function AdminMain() {
     return (
@@ -25,6 +26,13 @@ export default function AdminMain() {
             >
                 Gérer Offres
             </Link>
+
+            <button
+                onClick={() => router.post(route('logout'))}
+                className="px-4 py-2 bg-red-600 text-white rounded"
+            >
+                Se Deconnecter
+            </button>
 
         </div>
     );

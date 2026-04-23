@@ -8,6 +8,7 @@ import { useState } from 'react';
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
 
+
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
@@ -29,6 +30,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                     active={route().current('dashboard')}
                                 >
                                     Dashboard
+                                </NavLink>
+                                <NavLink
+                                    href={route("etu.main.feed")}
+                                    active={route().current('etu.main.feed')}
+                                >
+                                    OFfre de stage feed
                                 </NavLink>
                             </div>
                         </div>

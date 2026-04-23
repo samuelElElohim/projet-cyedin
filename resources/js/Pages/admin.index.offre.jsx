@@ -1,5 +1,5 @@
-import { useForm } from "@inertiajs/react"
-
+import { useForm } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 export default function OffreIndex({ entreprises }) {
 
     const { post } = useForm()
@@ -48,7 +48,11 @@ export default function OffreIndex({ entreprises }) {
 
                 </div>
             )
-        })}
+            })}
+            <Link href={route("admin.dashboard")}
+            className="px-4 py-2 bg-blue-600 text-white rounded">
+            Retour
+        </Link>
         </>
     )
 }

@@ -16,6 +16,10 @@ export default function AdminMainUser() {
             >
                 Ajouter DB
             </Link>
+            <Link href={route("admin.dashboard")}
+            className="px-4 py-2 bg-blue-600 text-white rounded">
+            Retour
+            </Link>
         </div>
     );
 }
