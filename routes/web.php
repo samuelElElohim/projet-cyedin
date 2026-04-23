@@ -4,15 +4,13 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\EntrepriseDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\OffreController;
-<<<<<<< Updated upstream
-=======
 use App\Http\Controllers\FeedController;
 use GuzzleHttp\Middleware;
->>>>>>> Stashed changes
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
+
 
 /*
 Route::get('/', function () {
@@ -97,11 +95,15 @@ Route::get('admin/dashboard/entreprise/', function () {
     return Inertia::render('admin.main.entreprise');
 })->name("admin.main.entreprise");
 
-<<<<<<< Updated upstream
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'role:S'])->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('Dashboard');
+    })->name('dashboard');
+
+    Route::get('dashboard/feed', [FeedController::class, 'index_feed'])->name('etu.main.feed');
+
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
