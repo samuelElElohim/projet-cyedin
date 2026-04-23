@@ -11,6 +11,13 @@ export default function EntrepriseMain() {
                 Gérer Offre
             </Link>
 
+            <button
+                onClick={() => router.post(route('logout'))}
+                className="px-4 py-2 bg-red-600 text-white rounded"
+            >
+                Retour
+            </button>
+
         </div>
     );
 }
