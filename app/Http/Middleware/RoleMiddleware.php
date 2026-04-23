@@ -22,6 +22,12 @@ class RoleMiddleware
 
         $userRole = auth()->user()->role;
 
+        // Compte doit être activé
+        if (!auth()->user()->est_active) {
+            return redirect()->route('AttenteActivation');
+        }
+
+        // Compte doit être le bon rôle
         if(!in_array($userRole, $roles)){
             abort(403, "Vous n'avez pas la permission d'accéder à cette page");
         }

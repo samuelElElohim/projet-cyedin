@@ -7,17 +7,19 @@ import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
+        num_etu: '',
+        nom: '',
+        prenom: '',
         email: '',
-        password: '',
-        password_confirmation: '',
+        mot_de_passe: '',
+        mot_de_passe_confirmation: '',
     });
 
     const submit = (e) => {
         e.preventDefault();
 
         post(route('register'), {
-            onFinish: () => reset('password', 'password_confirmation'),
+            onFinish: () => reset('mot_de_passe', 'mot_de_passe_confirmation'),
         });
     };
 
@@ -27,20 +29,52 @@ export default function Register() {
 
             <form onSubmit={submit}>
                 <div>
-                    <InputLabel htmlFor="name" value="Name" />
+                    <InputLabel htmlFor="num_etu" value="Numéro Etudiant"/>
+                    
+                    <TextInput
+                        id="num_etu"
+                        name="num_etu"
+                        type="number"
+                        value={data.num_etu}
+                        className="mt-1 block w-full"
+                        autoComplete="num_etu"
+                        isFocused={true}
+                        onChange={(e) => setData('num_etu', e.target.value)}
+                        required
+
+                    />
+
+                    <InputLabel htmlFor="name" value="Nom" />
 
                     <TextInput
                         id="name"
                         name="name"
-                        value={data.name}
+                        value={data.nom}
                         className="mt-1 block w-full"
                         autoComplete="name"
                         isFocused={true}
-                        onChange={(e) => setData('name', e.target.value)}
+                        onChange={(e) => setData('nom', e.target.value)}
                         required
                     />
 
-                    <InputError message={errors.name} className="mt-2" />
+                    <InputError message={errors.nom} className="mt-2" />
+                </div>
+
+                <div>
+                    <InputLabel htmlFor="prenom" value="Prénom" />
+
+                    <TextInput
+                        id="prenom"
+                        name="prenom"
+                        value={data.prenom}
+                        className="mt-1 block w-full"
+                        autoComplete="prenom"
+                        isFocused={true}
+                        onChange={(e) => setData('prenom', e.target.value)}
+                        required
+                    />
+
+                    <InputError message={errors.prenom} className="mt-2" />
                 </div>
 
                 <div className="mt-4">
@@ -61,43 +95,43 @@ export default function Register() {
                 </div>
 
                 <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                    <InputLabel htmlFor="mot_de_passe" value="Mot de Passe" />
 
                     <TextInput
-                        id="password"
+                        id="mot_de_passe"
                         type="password"
-                        name="password"
-                        value={data.password}
+                        name="mot_de_passe"
+                        value={data.mot_de_passe}
                         className="mt-1 block w-full"
                         autoComplete="new-password"
-                        onChange={(e) => setData('password', e.target.value)}
+                        onChange={(e) => setData('mot_de_passe', e.target.value)}
                         required
                     />
 
-                    <InputError message={errors.password} className="mt-2" />
+                    <InputError message={errors.mot_de_passe} className="mt-2" />
                 </div>
 
                 <div className="mt-4">
                     <InputLabel
-                        htmlFor="password_confirmation"
+                        htmlFor="mot_de_passe_confirmation"
                         value="Confirm Password"
                     />
 
                     <TextInput
-                        id="password_confirmation"
+                        id="mot_de_passe_confirmation"
                         type="password"
-                        name="password_confirmation"
-                        value={data.password_confirmation}
+                        name="mot_de_passe_confirmation"
+                        value={data.mot_de_passe_confirmation}
                         className="mt-1 block w-full"
                         autoComplete="new-password"
                         onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
+                            setData('mot_de_passe_confirmation', e.target.value)
                         }
                         required
                     />
 
                     <InputError
-                        message={errors.password_confirmation}
+                        message={errors.mot_de_passe_confirmation}
                         className="mt-2"
                     />
                 </div>

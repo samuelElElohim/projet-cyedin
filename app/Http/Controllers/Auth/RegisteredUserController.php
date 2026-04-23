@@ -30,6 +30,7 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        //dd($request);
         $request->validate([
             'nom'          => 'required|string|max:25',
             'prenom'       => 'required|string|max:15',
@@ -43,14 +44,12 @@ class RegisteredUserController extends Controller
             'email'        => $request->email,
             'mot_de_passe' => Hash::make($request->mot_de_passe),
             'role'         => 'S', // étudiant par défaut
-            'est_active'   => true,
+            'est_active'   => false,
             'premier_mdp_changer' => false,
         ]);
 
-        event(new Registered($user));
+        //event(new NouveauUtilisateurEnvoyerNotifTaCapteMonGate($user));
 
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->route('AttenteActivation');
     }
 }

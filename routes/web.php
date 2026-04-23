@@ -4,9 +4,11 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\EntrepriseDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\OffreController;
+use GuzzleHttp\Middleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 /*
 Route::get('/', function () {
@@ -92,9 +94,13 @@ Route::get('admin/dashboard/entreprise/', function () {
 })->name("admin.main.entreprise");
 
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware(['auth', 'role:S'])->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('Dashboard');
+    })->name('dashboard');
+});
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

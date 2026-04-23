@@ -90,6 +90,20 @@ export default function Login({ status, canResetPassword }) {
                         </Link>
                     )}
 
+                    
+                    {/* Section Première connexion */}
+                    <div className="mt-6 text-center text-sm text-gray-600">
+                        <p>
+                            Première connexion ?{' '}
+                            <Link
+                                href={route('register')}
+                                className="underline text-gray-700 hover:text-gray-900"
+                            >
+                                Créer un compte
+                            </Link>
+                        </p>
+                    </div>
+
                     <PrimaryButton className="ms-4" disabled={processing}>
                         Log in
                     </PrimaryButton>
