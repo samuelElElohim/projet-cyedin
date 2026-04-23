@@ -4,6 +4,10 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\EntrepriseDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\OffreController;
+<<<<<<< Updated upstream
+=======
+use App\Http\Controllers\FeedController;
+>>>>>>> Stashed changes
 use GuzzleHttp\Middleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
