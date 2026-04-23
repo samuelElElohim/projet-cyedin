@@ -1,5 +1,5 @@
 import { useForm } from "@inertiajs/react"
-
+import { Link } from "@inertiajs/react";
 
 
 const ROLES = [
@@ -61,7 +61,7 @@ export default function AdminCreateUser(){
     
     return (
 
-
+        <>
         <form onSubmit={handleSubmit}>
 
 
@@ -166,7 +166,11 @@ export default function AdminCreateUser(){
 
             <button type="submit">Ajouter Utilisateur</button>
         </form>
-        
+            <Link href={route("admin.dashboard")}
+            className="px-4 py-2 bg-blue-600 text-white rounded">
+            Retour
+        </Link>
+        </>
     )
 
 }

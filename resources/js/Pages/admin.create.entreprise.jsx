@@ -1,5 +1,8 @@
 import { useForm } from "@inertiajs/react"
 
+/* OBSLOETE */
+
+
 export default function AdminCreateEntreprise(){
     // useForm gère les données + erreurs + @csrf automatiquement
     const { data, setData, post, errors } = useForm({
