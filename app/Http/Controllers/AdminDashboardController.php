@@ -43,7 +43,7 @@ class AdminDashboardController extends Controller
         $count = Utilisateur::count();
 
 
-        return Inertia::render( "admin.index.user", ["users"=> $users, "admins"=> $admins, "students" => $students, /*"tutors"=> $tutors,*/ "entreprises"=>$entreprises, "count" => $count ]);
+        return Inertia::render( "Admin/admin.index.user", ["users"=> $users, "admins"=> $admins, "students" => $students, /*"tutors"=> $tutors,*/ "entreprises"=>$entreprises, "count" => $count ]);
 
     }
 
@@ -56,7 +56,7 @@ class AdminDashboardController extends Controller
 
         //dd($entreprises->toArray());
 
-        return Inertia::render('admin.index.offre', [
+        return Inertia::render('Admin/admin.index.offre', [
             'entreprises' => $entreprises
         ]);
     }
@@ -107,7 +107,7 @@ class AdminDashboardController extends Controller
 }
 
     public function create_user(){
-        return Inertia::render("admin.create.user");
+        return Inertia::render("Admin/admin.create.user");
     }
 /*
     public function create_entreprise(){
