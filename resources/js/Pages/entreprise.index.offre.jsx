@@ -60,6 +60,13 @@ export default function OffreIndex({ offres }) {
                 </button>
 
             </form>
+
+            <button
+                onClick={() => router.get(route('entreprise.dashboard'))}
+                className="px-4 py-2 bg-red-600 text-white rounded"
+            >
+                Retour
+            </button>
         </>
     )
 }

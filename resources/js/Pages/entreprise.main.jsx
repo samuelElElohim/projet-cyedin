@@ -1,5 +1,5 @@
 import { Link } from "@inertiajs/react";
-
+import {router} from "@inertiajs/react"
 export default function EntrepriseMain() {
     return (
         <div>
