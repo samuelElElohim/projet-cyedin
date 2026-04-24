@@ -3,18 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Offre extends Model
 {
-   protected $fillable = [
+    protected $fillable = [
     'titre', 'description','entreprise_id', 'duree_semaines'
    ] ;
 
-   public function entreprise(){
+    public function entreprise(){
       return $this->belongsTo(Entreprise::class, 'entreprise_id');
     }
 
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'offre_tag');
+    }
 
     //scopes
 

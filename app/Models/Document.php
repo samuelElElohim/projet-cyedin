@@ -17,7 +17,6 @@ class Document extends Model
     ];
 
     protected $guarded = [
-
         'date_depot' // pour assurer qu'aucune date ne soit alterer, par exemple date depot du rapport du stage ...
     ];
 

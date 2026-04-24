@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Traits\HasUtilisateur;
 class Etudiant extends Model
 {
@@ -32,6 +33,10 @@ class Etudiant extends Model
         return $this->hasOne(Dossier_stage::class, 'etudiants_id', 'utilisateurs_id');
     }
 
+    public function centresInteret(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'etudiant_tag', 'etudiant_id', 'tag_id');
+    }
 
     //scopes
 

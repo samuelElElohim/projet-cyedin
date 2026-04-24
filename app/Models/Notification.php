@@ -15,6 +15,11 @@ class Notification extends Model
         return $this->belongsTo(Utilisateur::class, 'proprietaire_id');
     }
 
+    public function offre(): BelongsTo
+    {
+        return $this->belongsTo(Offre::class);
+    }
+
     //scopes
 
     // Scope pour les notifications non lues
