@@ -15,7 +15,7 @@ class Jury extends Model
 
     public function utilisateur()
     {
-        return $this->belongsTo(Utilisateur::class, 'utilisateurs_id');
+        return $this->belongsTo(Utilisateur::class, 'utilisateur_id');
     }
 
     //scopes

@@ -6,13 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Notification extends Model
 {
+   
+    protected $table = 'notifications';
 
-    protected $fillable = ['id','proprietaire_id','message','date_envoi','est_lu'];
-    
+    protected $fillable = ['id','utilisateur_id','offre_id','message','est_lu'];
+   
 
-    public function proprietaire()
+    public function proprietaire(): BelongsTo
     {
-        return $this->belongsTo(Utilisateur::class, 'proprietaire_id');
+        return $this->belongsTo(Utilisateur::class, 'utilisateur_id');
     }
 
     public function offre(): BelongsTo
@@ -37,6 +39,6 @@ class Notification extends Model
     // Scope pour filtrer par proprietaire
     public function scopeParProprietaire($query, int $utilisateurId)
     {
-        return $query->where('proprietaire_id', $utilisateurId);
+        return $query->where('utilisateur_id', $utilisateurId);
     }
 }

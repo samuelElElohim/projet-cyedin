@@ -8,10 +8,9 @@ use App\Traits\HasUtilisateur;
 class Etudiant extends Model
 {
     use HasUtilisateur;
-    protected $primaryKey = 'utilisateurs_id';
     public $incrementing = false;
     protected $fillable = [
-        'utilisateurs_id',
+        'utilisateur_id',
         'filiere',
         'niveau_etud',
     ];
@@ -20,17 +19,17 @@ class Etudiant extends Model
 
      public function utilisateur()
     {
-        return $this->belongsTo(Utilisateur::class, 'utilisateurs_id');
+        return $this->belongsTo(Utilisateur::class, 'utilisateur_id');
     }
 
      public function stages()
     {
-        return $this->hasMany(Stage::class, 'etudiants_id', 'utilisateurs_id');
+        return $this->hasMany(Stage::class, 'etudiant_id');
     }
 
     public function dossier()
     {
-        return $this->hasOne(Dossier_stage::class, 'etudiants_id', 'utilisateurs_id');
+        return $this->hasOne(Dossier_stage::class, 'etudiant_id');
     }
 
     public function centresInteret(): BelongsToMany

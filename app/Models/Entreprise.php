@@ -9,7 +9,7 @@ class Entreprise extends Model
     use HasUtilisateur;
     //protected $primaryKey = 'utilisateurs_id'; // ← indique la vraie PK
     protected $fillable = [
-        'utilisateurs_id',
+        'utilisateur_id',
         'nom_entreprise',
         'addresse',
         'secteur'
@@ -19,7 +19,7 @@ class Entreprise extends Model
 
 
     public function utilisateur() {
-        return $this->belongsTo(Utilisateur::class, 'utilisateurs_id');
+        return $this->belongsTo(Utilisateur::class, 'utilisateur_id');
     }
 
     public function offres()
@@ -29,7 +29,7 @@ class Entreprise extends Model
 
      public function stages()
     {
-        return $this->hasMany(Stage::class, 'entreprises_id');
+        return $this->hasMany(Stage::class, 'entreprise_id');
     }
 
 

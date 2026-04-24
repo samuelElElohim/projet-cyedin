@@ -13,10 +13,11 @@ return new class extends Migration
     {
     Schema::create('etudiant_tag', function (Blueprint $table) {
         $table->unsignedBigInteger('etudiant_id');
+
         $table->foreignId('tag_id')->constrained('tags')->cascadeOnDelete();
 
         $table->foreign('etudiant_id')
-              ->references('utilisateurs_id')
+              ->references('id')
               ->on('etudiants')
               ->cascadeOnDelete();
 

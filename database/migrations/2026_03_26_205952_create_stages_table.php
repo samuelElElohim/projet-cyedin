@@ -6,6 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /*
+    *
+    ATTENTION : LES IDs des parties presantes doivent etre des utilisateurs, et pas de leurs tables, sinon on aurra des confusions.
+
+    */   
     /**
      * Run the migrations.
      */
@@ -14,11 +19,20 @@ return new class extends Migration
         Schema::create('stages', function (Blueprint $table) {
             $table->id();
             $table->string('sujet');
-            $table->timestamp('dateDebut'); // date du debut de stage
+            $table->timestamps(); // date du debut de stage
             $table->integer('duree_en_semaine'); // vu qu'on a la duree, on peut trouver facilement la date de la fin, pas besoin de la stocker...
-            $table->integer('etudiants_id'); // l'id de l'etudiant qui (a) fait ce stage
-            $table->integer('entreprises_id'); // l'id l'entreprise ou se passe le stage
-            $table->integer('tuteurs_id'); //l'id du tuteur responsable de l'etudiant
+            
+            $table->foreignId('etudiant_id')
+                ->constrained('etudiants')
+                ->cascadeOnDelete();
+
+            $table->foreignId('entreprise_id')
+                ->constrained('entreprises')
+                ->cascadeOnDelete();
+
+            $table->foreignId('tuteur_id')
+                ->constrained('tuteurs')
+                ->cascadeOnDelete();
         });
     }
 

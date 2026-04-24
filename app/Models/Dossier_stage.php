@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Dossier_stage extends Model
 {
-    protected $fillable = ['id','etudiants_id','est_valide','date_soumission' ];
+    protected $fillable = ['id','etudiant_id','est_valide','date_soumission' ];
 
     public function etudiant()
     {
-        return $this->belongsTo(Etudiant::class, 'etudiants_id', 'utilisateurs_id');
+        return $this->belongsTo(Etudiant::class, 'etudiant_id', 'utilisateur_id');
     }
 
     public function documents()

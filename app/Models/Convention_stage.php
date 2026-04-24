@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class Convention_stage extends Model  // probleme de extends, Model au lieu de Stage
 {
     
-    protected $fillable = ['stages_id', 'date_creation', 'signer_par_entreprise', 'signer_par_tuteur', 'signer_par_etudiant'];
+    protected $fillable = ['stage_id', 'date_creation', 'signer_par_entreprise', 'signer_par_tuteur', 'signer_par_etudiant'];
 
 
     // une convention appartient un stage
     public function stage()
     {
-        return $this->belongsTo(Stage::class, 'stages_id');
+        return $this->belongsTo(Stage::class, 'stage_id');
     }
 
 

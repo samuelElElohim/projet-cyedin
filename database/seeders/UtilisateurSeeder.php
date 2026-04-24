@@ -31,7 +31,7 @@ class UtilisateurSeeder extends Seeder
         );
 
         Administrateur::updateOrCreate(
-            ['utilisateurs_id' => $adminUser->id],
+            ['utilisateur_id' => $adminUser->id],
             []
         );
 
@@ -53,7 +53,7 @@ class UtilisateurSeeder extends Seeder
         );
 
         Etudiant::updateOrCreate(
-            ['utilisateurs_id' => $etuUser->id],
+            ['utilisateur_id' => $etuUser->id],
             [
                 'filiere' => 'dev',
                 'niveau_etud' => '1',
@@ -78,7 +78,7 @@ class UtilisateurSeeder extends Seeder
         );
 
         Entreprise::updateOrCreate(
-            ['utilisateurs_id' => $entUser->id],
+            ['utilisateur_id' => $entUser->id],
             [
                 'nom_entreprise' => 'Entreprise Test',
                 'addresse' => '42 rue test',

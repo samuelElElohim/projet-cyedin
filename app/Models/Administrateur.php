@@ -9,7 +9,7 @@ class Administrateur extends Model
 {
   use HasUtilisateur;
   protected $fillable = [
-    'utilisateurs_id',
+    'utilisateur_id',
     'derniere_action_log'  
   ];
 

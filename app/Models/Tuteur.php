@@ -8,7 +8,7 @@ class Tuteur extends Model //extends Model au lieu de Utilisateur
 {
     use HasUtilisateur;
     protected $fillable = [
-        'utilisateurs_id',
+        'utilisateur_id',
         'departement',
         'est_jury',
     ];
@@ -16,12 +16,12 @@ class Tuteur extends Model //extends Model au lieu de Utilisateur
 
     public function utilisateur()
     {
-        return $this->belongsTo(Utilisateur::class, 'utilisateurs_id');
+        return $this->belongsTo(Utilisateur::class, 'utilisateur_id');
     }
 
     public function stages()
     {
-        return $this->hasMany(Stage::class, 'tuteurs_id', 'utilisateurs_id');
+        return $this->hasMany(Stage::class, 'tuteurs_id', 'utilisateur_id');
     }
 
 

@@ -16,14 +16,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('offre_id')
               ->nullable()
-              ->after('proprietaire_id')
               ->constrained('offres')
               ->nullOnDelete();
+            $table->foreignId('utilisateur_id')->constrained('utilisateurs')->onDelete('cascade');
             //chaque notif est envoye a un utilisateur
             //donc pas d'utilisateur, pas de notif
             $table->string('message');
-            $table->timestamp('date_envoi')->default(DB::raw('CURRENT_TIMESTAMP')); //date emission de la notif
+            $table->timestamps();
             $table->boolean('est_lu')->default(false); 
+
 
         });
     }

@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tuteurs', function (Blueprint $table) {
-            //$table->id();
-            $table->foreignId('utilisateurs_id')->constrained('utilisateurs')->onDelete('cascade');// permet de limiter l'existance d'un admin que si un utilisateur de meme id existe deja
+            $table->id();
+            $table->foreignId('utilisateur_id')->unique()->constrained('utilisateurs')->onDelete('cascade');// permet de limiter l'existance d'un admin que si un utilisateur de meme id existe deja
             $table->string('departement'); // le departement du tuteur: maths, info, biochimie, boulangerie ...
 
             $table->timestamps(); // peut etre la date du debut de son role comme tuteur? sinon il y a deja la date de creation de son compte? a voir

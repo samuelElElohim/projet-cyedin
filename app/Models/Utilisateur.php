@@ -12,7 +12,6 @@ class Utilisateur extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    protected $table = 'utilisateurs'; // C'est mieux de le déclarer explicitement.
     protected $authPasswordName = 'mot_de_passe';
     /**
      * The attributes that are mass assignable.
@@ -78,40 +77,40 @@ class Utilisateur extends Authenticatable
 
         public function entreprise()
     {
-        return $this->hasOne(Entreprise::class, 'utilisateurs_id');
+        return $this->hasOne(Entreprise::class, 'utilisateur_id');
     }
 
     public function etudiant()
     {
-        return $this->hasOne(Etudiant::class, 'utilisateurs_id');
+        return $this->hasOne(Etudiant::class, 'utilisateur_id');
     }
 
 
     public function administrateur()
     {
-        return $this->hasOne(Administrateur::class, 'utilisateurs_id');
+        return $this->hasOne(Administrateur::class, 'utilisateur_id');
     }
 
     // ajouter les autres profils (tuteur, jury) 
     public function tuteur()
     {
-        return $this->hasOne(Tuteur::class, 'utilisateurs_id');
+        return $this->hasOne(Tuteur::class, 'utilisateur_id');
     }
    
     public function jury()
     {
-        return $this->hasOne(Jury::class, 'utilisateurs_id');
+        return $this->hasOne(Jury::class, 'utilisateur_id');
     }
 
     // ajouter les items qui appartiennent a un utilisateur (notficiations, documents)
-    public function notifications()
+    public function notifications(): HasMany
     {
-        return $this->hasMany(Notification::class, 'utilisateurs_id');
+        return $this->hasMany(Notification::class, 'utilisateur_id');
     }
 
     public function documents()
     {
-        return $this->hasMany(Document::class, 'utilisateurs_id');
+        return $this->hasMany(Document::class, 'utilisateur_id');
     }
 
 

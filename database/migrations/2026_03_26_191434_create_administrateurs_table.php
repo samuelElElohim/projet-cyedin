@@ -12,10 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('administrateurs', function (Blueprint $table) {
-
             $table->id();
-            // check si l'heritage marche de cette facon?
-            $table->foreignId('utilisateurs_id')->constrained('utilisateurs')->onDelete('cascade');
+            $table->foreignId('utilisateur_id')->unique()->constrained('utilisateurs')->onDelete('cascade');
             // $table->integer('niveau')->default(1); 3 niveau d'admin? a gerer apres
 
             $table->timestamps(); // ???
