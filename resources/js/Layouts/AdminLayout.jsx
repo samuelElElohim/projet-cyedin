@@ -2,10 +2,14 @@ import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 const NAV_ITEMS = [
-    { label: 'Vue d\'ensemble', href: 'admin.dashboard', icon: '▦' },
-    { label: 'Utilisateurs', href: 'admin.main.user', icon: '👤' },
-    { label: 'Entreprises', href: 'admin.main.entreprise', icon: '🏢' },
-    { label: 'Offres de stage', href: 'admin.index.offre', icon: '📋' },
+    { label: "Vue d'ensemble",  href: 'admin.dashboard',       icon: '▦' },
+    { label: 'Utilisateurs',    href: 'admin.main.user',       icon: '👤' },
+    { label: 'Entreprises',     href: 'admin.main.entreprise', icon: '🏢' },
+    { label: 'Offres de stage', href: 'admin.index.offre',     icon: '📋' },
+    { label: 'Stages',          href: 'admin.index.stage',     icon: '🎓' },
+    { label: 'Dossiers',        href: 'admin.index.dossier',   icon: '📁' },
+    { label: 'Formations',      href: 'admin.index.formation', icon: '🔖' },
+    { label: 'Fichier trace',   href: 'admin.trace',           icon: '📜' },
 ];
 
 export default function AdminLayout({ children, title = 'Administration' }) {
@@ -37,15 +41,15 @@ export default function AdminLayout({ children, title = 'Administration' }) {
                 </div>
 
                 {/* Nav */}
-                <nav className="flex-1 py-4 space-y-1 px-2">
+                <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
                     {NAV_ITEMS.map((item) => (
                         <Link
                             key={item.href}
                             href={route(item.href)}
                             className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/60 hover:bg-white/10 hover:text-white transition"
                         >
-                            <span className="text-base">{item.icon}</span>
-                            {sidebarOpen && <span>{item.label}</span>}
+                            <span className="text-base shrink-0">{item.icon}</span>
+                            {sidebarOpen && <span className="truncate">{item.label}</span>}
                         </Link>
                     ))}
                 </nav>
@@ -53,7 +57,7 @@ export default function AdminLayout({ children, title = 'Administration' }) {
                 {/* User info */}
                 <div className="border-t border-white/10 p-4">
                     {sidebarOpen && (
-                        <div className="text-xs text-white/40">
+                        <div className="text-xs text-white/40 mb-2">
                             <div className="font-medium text-white/70">{auth?.user?.nom}</div>
                             <div>{auth?.user?.email}</div>
                         </div>
@@ -62,7 +66,7 @@ export default function AdminLayout({ children, title = 'Administration' }) {
                         href={route('logout')}
                         method="post"
                         as="button"
-                        className="mt-2 text-xs text-red-400 hover:text-red-300"
+                        className="text-xs text-red-400 hover:text-red-300"
                     >
                         {sidebarOpen ? 'Déconnexion' : '⏻'}
                     </Link>
@@ -74,8 +78,6 @@ export default function AdminLayout({ children, title = 'Administration' }) {
                 {/* Top bar */}
                 <header className="h-16 bg-white border-b border-gray-200 flex items-center px-6 shrink-0">
                     <h1 className="text-lg font-semibold text-gray-800">{title}</h1>
-
-                    {/* Notifications badge */}
                     <NotifBadge />
                 </header>
 

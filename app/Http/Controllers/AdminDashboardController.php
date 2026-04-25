@@ -2,18 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DemandeFormation;
 use App\Models\Entreprise;
 use App\Models\Utilisateur;
 use App\Models\Administrateur;
-use App\Models\Jury;
 use App\Models\Tuteur;
 use App\Models\Etudiant;
 use App\Models\Offre;
 use App\Models\Notification;
+use App\Models\Stage;
+use App\Models\Dossier_stage;
+use App\Services\TraceLogger;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminDashboardController extends Controller
 {
@@ -31,6 +36,9 @@ class AdminDashboardController extends Controller
                 'entreprises_pending' => Utilisateur::where('role', 'E')
                                             ->where('est_active', false)
                                             ->count(),
+                'stages_en_cours'     => Stage::count(),
+                'dossiers_pending'    => Dossier_stage::where('est_valide', false)->count(),
+                'formations_pending'  => DemandeFormation::enAttente()->count(),
             ],
             'notifications' => Notification::where('proprietaire_id', auth()->id())
                                 ->where('est_lu', false)
@@ -71,12 +79,11 @@ class AdminDashboardController extends Controller
         $user->est_active = !$user->est_active;
         $user->save();
 
-        return redirect()->route('admin.index.user');
+        TraceLogger::log('toggle_user', ['id' => $id, 'est_active' => $user->est_active]);
+
+        return back();
     }
 
-    /**
-     * BUG FIX : rôles corrigés 'E', 'T', 'S' au lieu de 'entreprise', 'tuteur', 'etudiant'
-     */
     public function edit_user(Request $request, $id)
     {
         Utilisateur::where('id', $id)->update(
@@ -95,6 +102,8 @@ class AdminDashboardController extends Controller
                     ),
             default => null,
         };
+
+        TraceLogger::log('edit_user', ['id' => $id]);
 
         return redirect()->route('admin.index.user');
     }
@@ -126,11 +135,11 @@ class AdminDashboardController extends Controller
             'role'                 => $validated['role'],
             'mot_de_passe'         => Hash::make('password'),
             'est_active'           => true,
-            'premier_mdp_changer'  => false, // forcera le changement à la 1ère connexion
+            'premier_mdp_changer'  => false,
         ]);
 
         match ($validated['role']) {
-            'A' => Administrateur::create(['utilisateurs_id' => $utilisateur->id]),
+            'A' => \App\Models\Administrateur::create(['utilisateurs_id' => $utilisateur->id]),
             'S' => Etudiant::create([
                         'utilisateurs_id' => $utilisateur->id,
                         'filiere'         => $validated['filiere'],
@@ -149,17 +158,38 @@ class AdminDashboardController extends Controller
             default => null,
         };
 
+        TraceLogger::log('store_user', ['email' => $validated['email'], 'role' => $validated['role']]);
+
         return redirect()->route('admin.index.user')->with('success', 'Utilisateur ajouté !');
     }
 
     // ─── Offres ──────────────────────────────────────────────────────────────
 
-    public function index_offre()
+    public function index_offre(Request $request)
     {
-        $entreprises = Entreprise::with('offres')->orderBy('id', 'asc')->get();
+        $query = Entreprise::with(['offres' => function ($q) use ($request) {
+            if ($request->filled('duree_max')) {
+                $q->where('duree_semaines', '<=', $request->duree_max);
+            }
+            if ($request->filled('duree_min')) {
+                $q->where('duree_semaines', '>=', $request->duree_min);
+            }
+            if ($request->filled('search')) {
+                $q->where(function ($sq) use ($request) {
+                    $sq->where('titre', 'ilike', '%' . $request->search . '%')
+                       ->orWhere('description', 'ilike', '%' . $request->search . '%');
+                });
+            }
+            if ($request->filled('statut') && $request->statut !== 'all') {
+                $q->where('est_active', $request->statut === 'active');
+            }
+        }])->orderBy('id', 'asc');
+
+        $entreprises = $query->get();
 
         return Inertia::render('Admin/admin.index.offre', [
             'entreprises' => $entreprises,
+            'filters'     => $request->only(['search', 'duree_min', 'duree_max', 'statut']),
         ]);
     }
 
@@ -168,6 +198,8 @@ class AdminDashboardController extends Controller
         $offre = Offre::findOrFail($id);
         $offre->est_active = !$offre->est_active;
         $offre->save();
+
+        TraceLogger::log('toggle_offre', ['id' => $id, 'est_active' => $offre->est_active]);
 
         return back();
     }
@@ -189,20 +221,18 @@ class AdminDashboardController extends Controller
         return Inertia::render('Admin/admin.create.entreprise');
     }
 
-    /**
-     * Valider une entreprise en attente (est_active = false → true).
-     */
     public function validate_entreprise(Request $request, $id)
     {
         $user = Utilisateur::findOrFail($id);
         $user->est_active = true;
         $user->save();
 
-        // Notifier l'entreprise
         Notification::create([
             'proprietaire_id' => $user->id,
             'message'         => 'Votre compte entreprise a été validé. Vous pouvez maintenant vous connecter.',
         ]);
+
+        TraceLogger::log('validate_entreprise', ['id' => $id, 'email' => $user->email]);
 
         return back()->with('success', 'Entreprise validée avec succès.');
     }
@@ -218,6 +248,222 @@ class AdminDashboardController extends Controller
 
         Entreprise::create($validated);
 
+        TraceLogger::log('store_entreprise', ['nom' => $validated['nom_entreprise']]);
+
         return redirect()->route('admin.index.entreprise')->with('success', 'Entreprise ajoutée !');
+    }
+
+    // ─── Dossiers de stage ───────────────────────────────────────────────────
+
+    public function index_dossier(Request $request)
+    {
+        $query = Dossier_stage::with(['etudiant.utilisateur', 'documents'])
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('statut')) {
+            $query->where('est_valide', $request->statut === 'valide');
+        }
+
+        if ($request->filled('search')) {
+            $query->whereHas('etudiant.utilisateur', function ($q) use ($request) {
+                $q->where('nom', 'ilike', '%' . $request->search . '%')
+                  ->orWhere('email', 'ilike', '%' . $request->search . '%');
+            });
+        }
+
+        $dossiers = $query->get();
+
+        return Inertia::render('Admin/admin.index.dossier', [
+            'dossiers' => $dossiers,
+            'count'    => $dossiers->count(),
+            'filters'  => $request->only(['search', 'statut']),
+        ]);
+    }
+
+    public function toggle_dossier($id)
+    {
+        $dossier = Dossier_stage::findOrFail($id);
+        $dossier->est_valide = !$dossier->est_valide;
+        $dossier->save();
+
+        TraceLogger::log('toggle_dossier', ['id' => $id, 'est_valide' => $dossier->est_valide]);
+
+        return back();
+    }
+
+    // ─── Suivi des stages ─────────────────────────────────────────────────────
+
+    public function index_stage(Request $request)
+    {
+        $query = Stage::with([
+            'etudiant.utilisateur',
+            'entreprise',
+            'tuteur.utilisateur',
+            'convention',
+        ])->orderBy('id', 'desc');
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('sujet', 'ilike', '%' . $request->search . '%')
+                  ->orWhereHas('etudiant.utilisateur', fn($sq) =>
+                      $sq->where('nom', 'ilike', '%' . $request->search . '%')
+                  )
+                  ->orWhereHas('entreprise', fn($sq) =>
+                      $sq->where('nom_entreprise', 'ilike', '%' . $request->search . '%')
+                  );
+            });
+        }
+
+        if ($request->filled('convention')) {
+            $complet = $request->convention === 'complete';
+            $query->whereHas('convention', function ($q) use ($complet) {
+                $q->where('signer_par_entreprise', $complet)
+                  ->where('signer_par_tuteur', $complet)
+                  ->where('signer_par_etudiant', $complet);
+            });
+        }
+
+        $stages = $query->get()->map(function ($stage) {
+            $conv = $stage->convention;
+            $stage->convention_status = $conv ? [
+                'entreprise' => $conv->signer_par_entreprise,
+                'tuteur'     => $conv->signer_par_tuteur,
+                'etudiant'   => $conv->signer_par_etudiant,
+                'complete'   => $conv->signer_par_entreprise && $conv->signer_par_tuteur && $conv->signer_par_etudiant,
+            ] : null;
+            return $stage;
+        });
+
+        return Inertia::render('Admin/admin.index.stage', [
+            'stages'  => $stages,
+            'count'   => $stages->count(),
+            'filters' => $request->only(['search', 'convention']),
+        ]);
+    }
+
+    // ─── Formations ──────────────────────────────────────────────────────────
+
+    public function index_formation(Request $request)
+    {
+        $query = DemandeFormation::with('etudiant', 'admin')
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('statut') && $request->statut !== 'all') {
+            $query->where('statut', $request->statut);
+        }
+
+        $demandes = $query->get();
+
+        // Filières actuellement en base
+        $filieres = Etudiant::select('filiere')->distinct()->pluck('filiere')->sort()->values();
+
+        return Inertia::render('Admin/admin.index.formation', [
+            'demandes' => $demandes,
+            'filieres' => $filieres,
+            'count'    => $demandes->count(),
+            'filters'  => $request->only(['statut']),
+        ]);
+    }
+
+    public function valider_formation(Request $request, $id)
+    {
+        $request->validate([
+            'commentaire_admin' => 'nullable|string|max:500',
+            'filiere_finale'    => 'required|string|max:10',
+        ]);
+
+        $demande = DemandeFormation::findOrFail($id);
+        $demande->update([
+            'statut'            => 'approuve',
+            'admin_id'          => auth()->id(),
+            'commentaire_admin' => $request->commentaire_admin,
+        ]);
+
+        // Notifier l'étudiant
+        Notification::create([
+            'proprietaire_id' => $demande->etudiant_id,
+            'message'         => "Votre demande d'ajout de filière « {$demande->formation_demandee} » a été approuvée.",
+        ]);
+
+        // Ajouter la filière à la liste (on peut mettre à jour l'étudiant directement)
+        Etudiant::where('utilisateurs_id', $demande->etudiant_id)
+            ->update(['filiere' => $request->filiere_finale]);
+
+        TraceLogger::log('valider_formation', ['demande_id' => $id, 'formation' => $demande->formation_demandee]);
+
+        return back()->with('success', 'Formation validée.');
+    }
+
+    public function refuser_formation(Request $request, $id)
+    {
+        $request->validate(['commentaire_admin' => 'nullable|string|max:500']);
+
+        $demande = DemandeFormation::findOrFail($id);
+        $demande->update([
+            'statut'            => 'refuse',
+            'admin_id'          => auth()->id(),
+            'commentaire_admin' => $request->commentaire_admin,
+        ]);
+
+        Notification::create([
+            'proprietaire_id' => $demande->etudiant_id,
+            'message'         => "Votre demande d'ajout de filière « {$demande->formation_demandee} » a été refusée.",
+        ]);
+
+        TraceLogger::log('refuser_formation', ['demande_id' => $id]);
+
+        return back()->with('success', 'Formation refusée.');
+    }
+
+    // ─── Trace ───────────────────────────────────────────────────────────────
+
+    public function trace()
+    {
+        $content = \App\Services\TraceLogger::tail(300);
+
+        return Inertia::render('Admin/admin.trace', [
+            'trace' => $content,
+        ]);
+    }
+
+    public function export_trace(): StreamedResponse
+    {
+        $path = storage_path('logs/trace.log');
+
+        return response()->streamDownload(function () use ($path) {
+            if (file_exists($path)) {
+                readfile($path);
+            }
+        }, 'trace-' . now()->format('Y-m-d') . '.log', [
+            'Content-Type' => 'text/plain',
+        ]);
+    }
+
+    // ─── Archivage annuel ─────────────────────────────────────────────────────
+
+    public function archiver_annee(Request $request)
+    {
+        $annee = $request->input('annee', now()->year);
+
+        // Marquer tous les dossiers validés comme archivés (on ajoute un champ annee_archive)
+        // Pour l'instant : exporter un snapshot JSON et logger l'action
+        $snapshot = [
+            'annee'     => $annee,
+            'date'      => now()->toIso8601String(),
+            'stages'    => Stage::with(['etudiant.utilisateur', 'entreprise', 'tuteur.utilisateur'])->get()->toArray(),
+            'dossiers'  => Dossier_stage::with('etudiant.utilisateur')->get()->toArray(),
+        ];
+
+        $filename = "archive-{$annee}-" . now()->format('Ymd-His') . '.json';
+        Storage::disk('local')->put("archives/{$filename}", json_encode($snapshot, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        TraceLogger::log('archiver_annee', ['annee' => $annee, 'fichier' => $filename]);
+
+        Notification::create([
+            'proprietaire_id' => auth()->id(),
+            'message'         => "Archivage de l'année {$annee} effectué → {$filename}",
+        ]);
+
+        return back()->with('success', "Archive {$annee} créée : {$filename}");
     }
 }

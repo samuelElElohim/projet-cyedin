@@ -21,7 +21,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/register/entreprise', [InscriptionEntrepriseController::class, 'store']);
 });
 
-// ─── Premier changement de mot de passe (après connexion, avant tout) ────────
+// ─── Premier changement de mot de passe ──────────────────────────────────────
 Route::middleware('auth')->group(function () {
     Route::get('/password/premier', [PremierMotDePasseController::class, 'create'])
         ->name('password.premier');
@@ -64,6 +64,25 @@ Route::middleware(['auth', 'role:A'])->group(function () {
     Route::get('admin/dashboard/entreprise', function () {
         return Inertia::render('Admin/admin.main.entreprise');
     })->name('admin.main.entreprise');
+
+    // Dossiers de stage
+    Route::get('admin/dashboard/dossiers',           [AdminDashboardController::class, 'index_dossier'])->name('admin.index.dossier');
+    Route::post('admin/dashboard/dossiers/toggle/{id}', [AdminDashboardController::class, 'toggle_dossier'])->name('admin.toggle.dossier');
+
+    // Suivi des stages
+    Route::get('admin/dashboard/stages',             [AdminDashboardController::class, 'index_stage'])->name('admin.index.stage');
+
+    // Formations
+    Route::get('admin/dashboard/formations',             [AdminDashboardController::class, 'index_formation'])->name('admin.index.formation');
+    Route::post('admin/dashboard/formations/valider/{id}', [AdminDashboardController::class, 'valider_formation'])->name('admin.valider.formation');
+    Route::post('admin/dashboard/formations/refuser/{id}', [AdminDashboardController::class, 'refuser_formation'])->name('admin.refuser.formation');
+
+    // Trace
+    Route::get('admin/dashboard/trace',              [AdminDashboardController::class, 'trace'])->name('admin.trace');
+    Route::get('admin/dashboard/trace/export',       [AdminDashboardController::class, 'export_trace'])->name('admin.trace.export');
+
+    // Archivage annuel
+    Route::post('admin/dashboard/archiver',          [AdminDashboardController::class, 'archiver_annee'])->name('admin.archiver.annee');
 });
 
 // ─── Dashboard Entreprise ─────────────────────────────────────────────────────
