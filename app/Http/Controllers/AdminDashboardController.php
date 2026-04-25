@@ -9,198 +9,215 @@ use App\Models\Jury;
 use App\Models\Tuteur;
 use App\Models\Etudiant;
 use App\Models\Offre;
+use App\Models\Notification;
 
 use Illuminate\Http\Request;
-use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-
-
 use Inertia\Inertia;
 
 class AdminDashboardController extends Controller
 {
-    public function index_user() {
-        
-        //J'ai crée un Trait (une fonction qui peut s'appliquer à plusieurs Models) et je l'applique
-        // à chaque table pertinente pour récupérer toutes les infos à chaque fois (redondant mais pour l'instant le mieux que je
-        // puisse faire...)
+    // ─── Dashboard principal ─────────────────────────────────────────────────
 
-        // Piste d'amélioration : vérifier ICI ce qu'on demande et utiliser les boutons pour re-appeler index_user() et donc
-        // ne donner qu'à chaque fois qu'une table
-
-
-        $users = Utilisateur::orderBy('id', 'asc')->get();
-        //$admins = Administrateur::orderBy('utilisateurs_id')->get();
-        $admins = Administrateur::with("utilisateur")->orderBy('utilisateurs_id')->get();
-        //$students = Etudiant::orderBy('id')->get();
-        $students = Etudiant::with("utilisateur")->orderBy('utilisateurs_id')->get();
-        //$tutors =  Tuteur::with("utilisateur")->orderBy('id')->get();
-        //$tutors =  Tuteur::orderBy('utilisateurs_id')->get();
-        //$entreprises = Entreprise::orderBy('utilisateurs_id')->get();
-        $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateurs_id')->get();
-
-        $count = Utilisateur::count();
-
-
-        return Inertia::render( "Admin/admin.index.user", ["users"=> $users, "admins"=> $admins, "students" => $students, /*"tutors"=> $tutors,*/ "entreprises"=>$entreprises, "count" => $count ]);
-
-    }
-
-    public function index_offre()
+    public function dashboard()
     {
-        $entreprises = Entreprise::with('offres')
-            ->orderBy('id', 'asc')
-            ->get();
-        //$entreprises = Entreprise::with('offres')->get();
-
-        //dd($entreprises->toArray());
-
-        return Inertia::render('Admin/admin.index.offre', [
-            'entreprises' => $entreprises
+        return Inertia::render('Admin/admin.main', [
+            'stats' => [
+                'utilisateurs'        => Utilisateur::count(),
+                'etudiants'           => Etudiant::count(),
+                'entreprises'         => Entreprise::count(),
+                'offres_actives'      => Offre::where('est_active', true)->count(),
+                'offres_pending'      => Offre::where('est_active', false)->count(),
+                'entreprises_pending' => Utilisateur::where('role', 'E')
+                                            ->where('est_active', false)
+                                            ->count(),
+            ],
+            'notifications' => Notification::where('proprietaire_id', auth()->id())
+                                ->where('est_lu', false)
+                                ->latest('date_envoi')
+                                ->take(10)
+                                ->get(),
+            'entreprises_pending' => Utilisateur::where('role', 'E')
+                                        ->where('est_active', false)
+                                        ->with('entreprise')
+                                        ->get(),
         ]);
     }
 
-    public function toggle_user(Request $request, $id){
+    // ─── Utilisateurs ────────────────────────────────────────────────────────
+
+    public function index_user()
+    {
+        $users       = Utilisateur::orderBy('id', 'asc')->get();
+        $admins      = Administrateur::with('utilisateur')->orderBy('utilisateurs_id')->get();
+        $students    = Etudiant::with('utilisateur')->orderBy('utilisateurs_id')->get();
+        $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateurs_id')->get();
+        $tutors      = Tuteur::with('utilisateur')->orderBy('utilisateurs_id')->get();
+        $count       = Utilisateur::count();
+
+        return Inertia::render('Admin/admin.index.user', [
+            'users'       => $users,
+            'admins'      => $admins,
+            'students'    => $students,
+            'tutors'      => $tutors,
+            'entreprises' => $entreprises,
+            'count'       => $count,
+        ]);
+    }
+
+    public function toggle_user(Request $request, $id)
+    {
         $user = Utilisateur::findOrFail($id);
         $user->est_active = !$user->est_active;
         $user->save();
+
         return redirect()->route('admin.index.user');
     }
 
-    public function toggle_offre($id)
-{
-    $offre = Offre::findOrFail($id);
+    /**
+     * BUG FIX : rôles corrigés 'E', 'T', 'S' au lieu de 'entreprise', 'tuteur', 'etudiant'
+     */
+    public function edit_user(Request $request, $id)
+    {
+        Utilisateur::where('id', $id)->update(
+            $request->only(['nom', 'prenom', 'email', 'role'])
+        );
 
-    $offre->est_active = !$offre->est_active;
-    $offre->save();
+        match ($request->role) {
+            'E' => Entreprise::where('utilisateurs_id', $id)->update(
+                        $request->only(['addresse', 'secteur'])
+                    ),
+            'T' => Tuteur::where('utilisateurs_id', $id)->update(
+                        $request->only(['departement'])
+                    ),
+            'S' => Etudiant::where('utilisateurs_id', $id)->update(
+                        $request->only(['filiere', 'niveau_etud'])
+                    ),
+            default => null,
+        };
 
-    return back();
-}
-
-    /*
-    public function index_entreprise(){
-        $entreprise = Entreprise::orderBy('utilisateurs_id', 'asc')->get();
-        $count = Utilisateur::count();
-        return Inertia::render("admin.index.entreprise", ["entreprise"=> $entreprise, "count"=> $count]);
-    }*/
-    
-    public function edit_user(Request $request, $id) {
-    // Toujours mettre à jour utilisateurs
-    Utilisateur::where('id', $id)->update(
-        $request->only(['nom', 'prenom', 'email', 'role'])
-    );
-
-    // Mettre à jour la table spécifique selon le role
-    match($request->role) {
-        'entreprise' => Entreprise::where('utilisateurs_id', $id)->update(
-            $request->only(['addresse', 'secteur'])
-        ),
-        'tuteur' => Tuteur::where('utilisateurs_id', $id)->update(
-            $request->only(['departement'])
-        ),
-        'etudiant' => Etudiant::where('utilisateurs_id', $id)->update(
-            $request->only(['filiere', 'niveau_etud'])
-        ),
-        default => null,
-    };
-}
-
-    public function create_user(){
-        return Inertia::render("Admin/admin.create.user");
-    }
-/*
-    public function create_entreprise(){
-        return Inertia::render("admin.create.entreprise");
+        return redirect()->route('admin.index.user');
     }
 
-   public function store_entreprise(Request $request){
-    try {
+    public function create_user()
+    {
+        return Inertia::render('Admin/admin.create.user');
+    }
+
+    public function store_user(Request $request)
+    {
         $validated = $request->validate([
-            "nom_entreprise" => 'required|string|max:255',
-            "addresse"       => 'required|string|max:255',
-            "secteur"        => 'required|string|max:255',
-            "utilisateurs_id"=> 'required|integer',
+            'nom'         => 'required|string|max:25',
+            'prenom'      => 'nullable|string|max:15',
+            'email'       => 'required|string|max:42|unique:utilisateurs',
+            'role'        => 'required|string|in:A,T,E,S',
+            'filiere'     => 'required_if:role,S|nullable|string|max:10',
+            'niveau_etud' => 'required_if:role,S|nullable|integer|min:1',
+            'addresse'    => 'required_if:role,E|nullable|string',
+            'secteur'     => 'required_if:role,E|nullable|string',
+            'departement' => 'required_if:role,T|nullable|string',
+            'est_jury'    => 'nullable|boolean',
         ]);
 
-        Entreprise::create($validated);
-        return redirect()->route('admin.index.entreprise')
-                         ->with('success', 'Entreprise ajoutée !');
-    } catch (\Exception $e) {
-        dd($e->getMessage()); // ← affiche l'erreur exacte
-    }
-}*/
-
-    public function store_user(Request $request) {
-        //dd($request->all());
-        $validated = $request->validate([
-            "nom"          => 'required|string|max:25',
-            "prenom"       => 'nullable|string|max:15',
-            "email"        => 'required|string|max:42|unique:utilisateurs',
-            "role"         => 'required|string|in:A,T,E,S',
-            "psw"          => 'nullable|string',  // ← ajoute ça
-            // Etudiant
-            "filiere"      => 'required_if:role,S|nullable|string|max:10',
-            "niveau_etud"  => 'required_if:role,S|nullable|integer|min:1',
-            // Entreprise
-            "addresse"     => 'required_if:role,E|nullable|string',
-            "secteur"      => 'required_if:role,E|nullable|string',
-            // Tuteur
-            "departement"  => 'required_if:role,T|nullable|string',
-            "est_jury"     => 'nullable|boolean',
-        ]);
-
-        // Création utilisateur de base
-        //$temporaryPassword = Str::password(7);
-        $temporaryPassword = "password";    
         $utilisateur = Utilisateur::create([
-            'nom'                 => $validated['nom'],
-            'prenom'              => $validated['prenom'] ?? null,
-            'email'               => $validated['email'],
-            'role'                => $validated['role'],
-            'mot_de_passe'        => Hash::make($temporaryPassword),
-            'est_active'          => true,
-            'premier_mdp_changer' => false,
+            'nom'                  => $validated['nom'],
+            'prenom'               => $validated['prenom'] ?? null,
+            'email'                => $validated['email'],
+            'role'                 => $validated['role'],
+            'mot_de_passe'         => Hash::make('password'),
+            'est_active'           => true,
+            'premier_mdp_changer'  => false, // forcera le changement à la 1ère connexion
         ]);
 
-        // Création table dérivée selon le rôle
-        match($validated['role']) {
-            'A' => Administrateur::create([
-                        'utilisateurs_id'     => $utilisateur->id,
-                        //'derniere_action_log' => now(),
-                ]),
+        match ($validated['role']) {
+            'A' => Administrateur::create(['utilisateurs_id' => $utilisateur->id]),
             'S' => Etudiant::create([
                         'utilisateurs_id' => $utilisateur->id,
                         'filiere'         => $validated['filiere'],
                         'niveau_etud'     => $validated['niveau_etud'],
-                ]),
+                    ]),
             'E' => Entreprise::create([
                         'utilisateurs_id' => $utilisateur->id,
                         'nom_entreprise'  => $validated['nom'],
                         'addresse'        => $validated['addresse'],
                         'secteur'         => $validated['secteur'],
-                ]),
-            'T' => (function() use ($utilisateur, $validated){
-                Tuteur::create([
-                    'utilisateurs_id'  => $utilisateur->id,
-                    'departement'      => $validated['departement'],
-                    //  'date_affectation' => now(),
-                ]);
-                /*
-                if (!empty($validated['est_jury'])) {
-                    Jury::create([
-                        'utilisateur_id' => $utilisateur->id,
-                        'departement'    => $validated['departement'],
-                    ]);
-                }*/
-                // AJOUTER LES JURYS SI EST_JURY
-            })(),
-            
-            default => null
+                    ]),
+            'T' => Tuteur::create([
+                        'utilisateurs_id' => $utilisateur->id,
+                        'departement'     => $validated['departement'],
+                    ]),
+            default => null,
         };
 
-        return redirect()->route('admin.index.user')
-                       ->with('success', 'Utilisateur ajouté !');
-}
+        return redirect()->route('admin.index.user')->with('success', 'Utilisateur ajouté !');
+    }
 
+    // ─── Offres ──────────────────────────────────────────────────────────────
+
+    public function index_offre()
+    {
+        $entreprises = Entreprise::with('offres')->orderBy('id', 'asc')->get();
+
+        return Inertia::render('Admin/admin.index.offre', [
+            'entreprises' => $entreprises,
+        ]);
+    }
+
+    public function toggle_offre($id)
+    {
+        $offre = Offre::findOrFail($id);
+        $offre->est_active = !$offre->est_active;
+        $offre->save();
+
+        return back();
+    }
+
+    // ─── Entreprises ─────────────────────────────────────────────────────────
+
+    public function index_entreprise()
+    {
+        $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateurs_id')->get();
+
+        return Inertia::render('Admin/admin.index.entreprise', [
+            'entreprise' => $entreprises,
+            'count'      => $entreprises->count(),
+        ]);
+    }
+
+    public function create_entreprise()
+    {
+        return Inertia::render('Admin/admin.create.entreprise');
+    }
+
+    /**
+     * Valider une entreprise en attente (est_active = false → true).
+     */
+    public function validate_entreprise(Request $request, $id)
+    {
+        $user = Utilisateur::findOrFail($id);
+        $user->est_active = true;
+        $user->save();
+
+        // Notifier l'entreprise
+        Notification::create([
+            'proprietaire_id' => $user->id,
+            'message'         => 'Votre compte entreprise a été validé. Vous pouvez maintenant vous connecter.',
+        ]);
+
+        return back()->with('success', 'Entreprise validée avec succès.');
+    }
+
+    public function store_entreprise(Request $request)
+    {
+        $validated = $request->validate([
+            'nom_entreprise'  => 'required|string|max:255',
+            'addresse'        => 'required|string|max:255',
+            'secteur'         => 'required|string|max:255',
+            'utilisateurs_id' => 'required|integer',
+        ]);
+
+        Entreprise::create($validated);
+
+        return redirect()->route('admin.index.entreprise')->with('success', 'Entreprise ajoutée !');
+    }
 }

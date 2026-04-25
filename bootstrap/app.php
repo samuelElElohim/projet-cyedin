@@ -14,6 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
+            // Force le changement de mot de passe à la première connexion
+            \App\Http\Middleware\ForcePremierMotDePasse::class,
         ]);
 
         $middleware->alias([
