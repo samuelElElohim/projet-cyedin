@@ -5,6 +5,8 @@ use App\Http\Controllers\EntrepriseDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\OffreController;
 use App\Http\Controllers\FeedController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\CandidatureController;
 use GuzzleHttp\Middleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -101,9 +103,17 @@ Route::middleware(['auth', 'role:S'])->group(function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
+    Route::post('offres/{offre_id}/candidater', [CandidatureController::class, 'store'])->name('etu.candidater');
     Route::get('dashboard/feed', [FeedController::class, 'index_feed'])->name('etu.main.feed');
 
 });
+
+
+// Gestion Documents Etudiants : 
+Route::get('etudiant/documents', [DocumentController::class, 'index'])->name('etu.documents');
+Route::post('etudiant/documents', [DocumentController::class, 'store'])->name('etu.documents.store');
+Route::delete('etudiant/documents/{id}', [DocumentController::class, 'destroy'])->name('etu.documents.destroy');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

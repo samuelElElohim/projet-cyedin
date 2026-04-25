@@ -14,7 +14,9 @@ class Offre extends Model
    public function entreprise(){
       return $this->belongsTo(Entreprise::class, 'entreprise_id');
     }
-
+    public function candidatures() {
+        return $this->hasMany(Candidature::class);
+    }
 
     //scopes
 

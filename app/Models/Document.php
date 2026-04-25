@@ -6,21 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class Document extends Model
 {
+    public $timestamps = false;
+    protected $table = 'documents';
     protected $fillable = [
-        'id',
         'utilisateurs_id',
-
         'nom',
         'type',
-
-        'chemin_fichier' // modifiable si on fais bouger le fichier ?
-    ];
-
-    protected $guarded = [
-
-        'date_depot' // pour assurer qu'aucune date ne soit alterer, par exemple date depot du rapport du stage ...
+        'chemin_fichier',
+        'date_depot'
     ];
 
 
-
+    
+    public function candidatures() {
+        return $this->belongsToMany(Candidature::class, 'candidature_documents');
+    }
 }

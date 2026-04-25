@@ -37,6 +37,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     OFfre de stage feed
                                 </NavLink>
+                                <NavLink
+                                    href={route("etu.documents")}
+                                    active={route().current('etu.documents')}
+                                >
+                                    Mes Documents
+                                </NavLink>
                             </div>
                         </div>
 

@@ -1,7 +1,7 @@
 import CarteCompacte from './CarteCompacte'
 import CarteGrande from './CarteGrande'
 
-export default function OffreFeed({ offres }) {
+export default function OffreFeed({ offres, dejasCandidatures, documents }) {
     return (
         <div className="max-w-3xl mx-auto px-4 py-6 flex flex-col gap-3">
 
@@ -15,8 +15,12 @@ export default function OffreFeed({ offres }) {
             {/* Cartes */}
             {offres.map(offre =>
                 offre.image_url
-                    ? <CarteGrande key={offre.id} offre={offre} />
-                    : <CarteCompacte key={offre.id} offre={offre} />
+                    ? <CarteGrande key={offre.id} offre={offre}
+                        dejaCandidate={dejasCandidatures.includes(offre.id)}
+                        documents={documents} />
+                    : <CarteCompacte key={offre.id} offre={offre}
+                        dejaCandidate={dejasCandidatures.includes(offre.id)}
+                        documents={documents} />
             )}
 
             {offres.length === 0 && (

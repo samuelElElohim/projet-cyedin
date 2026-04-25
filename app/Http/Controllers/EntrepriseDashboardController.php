@@ -22,7 +22,11 @@ class EntrepriseDashboardController extends Controller
             abort(403, 'Entreprise inexistante');
         }
 
-        $offres = $entreprise->offres;
+        // Charge les candidatures + l'étudiant pour chaque offre
+        $offres = $entreprise->offres()->with([
+            'candidatures.etudiant',
+            'candidatures.documents'
+        ])->get();
 
         return Inertia::render('entreprise.index.offre', [
             'offres' => $offres
