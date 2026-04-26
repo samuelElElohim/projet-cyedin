@@ -2,17 +2,246 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CahierStage;
+use App\Models\Candidature;
 use App\Models\DemandeFormation;
+use App\Models\Document;
+use App\Models\Dossier_stage;
 use App\Models\Etudiant;
 use App\Models\Notification;
+use App\Models\Offre;
+use App\Models\Remarque;
 use App\Models\Administrateur;
 use App\Services\TraceLogger;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class EtudiantDashboardController extends Controller
 {
-    public function index_demande_formation()
+    // ─── Dashboard ───────────────────────────────────────────────────────────
+
+    public function dashboard(): Response
+    {
+        $user    = auth()->user();
+        $etudiant = $user->etudiant;
+
+        $stageEnCours = $etudiant?->stages()
+            ->with(['entreprise', 'tuteur.utilisateur', 'convention'])
+            ->latest('id')
+            ->first();
+
+        $dossier = $etudiant
+            ? Dossier_stage::with('documents')
+                ->where('etudiants_id', $user->id)
+                ->first()
+            : null;
+
+        $notifications = Notification::where('proprietaire_id', $user->id)
+            ->where('est_lu', false)
+            ->orderBy('date_envoi', 'desc')
+            ->take(5)
+            ->get();
+
+        $nbCandidatures = Candidature::where('etudiant_id', $user->id)->count();
+        $nbDocuments    = Document::where('utilisateurs_id', $user->id)->count();
+        $nbCahier       = CahierStage::where('etudiant_id', $user->id)->count();
+
+        $conventionStatus = null;
+        if ($stageEnCours?->convention) {
+            $c = $stageEnCours->convention;
+            $conventionStatus = [
+                'entreprise' => $c->signer_par_entreprise,
+                'tuteur'     => $c->signer_par_tuteur,
+                'etudiant'   => $c->signer_par_etudiant,
+                'complete'   => $c->signer_par_entreprise && $c->signer_par_tuteur && $c->signer_par_etudiant,
+            ];
+        }
+
+        return Inertia::render('Etudiant/etudiant.dashboard', [
+            'etudiant'          => $etudiant,
+            'stage_en_cours'    => $stageEnCours,
+            'convention_status' => $conventionStatus,
+            'dossier'           => $dossier,
+            'notifications'     => $notifications,
+            'stats' => [
+                'candidatures' => $nbCandidatures,
+                'documents'    => $nbDocuments,
+                'cahier'       => $nbCahier,
+                'dossier_valide' => $dossier?->est_valide ?? false,
+            ],
+        ]);
+    }
+
+    // ─── Offres ──────────────────────────────────────────────────────────────
+
+    public function offres(Request $request): Response
+    {
+        $user = auth()->user();
+
+        $query = Offre::with('entreprise')
+            ->where('est_active', true);
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('titre', 'ilike', '%' . $request->search . '%')
+                  ->orWhere('description', 'ilike', '%' . $request->search . '%');
+            });
+        }
+
+        if ($request->filled('duree_max')) {
+            $query->where('duree_semaines', '<=', $request->duree_max);
+        }
+
+        if ($request->filled('duree_min')) {
+            $query->where('duree_semaines', '>=', $request->duree_min);
+        }
+
+        if ($request->filled('secteur')) {
+            $query->whereHas('entreprise', fn ($q) =>
+                $q->where('secteur', 'ilike', '%' . $request->secteur . '%')
+            );
+        }
+
+        $offres = $query->orderBy('created_at', 'desc')->get();
+
+        // IDs des offres pour lesquelles l'étudiant a déjà postulé
+        $dejaCandidature = Candidature::where('etudiant_id', $user->id)
+            ->pluck('statut', 'offre_id');
+
+        // Secteurs distincts pour le filtre
+        $secteurs = \App\Models\Entreprise::select('secteur')
+            ->distinct()
+            ->orderBy('secteur')
+            ->pluck('secteur');
+
+        return Inertia::render('Etudiant/etudiant.offres', [
+            'offres'            => $offres,
+            'deja_candidature'  => $dejaCandidature,
+            'secteurs'          => $secteurs,
+            'filters'           => $request->only(['search', 'duree_min', 'duree_max', 'secteur']),
+        ]);
+    }
+
+    // ─── Dossier de stage ────────────────────────────────────────────────────
+
+    public function dossier(): Response
+    {
+        $user = auth()->user();
+
+        $dossier = Dossier_stage::with('documents')
+            ->where('etudiants_id', $user->id)
+            ->first();
+
+        $documents = Document::where('utilisateurs_id', $user->id)
+            ->orderBy('date_depot', 'desc')
+            ->get();
+
+        $stage = $user->etudiant?->stages()
+            ->with(['convention', 'entreprise', 'tuteur.utilisateur'])
+            ->latest('id')
+            ->first();
+
+        $remarques = $dossier
+            ? Remarque::pour('dossier_stage', $dossier->id)
+                ->with('auteur')
+                ->visibleParEtudiant()
+                ->orderBy('created_at', 'desc')
+                ->get()
+            : collect();
+
+        return Inertia::render('Etudiant/etudiant.dossier', [
+            'dossier'   => $dossier,
+            'documents' => $documents,
+            'stage'     => $stage,
+            'remarques' => $remarques,
+        ]);
+    }
+
+    // ─── Cahier de stage ─────────────────────────────────────────────────────
+
+    public function cahier(): Response
+    {
+        $entrees = CahierStage::where('etudiant_id', auth()->id())
+            ->orderBy('date_entree', 'desc')
+            ->get();
+
+        return Inertia::render('Etudiant/etudiant.cahier', [
+            'entrees' => $entrees,
+        ]);
+    }
+
+    public function store_cahier(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'date_entree'    => 'required|date',
+            'titre'          => 'nullable|string|max:255',
+            'contenu'        => 'required|string|max:10000',
+            'visible_tuteur' => 'boolean',
+            'visible_jury'   => 'boolean',
+        ]);
+
+        CahierStage::create([
+            'etudiant_id'    => auth()->id(),
+            'date_entree'    => $request->date_entree,
+            'titre'          => $request->titre,
+            'contenu'        => $request->contenu,
+            'visible_tuteur' => $request->boolean('visible_tuteur', true),
+            'visible_jury'   => $request->boolean('visible_jury', false),
+        ]);
+
+        return back()->with('success', 'Entrée ajoutée au cahier.');
+    }
+
+    public function destroy_cahier(CahierStage $entree): RedirectResponse
+    {
+        abort_unless($entree->etudiant_id === auth()->id(), 403);
+
+        $entree->delete();
+
+        return back()->with('success', 'Entrée supprimée.');
+    }
+
+    // ─── Candidatures ────────────────────────────────────────────────────────
+
+    public function candidatures(): Response
+    {
+        $candidatures = Candidature::with(['offre.entreprise'])
+            ->where('etudiant_id', auth()->id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return Inertia::render('Etudiant/etudiant.candidatures', [
+            'candidatures' => $candidatures,
+        ]);
+    }
+
+    // ─── Ajouter une remarque sur son propre stage / dossier ─────────────────
+
+    public function store_remarque(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'cible_type' => 'required|in:stage,dossier_stage',
+            'cible_id'   => 'required|integer',
+            'contenu'    => 'required|string|max:2000',
+        ]);
+
+        Remarque::create([
+            'auteur_id'              => auth()->id(),
+            'cible_type'             => $request->cible_type,
+            'cible_id'               => $request->cible_id,
+            'contenu'                => $request->contenu,
+            'est_visible_etudiant'   => true,
+            'est_visible_entreprise' => false,
+        ]);
+
+        return back()->with('success', 'Remarque ajoutée.');
+    }
+
+    // ─── Demande de filière (existant, conservé ici) ─────────────────────────
+
+    public function index_demande_formation(): Response
     {
         $etudiantId = auth()->id();
 
@@ -32,7 +261,7 @@ class EtudiantDashboardController extends Controller
         ]);
     }
 
-    public function store_demande_formation(Request $request)
+    public function store_demande_formation(Request $request): RedirectResponse
     {
         $request->validate([
             'formation_demandee' => 'required|string|max:100',
@@ -45,7 +274,6 @@ class EtudiantDashboardController extends Controller
             'justification'      => $request->justification,
         ]);
 
-        // Notifier tous les admins
         $adminIds = Administrateur::pluck('utilisateurs_id');
         foreach ($adminIds as $adminId) {
             Notification::create([

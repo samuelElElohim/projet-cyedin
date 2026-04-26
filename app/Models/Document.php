@@ -21,6 +21,20 @@ class Document extends Model
         'date_depot' // pour assurer qu'aucune date ne soit alterer, par exemple date depot du rapport du stage ...
     ];
 
-
+    public function utilisateur()
+    {
+        return $this->belongsTo(\App\Models\Utilisateur::class, 'utilisateurs_id');
+    }
+ 
+    // Dossiers auxquels ce document appartient (many-to-many)
+    public function dossiers()
+    {
+        return $this->belongsToMany(
+            \App\Models\Dossier_stage::class,
+            'dossier_documents',
+            'document_id',
+            'dossier_id'
+        );
+    }
 
 }

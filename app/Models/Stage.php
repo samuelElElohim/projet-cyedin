@@ -54,4 +54,11 @@ class Stage extends Model
             ->where('signer_par_etudiant', true)
         );
     }
+
+    public function remarques()
+    {
+        // Utiliser le scope : Remarque::pour('stage', $this->id)
+        return \App\Models\Remarque::where('cible_type', 'stage')
+                                    ->where('cible_id', $this->id);
+    }
 }

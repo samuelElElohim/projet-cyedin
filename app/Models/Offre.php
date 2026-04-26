@@ -30,4 +30,16 @@ class Offre extends Model
     {
         return $query->where('duree_semaines', '<=', $semaines);
     }
+
+    public function candidatures()
+    {
+        return $this->hasMany(\App\Models\Candidature::class, 'offre_id');
+    }
+ 
+    public function remarques()
+    {
+        return $this->morphMany(\App\Models\Remarque::class, 'cible');
+        // Note : cible_type = 'offre', cible_id = id de l'offre
+        // (nécessite d'utiliser Remarque::scopePour('offre', $id) car pas de vraie relation Eloquent polymorphe ici)
+    }
 }

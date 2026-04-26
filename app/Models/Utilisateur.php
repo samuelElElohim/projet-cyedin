@@ -154,4 +154,14 @@ class Utilisateur extends Authenticatable
         return $query->where('role', $role);
     }
 
+    public function candidatures()
+    {
+        return $this->hasMany(\App\Models\Candidature::class, 'etudiant_id');
+    }
+ 
+    public function remarques()
+    {
+        return $this->hasMany(\App\Models\Remarque::class, 'auteur_id');
+    }
+
 }
