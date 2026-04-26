@@ -7,6 +7,7 @@ use App\Models\Utilisateur;
 use App\Models\Administrateur;
 use App\Models\Etudiant;
 use App\Models\Entreprise;
+use App\Models\Tuteur;
 use Illuminate\Support\Facades\Hash;
 
 class UtilisateurSeeder extends Seeder
@@ -83,6 +84,30 @@ class UtilisateurSeeder extends Seeder
                 'nom_entreprise' => 'Entreprise Test',
                 'addresse' => '42 rue test',
                 'secteur' => 'info',
+            ]
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | TUTEUR
+        |--------------------------------------------------------------------------
+        */
+        $tuteurUser = Utilisateur::updateOrCreate(
+            ['email' => 'tuteur@test.fr'],
+            [
+                'nom' => 'Tuteur',
+                'prenom' => 'Test',
+                'mot_de_passe' => Hash::make('password'),
+                'role' => 'T',
+                'est_active' => true,
+                'premier_mdp_changer' => true,
+            ]
+        );
+
+        Tuteur::updateOrCreate(
+            ['utilisateurs_id' => $tuteurUser->id],
+            [
+                'departement' => 'Informatique',
             ]
         );
     }

@@ -8,6 +8,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\RemarqueController;
 use App\Http\Controllers\CandidatureController;
 use App\Http\Controllers\EtudiantDashboardController;
+use App\Http\Controllers\TuteurDashboardController; // Import ajouté
 use App\Http\Controllers\Auth\InscriptionEntrepriseController;
 use App\Http\Controllers\Auth\PremierMotDePasseController;
 use Illuminate\Support\Facades\Route;
@@ -170,13 +171,34 @@ Route::middleware(['auth', 'role:S'])->prefix('etudiant')->name('etudiant.')->gr
 
 /*
 |--------------------------------------------------------------------------
-| Autres Rôles (Tuteur / Jury)
+| Espace TUTEUR (role:T)
 |--------------------------------------------------------------------------
 */
 
-Route::get('/tuteur/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'role:T'])->name('tuteur.dashboard');
+Route::middleware(['auth', 'role:T'])->prefix('tuteur')->name('tuteur.')->group(function () {
+
+    Route::get('/dashboard', [TuteurDashboardController::class, 'dashboard'])->name('dashboard');
+
+    // Stage
+    Route::get('/stage/create',  [TuteurDashboardController::class, 'create_stage'])->name('create.stage');
+    Route::post('/stage/create', [TuteurDashboardController::class, 'store_stage'])->name('store.stage');
+
+    // Convention
+    Route::post('/convention/{stageId}/signer', [TuteurDashboardController::class, 'signer_convention'])->name('signer.convention');
+
+    // Étudiant : cahier + documents/remarques
+    Route::get('/etudiant/{etudiantId}/cahier',    [TuteurDashboardController::class, 'cahier'])->name('cahier');
+    Route::get('/etudiant/{etudiantId}',            [TuteurDashboardController::class, 'documents'])->name('etudiant');
+
+    // Remarques
+    Route::post('/remarques', [TuteurDashboardController::class, 'store_remarque'])->name('remarques.store');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Espace JURY (role:J)
+|--------------------------------------------------------------------------
+*/
 
 Route::get('/jury/dashboard', function () {
     return Inertia::render('Dashboard');

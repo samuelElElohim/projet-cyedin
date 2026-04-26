@@ -6,27 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class Document extends Model
 {
+    public $timestamps = false;
+
     protected $fillable = [
         'id',
         'utilisateurs_id',
-
         'nom',
         'type',
-
-        'chemin_fichier' // modifiable si on fais bouger le fichier ?
+        'chemin_fichier',
     ];
 
-    protected $guarded = [
-
-        'date_depot' // pour assurer qu'aucune date ne soit alterer, par exemple date depot du rapport du stage ...
-    ];
+    protected $guarded = ['date_depot'];
 
     public function utilisateur()
     {
         return $this->belongsTo(\App\Models\Utilisateur::class, 'utilisateurs_id');
     }
- 
-    // Dossiers auxquels ce document appartient (many-to-many)
+
     public function dossiers()
     {
         return $this->belongsToMany(
@@ -36,5 +32,4 @@ class Document extends Model
             'dossier_id'
         );
     }
-
 }
