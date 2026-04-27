@@ -8,7 +8,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\RemarqueController;
 use App\Http\Controllers\CandidatureController;
 use App\Http\Controllers\EtudiantDashboardController;
-use App\Http\Controllers\TuteurDashboardController; // Import ajouté
+use App\Http\Controllers\TuteurDashboardController;
 use App\Http\Controllers\Auth\InscriptionEntrepriseController;
 use App\Http\Controllers\Auth\PremierMotDePasseController;
 use Illuminate\Support\Facades\Route;
@@ -60,7 +60,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/remarques',              [RemarqueController::class, 'store'])->name('remarques.store');
     Route::delete('/remarques/{remarque}', [RemarqueController::class, 'destroy'])->name('remarques.destroy');
 
-    // Dashboard générique de redirection (si nécessaire)
+    // Dashboard générique de redirection
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->middleware(['verified'])->name('dashboard');
@@ -118,24 +118,33 @@ Route::middleware(['auth', 'role:A'])->prefix('admin')->name('admin.')->group(fu
 
 /*
 |--------------------------------------------------------------------------
-| Espace ENTREPRISE (role:E)
+| Espace ENTREPRISE (role:E) - Bloc Mis à jour
 |--------------------------------------------------------------------------
 */
 
 Route::middleware(['auth', 'role:E'])->prefix('entreprise')->name('entreprise.')->group(function () {
-    
-    Route::get('/dashboard', function () {
-        return Inertia::render('Entreprise/entreprise.main');
-    })->name('dashboard');
+
+    // Dashboard
+    Route::get('/dashboard', [EntrepriseDashboardController::class, 'dashboard'])->name('dashboard');
 
     // Offres
-    Route::get('/dashboard/offre',        [EntrepriseDashboardController::class, 'index_offre'])->name('index.offre');
-    Route::post('/dashboard/offres/add',  [EntrepriseDashboardController::class, 'store_offre'])->name('store.offre');
+    Route::get('/offres',        [EntrepriseDashboardController::class, 'index_offre'])->name('index.offre');
+    Route::post('/offres',       [EntrepriseDashboardController::class, 'store_offre'])->name('store.offre');
 
     // Candidatures reçues
-    Route::get('/candidatures',                       [CandidatureController::class, 'indexEntreprise'])->name('candidatures.index');
-    Route::post('/candidatures/{candidature}/accepter', [CandidatureController::class, 'accepter'])->name('candidatures.accepter');
-    Route::post('/candidatures/{candidature}/refuser',  [CandidatureController::class, 'refuser'])->name('candidatures.refuser');
+    Route::get('/candidatures',                          [EntrepriseDashboardController::class, 'index_candidatures'])->name('candidatures');
+    Route::post('/candidatures/{candidature}/accepter',  [CandidatureController::class, 'accepter'])->name('candidatures.accepter');
+    Route::post('/candidatures/{candidature}/refuser',   [CandidatureController::class, 'refuser'])->name('candidatures.refuser');
+
+    // Stages
+    Route::get('/stages',                    [EntrepriseDashboardController::class, 'index_stages'])->name('index.stage');
+    Route::get('/stages/{stageId}',          [EntrepriseDashboardController::class, 'index_stage_detail'])->name('stage.detail');
+
+    // Convention
+    Route::post('/stages/{stageId}/signer',  [EntrepriseDashboardController::class, 'signer_convention'])->name('convention.signer');
+
+    // Missions (rattachées à un stage)
+    Route::post('/stages/{stageId}/mission', [EntrepriseDashboardController::class, 'store_mission'])->name('stage.mission');
 });
 
 /*
