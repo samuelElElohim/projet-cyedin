@@ -10,7 +10,9 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Redirige les utilisateurs dont premier_mdp_changer = false
  * vers la page de changement de mot de passe.
- * S'applique après le middleware 'auth'.
+ *
+ * PATCH : exclusion des routes de vérification email pour éviter
+ * une boucle de redirection avec le middleware 'verified'.
  */
 class ForcePremierMotDePasse
 {
@@ -20,6 +22,10 @@ class ForcePremierMotDePasse
             Auth::check() &&
             !Auth::user()->premier_mdp_changer &&
             !$request->routeIs('password.premier') &&
+            !$request->routeIs('password.premier.store') &&
+            !$request->routeIs('verification.notice') &&   // ← ajout
+            !$request->routeIs('verification.verify') &&   // ← ajout
+            !$request->routeIs('verification.send') &&     // ← ajout
             !$request->routeIs('logout')
         ) {
             return redirect()->route('password.premier');

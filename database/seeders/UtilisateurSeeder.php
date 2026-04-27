@@ -8,6 +8,7 @@ use App\Models\Administrateur;
 use App\Models\Etudiant;
 use App\Models\Entreprise;
 use App\Models\Tuteur;
+use App\Models\Jury;
 use Illuminate\Support\Facades\Hash;
 
 class UtilisateurSeeder extends Seeder
@@ -28,6 +29,7 @@ class UtilisateurSeeder extends Seeder
                 'role' => 'A',
                 'est_active' => true,
                 'premier_mdp_changer' => true,
+                'email_verified_at' => now(),
             ]
         );
 
@@ -50,6 +52,7 @@ class UtilisateurSeeder extends Seeder
                 'role' => 'S',
                 'est_active' => true,
                 'premier_mdp_changer' => true,
+                'email_verified_at' => now(),
             ]
         );
 
@@ -75,6 +78,7 @@ class UtilisateurSeeder extends Seeder
                 'role' => 'E',
                 'est_active' => true,
                 'premier_mdp_changer' => true,
+                'email_verified_at' => now(),
             ]
         );
 
@@ -101,11 +105,37 @@ class UtilisateurSeeder extends Seeder
                 'role' => 'T',
                 'est_active' => true,
                 'premier_mdp_changer' => true,
+                'email_verified_at' => now(),
             ]
         );
 
         Tuteur::updateOrCreate(
             ['utilisateurs_id' => $tuteurUser->id],
+            [
+                'departement' => 'Informatique',
+            ]
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | JURY
+        |--------------------------------------------------------------------------
+        */
+        $juryUser = Utilisateur::updateOrCreate(
+            ['email' => 'jury@test.fr'],
+            [
+                'nom'                  => 'Jury',
+                'prenom'               => 'Test',
+                'mot_de_passe'         => Hash::make('password'),
+                'role'                 => 'J',
+                'est_active'           => true,
+                'premier_mdp_changer'  => true,
+                'email_verified_at' => now(),
+            ]
+        );
+
+        Jury::updateOrCreate(
+            ['utilisateurs_id' => $juryUser->id],
             [
                 'departement' => 'Informatique',
             ]

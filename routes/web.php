@@ -9,6 +9,7 @@ use App\Http\Controllers\RemarqueController;
 use App\Http\Controllers\CandidatureController;
 use App\Http\Controllers\EtudiantDashboardController;
 use App\Http\Controllers\TuteurDashboardController;
+use App\Http\Controllers\JuryDashboardController; // Import ajouté
 use App\Http\Controllers\Auth\InscriptionEntrepriseController;
 use App\Http\Controllers\Auth\PremierMotDePasseController;
 use Illuminate\Support\Facades\Route;
@@ -72,7 +73,7 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:A'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:A'])->prefix('admin')->name('admin.')->group(function () {
     
     Route::get('/dashboard', [AdminDashboardController::class, 'dashboard'])->name('dashboard');
 
@@ -118,11 +119,11 @@ Route::middleware(['auth', 'role:A'])->prefix('admin')->name('admin.')->group(fu
 
 /*
 |--------------------------------------------------------------------------
-| Espace ENTREPRISE (role:E) - Bloc Mis à jour
+| Espace ENTREPRISE (role:E)
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:E'])->prefix('entreprise')->name('entreprise.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:E'])->prefix('entreprise')->name('entreprise.')->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [EntrepriseDashboardController::class, 'dashboard'])->name('dashboard');
@@ -153,7 +154,7 @@ Route::middleware(['auth', 'role:E'])->prefix('entreprise')->name('entreprise.')
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:S'])->prefix('etudiant')->name('etudiant.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:S'])->prefix('etudiant')->name('etudiant.')->group(function () {
 
     // Dashboard et Navigation principale
     Route::get('/dashboard',    [EtudiantDashboardController::class, 'dashboard'])->name('dashboard');
@@ -170,7 +171,7 @@ Route::middleware(['auth', 'role:S'])->prefix('etudiant')->name('etudiant.')->gr
     Route::post('/candidatures',              [CandidatureController::class, 'store'])->name('candidatures.store');
     Route::delete('/candidatures/{candidature}', [CandidatureController::class, 'destroy'])->name('candidatures.destroy');
 
-    // Remarques spécifiques (sur stage / dossier)
+    // Remarques spécifiques
     Route::post('/remarques', [EtudiantDashboardController::class, 'store_remarque'])->name('remarques.store');
 
     // Demande de filière / formation
@@ -184,7 +185,7 @@ Route::middleware(['auth', 'role:S'])->prefix('etudiant')->name('etudiant.')->gr
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:T'])->prefix('tuteur')->name('tuteur.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:T'])->prefix('tuteur')->name('tuteur.')->group(function () {
 
     Route::get('/dashboard', [TuteurDashboardController::class, 'dashboard'])->name('dashboard');
 
@@ -205,12 +206,26 @@ Route::middleware(['auth', 'role:T'])->prefix('tuteur')->name('tuteur.')->group(
 
 /*
 |--------------------------------------------------------------------------
-| Espace JURY (role:J)
+| Espace JURY (role:J) - Bloc Mis à jour
 |--------------------------------------------------------------------------
 */
 
-Route::get('/jury/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'role:J'])->name('jury.dashboard');
+Route::middleware(['auth', 'verified', 'role:J'])->prefix('jury')->name('jury.')->group(function () {
+
+    // Dashboard
+    Route::get('/dashboard', [JuryDashboardController::class, 'dashboard'])->name('dashboard');
+
+    // Dossiers
+    Route::get('/dossiers',                          [JuryDashboardController::class, 'index_dossiers'])->name('index.dossiers');
+    Route::get('/dossiers/{dossierId}',              [JuryDashboardController::class, 'show_dossier'])->name('dossier.detail');
+    Route::post('/dossiers/{dossierId}/valider',     [JuryDashboardController::class, 'valider_dossier'])->name('dossier.valider');
+    Route::post('/dossiers/{dossierId}/invalider',   [JuryDashboardController::class, 'invalider_dossier'])->name('dossier.invalider');
+
+    // Remarques
+    Route::post('/remarques',                        [JuryDashboardController::class, 'store_remarque'])->name('remarque.store');
+
+    // Stages (consultation uniquement)
+    Route::get('/stages',                            [JuryDashboardController::class, 'index_stages'])->name('index.stages');
+});
 
 require __DIR__.'/auth.php';
