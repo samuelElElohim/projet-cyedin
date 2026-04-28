@@ -71,7 +71,57 @@ class EtudiantDashboardController extends Controller
                 'cahier'       => $nbCahier,
                 'dossier_valide' => $dossier?->est_valide ?? false,
             ],
+            // Indique si l'étudiant a un tuteur (pour afficher le bouton de message)
+            'has_tuteur'        => $stageEnCours && $stageEnCours->tuteurs_id !== null,
         ]);
+    }
+
+    // ─── Notifier le tuteur ──────────────────────────────────────────────────
+
+    /**
+     * Permet à l'étudiant d'envoyer un message d'avancement à son tuteur.
+     */
+    public function notify_tuteur(Request $request): RedirectResponse
+    {
+        $user     = auth()->user();
+        $etudiant = $user->etudiant;
+        abort_unless($etudiant, 403);
+
+        $request->validate([
+            'message' => 'required|string|min:5|max:1000',
+        ]);
+
+        $stage = $etudiant->stages()
+            ->with('tuteur.utilisateur')
+            ->whereNotNull('tuteurs_id')
+            ->latest('id')
+            ->first();
+
+        abort_unless($stage && $stage->tuteurs_id, 422, 'Aucun tuteur assigné à votre stage.');
+
+        // Notification au tuteur
+        Notification::create([
+            'proprietaire_id' => $stage->tuteurs_id,
+            'message'         => "📢 Message d'avancement de {$user->prenom} {$user->nom} : {$request->message}",
+        ]);
+
+        // Aussi créer une remarque visible sur le stage pour traçabilité
+        Remarque::create([
+            'auteur_id'              => $user->id,
+            'cible_type'             => 'stage',
+            'cible_id'               => $stage->id,
+            'contenu'                => "[Message au tuteur] {$request->message}",
+            'est_visible_etudiant'   => true,
+            'est_visible_entreprise' => false,
+        ]);
+
+        TraceLogger::log('notify_tuteur', [
+            'etudiant_id' => $user->id,
+            'tuteur_id'   => $stage->tuteurs_id,
+            'stage_id'    => $stage->id,
+        ]);
+
+        return back()->with('success', 'Message envoyé à votre tuteur.');
     }
 
     // ─── Offres ──────────────────────────────────────────────────────────────
@@ -106,11 +156,9 @@ class EtudiantDashboardController extends Controller
 
         $offres = $query->orderBy('created_at', 'desc')->get();
 
-        // IDs des offres pour lesquelles l'étudiant a déjà postulé
         $dejaCandidature = Candidature::where('etudiant_id', $user->id)
             ->pluck('statut', 'offre_id');
 
-        // Secteurs distincts pour le filtre
         $secteurs = \App\Models\Entreprise::select('secteur')
             ->distinct()
             ->orderBy('secteur')
@@ -163,12 +211,25 @@ class EtudiantDashboardController extends Controller
 
     public function cahier(): Response
     {
+        $user     = auth()->user();
+        $etudiant = $user->etudiant;
+
+        $stage = $etudiant?->stages()
+            ->with('tuteur.utilisateur')
+            ->whereNotNull('tuteurs_id')
+            ->latest('id')
+            ->first();
+
         $entrees = CahierStage::where('etudiant_id', auth()->id())
             ->orderBy('date_entree', 'desc')
             ->get();
 
         return Inertia::render('Etudiant/etudiant.cahier', [
-            'entrees' => $entrees,
+            'entrees'    => $entrees,
+            'has_tuteur' => $stage && $stage->tuteurs_id !== null,
+            'tuteur_nom' => $stage?->tuteur?->utilisateur
+                ? trim($stage->tuteur->utilisateur->prenom . ' ' . $stage->tuteur->utilisateur->nom)
+                : null,
         ]);
     }
 
@@ -239,7 +300,7 @@ class EtudiantDashboardController extends Controller
         return back()->with('success', 'Remarque ajoutée.');
     }
 
-    // ─── Demande de filière (existant, conservé ici) ─────────────────────────
+    // ─── Demande de filière ───────────────────────────────────────────────────
 
     public function index_demande_formation(): Response
     {
@@ -320,5 +381,4 @@ class EtudiantDashboardController extends Controller
             'filters'     => $request->only(['search', 'secteur']),
         ]);
     }
-
 }

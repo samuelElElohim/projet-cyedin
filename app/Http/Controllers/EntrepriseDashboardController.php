@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Candidature;
 use App\Models\Convention_stage;
+use App\Models\Document;
 use App\Models\Entreprise;
 use App\Models\Notification;
 use App\Models\Offre;
@@ -102,7 +103,7 @@ class EntrepriseDashboardController extends Controller
             'description'    => $request->description,
             'duree_semaines' => $request->duree_semaines,
             'entreprise_id'  => $entreprise->id,
-            'est_active'     => false, // attente validation admin
+            'est_active'     => false,
         ]);
 
         TraceLogger::log('store_offre', ['entreprise_id' => $entreprise->id]);
@@ -121,6 +122,13 @@ class EntrepriseDashboardController extends Controller
             ->whereHas('offre', fn($q) => $q->where('entreprise_id', $entreprise->id))
             ->orderBy('created_at', 'desc')
             ->get()
+            ->map(function ($c) {
+                // Charger les documents du candidat
+                $c->documents_etudiant = Document::where('utilisateurs_id', $c->etudiant_id)
+                    ->orderBy('date_depot', 'desc')
+                    ->get(['id', 'nom', 'type', 'date_depot']);
+                return $c;
+            })
             ->groupBy('offre_id');
 
         $offres = $entreprise->offres()->get()->keyBy('id');
@@ -153,7 +161,6 @@ class EntrepriseDashboardController extends Controller
         $convention->signer_par_entreprise = true;
         $convention->save();
 
-        // Notifier l'étudiant et le tuteur
         Notification::create([
             'proprietaire_id' => $stage->etudiants_id,
             'message'         => "L'entreprise {$entreprise->nom_entreprise} a signé votre convention de stage.",
@@ -214,7 +221,6 @@ class EntrepriseDashboardController extends Controller
             'contenu' => 'required|string|max:2000',
         ]);
 
-        // Une mission = une remarque visible par l'étudiant, taggée comme mission
         Remarque::create([
             'auteur_id'              => auth()->id(),
             'cible_type'             => 'stage',

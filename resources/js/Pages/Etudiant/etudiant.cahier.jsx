@@ -2,9 +2,9 @@ import EtudiantLayout from '@/Layouts/EtudiantLayout';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function EtudiantCahier({ entrees = [] }) {
+export default function EtudiantCahier({ entrees = [], has_tuteur = false, tuteur_nom = null }) {
     const [showForm, setShowForm] = useState(false);
-    const [editId, setEditId]     = useState(null);
+    const [showNotif, setShowNotif] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         date_entree:    new Date().toISOString().slice(0, 10),
@@ -14,10 +14,19 @@ export default function EtudiantCahier({ entrees = [] }) {
         visible_jury:   false,
     });
 
+    const notifForm = useForm({ message: '' });
+
     function submit(e) {
         e.preventDefault();
         post(route('etudiant.cahier.store'), {
             onSuccess: () => { reset(); setShowForm(false); },
+        });
+    }
+
+    function submitNotif(e) {
+        e.preventDefault();
+        notifForm.post(route('etudiant.notify.tuteur'), {
+            onSuccess: () => { notifForm.reset(); setShowNotif(false); },
         });
     }
 
@@ -39,17 +48,74 @@ export default function EtudiantCahier({ entrees = [] }) {
             <Head title="Cahier — Étudiant" />
 
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                 <p className="text-sm text-slate-500">{entrees.length} entrée{entrees.length !== 1 ? 's' : ''} au total</p>
-                <button
-                    onClick={() => setShowForm(p => !p)}
-                    className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition"
-                >
-                    {showForm ? 'Annuler' : '+ Nouvelle entrée'}
-                </button>
+                <div className="flex gap-2 flex-wrap">
+                    {/* Bouton informer tuteur */}
+                    {has_tuteur && (
+                        <button
+                            onClick={() => { setShowNotif(p => !p); setShowForm(false); }}
+                            className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition ${
+                                showNotif
+                                    ? 'bg-teal-100 text-teal-700'
+                                    : 'bg-teal-600 text-white hover:bg-teal-700'
+                            }`}
+                        >
+                            📩 Informer mon tuteur{tuteur_nom ? ` (${tuteur_nom})` : ''}
+                        </button>
+                    )}
+                    <button
+                        onClick={() => { setShowForm(p => !p); setShowNotif(false); }}
+                        className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition"
+                    >
+                        {showForm ? 'Annuler' : '+ Nouvelle entrée'}
+                    </button>
+                </div>
             </div>
 
-            {/* Formulaire */}
+            {/* Formulaire notif tuteur */}
+            {showNotif && (
+                <div className="bg-teal-50 rounded-2xl border border-teal-100 shadow-sm p-5 mb-6">
+                    <h2 className="text-sm font-semibold text-teal-800 mb-1 flex items-center gap-2">
+                        <span>📩</span>
+                        Informer votre tuteur de l'avancement du stage
+                    </h2>
+                    <p className="text-xs text-teal-600 mb-4">
+                        Votre tuteur recevra une notification avec votre message.
+                    </p>
+                    <form onSubmit={submitNotif} className="space-y-3">
+                        <textarea
+                            rows={4}
+                            value={notifForm.data.message}
+                            onChange={e => notifForm.setData('message', e.target.value)}
+                            placeholder="ex: J'ai terminé la phase d'analyse, je commence l'implémentation cette semaine…"
+                            required
+                            className="w-full border border-teal-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-100 bg-white resize-none"
+                        />
+                        {notifForm.errors.message && (
+                            <p className="text-xs text-red-600">{notifForm.errors.message}</p>
+                        )}
+                        <div className="flex gap-3">
+                            <button
+                                type="submit"
+                                disabled={notifForm.processing}
+                                className="px-5 py-2 bg-teal-600 text-white text-sm font-semibold rounded-xl hover:bg-teal-700 transition disabled:opacity-60"
+                            >
+                                {notifForm.processing ? 'Envoi…' : '📩 Envoyer au tuteur'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowNotif(false)}
+                                className="px-4 py-2 bg-white text-slate-600 text-sm rounded-xl border border-slate-200 hover:bg-slate-50 transition"
+                            >
+                                Annuler
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {/* Formulaire nouvelle entrée */}
             {showForm && (
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
                     <h2 className="text-sm font-semibold text-slate-700 mb-4">Ajouter une entrée</h2>
