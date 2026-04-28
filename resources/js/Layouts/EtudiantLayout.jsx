@@ -19,13 +19,16 @@ export default function EtudiantLayout({ children, title = 'Espace Étudiant' })
         <div className="min-h-screen bg-slate-50 flex">
             {/* Sidebar */}
             <aside className={`${sidebarOpen ? 'w-56' : 'w-14'} bg-white border-r border-slate-100 flex flex-col transition-all duration-200 shrink-0 shadow-sm`}>
-                {/* Logo */}
+                {/* Logo — FIX 1: wrapped in Link to etudiant.dashboard */}
                 <div className="h-16 flex items-center px-4 border-b border-slate-100">
                     {sidebarOpen && (
-                        <span className="text-lg font-black tracking-tight text-slate-900">
+                        <Link
+                            href={route('etudiant.dashboard')}
+                            className="text-lg font-black tracking-tight text-slate-900 hover:opacity-80 transition"
+                        >
                             CY<span className="text-blue-600">edin</span>
                             <span className="text-xs font-normal text-slate-400 ml-2">Étudiant</span>
-                        </span>
+                        </Link>
                     )}
                     <button
                         onClick={() => setSidebarOpen(p => !p)}
@@ -35,7 +38,7 @@ export default function EtudiantLayout({ children, title = 'Espace Étudiant' })
                     </button>
                 </div>
 
-                {/* Nav */}
+                {/* Nav — FIX 2: added explicit text color to ensure visibility */}
                 <nav className="flex-1 py-4 space-y-0.5 px-2 overflow-y-auto">
                     {NAV_ITEMS.map(item => {
                         const isActive = route().current(item.href);
@@ -46,11 +49,13 @@ export default function EtudiantLayout({ children, title = 'Espace Étudiant' })
                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
                                     isActive
                                         ? 'bg-blue-50 text-blue-700'
-                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                 }`}
                             >
                                 <span className="text-base shrink-0">{item.icon}</span>
-                                {sidebarOpen && <span className="truncate">{item.label}</span>}
+                                {sidebarOpen && (
+                                    <span className="truncate">{item.label}</span>
+                                )}
                             </Link>
                         );
                     })}
@@ -77,8 +82,11 @@ export default function EtudiantLayout({ children, title = 'Espace Étudiant' })
 
             {/* Main */}
             <div className="flex-1 flex flex-col min-w-0">
-                <header className="h-16 bg-white border-b border-slate-100 flex items-center px-6 shrink-0 shadow-sm">
-                    <h1 className="text-base font-semibold text-slate-800">{title}</h1>
+                {/* FIX 3: h1 gets flex-1 min-w-0 so it never overlaps NotifBadge */}
+                <header className="h-16 bg-white border-b border-slate-100 flex items-center px-6 shrink-0 shadow-sm gap-3">
+                    <h1 className="flex-1 min-w-0 text-base font-semibold text-slate-800 truncate">
+                        {title}
+                    </h1>
                     <NotifBadge />
                 </header>
                 <main className="flex-1 p-6 overflow-auto">
@@ -90,11 +98,9 @@ export default function EtudiantLayout({ children, title = 'Espace Étudiant' })
 }
 
 function NotifBadge() {
-    const { auth } = usePage().props;
-    // Les notifications sont passées optionnellement par le contrôleur
     const count = usePage().props.notifications_count ?? 0;
     return (
-        <div className="ml-auto relative">
+        <div className="shrink-0 relative">
             <button className="relative p-2 text-slate-400 hover:text-slate-700 transition">
                 <span className="text-xl">🔔</span>
                 {count > 0 && (

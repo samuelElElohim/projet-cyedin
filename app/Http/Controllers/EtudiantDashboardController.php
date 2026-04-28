@@ -289,4 +289,36 @@ class EtudiantDashboardController extends Controller
 
         return back()->with('success', 'Demande envoyée.');
     }
+
+    public function entreprises(Request $request): Response
+    {
+        $query = \App\Models\Entreprise::withCount([
+            'offres as offres_actives_count' => fn($q) => $q->where('est_active', true),
+        ]);
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('nom_entreprise', 'ilike', '%' . $request->search . '%')
+                ->orWhere('addresse', 'ilike', '%' . $request->search . '%');
+            });
+        }
+
+        if ($request->filled('secteur')) {
+            $query->where('secteur', $request->secteur);
+        }
+
+        $entreprises = $query->orderBy('nom_entreprise')->get();
+
+        $secteurs = \App\Models\Entreprise::select('secteur')
+            ->distinct()
+            ->orderBy('secteur')
+            ->pluck('secteur');
+
+        return Inertia::render('Etudiant/etudiant.entreprises', [
+            'entreprises' => $entreprises,
+            'secteurs'    => $secteurs,
+            'filters'     => $request->only(['search', 'secteur']),
+        ]);
+    }
+
 }

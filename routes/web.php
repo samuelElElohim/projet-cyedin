@@ -177,6 +177,7 @@ Route::middleware(['auth', 'verified', 'role:S'])->prefix('etudiant')->name('etu
     // Demande de filière / formation
     Route::get('/formations',  [EtudiantDashboardController::class, 'index_demande_formation'])->name('demande.formation');
     Route::post('/formations', [EtudiantDashboardController::class, 'store_demande_formation'])->name('demande.formation.store');
+    Route::get('/entreprises', [EtudiantDashboardController::class, 'entreprises'])->name('entreprises');
 });
 
 /*
