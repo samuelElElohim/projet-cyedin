@@ -72,33 +72,44 @@ class JuryDashboardController extends Controller
         ]);
     }
 
-    public function show_dossier(int $dossierId): Response
+        public function show_dossier(int $dossierId): Response
     {
         $dossier = Dossier_stage::with([
             'etudiant.utilisateur',
             'documents',
         ])->findOrFail($dossierId);
-
+ 
         $stage = $dossier->etudiant?->stages()
             ->with(['entreprise', 'tuteur.utilisateur', 'convention'])
             ->latest('id')
             ->first();
-
+ 
         $remarques = Remarque::pour('dossier_stage', $dossier->id)
             ->with('auteur')
             ->orderBy('created_at', 'desc')
             ->get();
-
+ 
         $cahier = CahierStage::where('etudiant_id', $dossier->etudiants_id)
             ->visibleJury()
             ->orderBy('date_entree', 'desc')
             ->get();
-
+ 
+        // Missions affectées par les tuteurs sur le stage
+        $missions = $stage
+            ? Remarque::where('cible_type', 'stage')
+                ->where('cible_id', $stage->id)
+                ->whereHas('auteur', fn($q) => $q->where('role', 'T'))
+                ->with('auteur')
+                ->orderBy('created_at', 'asc')
+                ->get()
+            : collect();
+ 
         return Inertia::render('Jury/jury.dossier.detail', [
-            'dossier'  => $dossier,
-            'stage'    => $stage,
-            'remarques'=> $remarques,
-            'cahier'   => $cahier,
+            'dossier'   => $dossier,
+            'stage'     => $stage,
+            'remarques' => $remarques,
+            'cahier'    => $cahier,
+            'missions'  => $missions,
         ]);
     }
 

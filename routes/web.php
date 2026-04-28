@@ -9,7 +9,7 @@ use App\Http\Controllers\RemarqueController;
 use App\Http\Controllers\CandidatureController;
 use App\Http\Controllers\EtudiantDashboardController;
 use App\Http\Controllers\TuteurDashboardController;
-use App\Http\Controllers\JuryDashboardController; // Import ajouté
+use App\Http\Controllers\JuryDashboardController;
 use App\Http\Controllers\Auth\InscriptionEntrepriseController;
 use App\Http\Controllers\Auth\PremierMotDePasseController;
 use Illuminate\Support\Facades\Route;

@@ -26,21 +26,32 @@ class AuthenticatedSessionController extends Controller
 
     /**
      * Handle an incoming authentication request.
+     * Étape 1 sur 2 : vérifie email+mot de passe, puis envoie l'OTP.
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
- 
-        $request->session()->regenerate();
- 
-        return match(Auth::user()->role) {
-            'A' => redirect()->intended(route('admin.dashboard',     absolute: false)),
-            'T' => redirect()->intended(route('tuteur.dashboard',    absolute: false)),
-            'E' => redirect()->intended(route('entreprise.dashboard',absolute: false)),
-            'J' => redirect()->intended(route('jury.dashboard',      absolute: false)),
-            'S' => redirect()->intended(route('etudiant.dashboard',  absolute: false)),
-            default => redirect()->intended(route('dashboard',       absolute: false)),
-        };
+        // Valide les credentials SANS connecter l'utilisateur
+        $utilisateur = \App\Models\Utilisateur::where('email', $request->email)->first();
+
+        if (
+            ! $utilisateur ||
+            ! \Illuminate\Support\Facades\Hash::check($request->mot_de_passe, $utilisateur->mot_de_passe)
+        ) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'email' => trans('auth.failed'),
+            ]);
+        }
+
+        if (! $utilisateur->est_active) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'email' => 'Votre compte n\'est pas encore activé.',
+            ]);
+        }
+
+        // Envoie l'OTP et redirige vers l'étape 2
+        TwoFactorController::sendOtp($request, $utilisateur, $request->boolean('remember'));
+
+        return redirect()->route('2fa.create');
     }
 
     /**
@@ -51,7 +62,6 @@ class AuthenticatedSessionController extends Controller
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');

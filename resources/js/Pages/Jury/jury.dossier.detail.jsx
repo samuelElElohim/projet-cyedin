@@ -2,7 +2,7 @@ import JuryLayout from '@/Layouts/JuryLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function JuryDossierDetail({ dossier, stage, remarques = [], cahier = [] }) {
+export default function JuryDossierDetail({ dossier, stage, remarques = [], cahier = [], missions = [] }) {
     const etudiant = dossier?.etudiant?.utilisateur;
     const [showRemarque, setShowRemarque] = useState(false);
     const [activeTab, setActiveTab] = useState('documents');
@@ -31,7 +31,6 @@ export default function JuryDossierDetail({ dossier, stage, remarques = [], cahi
         router.post(route('jury.dossier.invalider', dossier.id));
     }
 
-    // Grouper le cahier par mois
     const cahierParMois = cahier.reduce((acc, e) => {
         const mois = new Date(e.date_entree).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
         acc[mois] = acc[mois] ?? [];
@@ -57,6 +56,11 @@ export default function JuryDossierDetail({ dossier, stage, remarques = [], cahi
                     <div className="text-xs text-slate-500">
                         {dossier?.etudiant?.filiere ?? '—'}
                         {stage && <span className="ml-2">· {stage.sujet} · {stage.entreprise?.nom_entreprise}</span>}
+                        {stage?.tuteur?.utilisateur && (
+                            <span className="ml-2 text-teal-600 font-medium">
+                                · Tuteur : {stage.tuteur.utilisateur.prenom} {stage.tuteur.utilisateur.nom}
+                            </span>
+                        )}
                     </div>
                 </div>
                 <div className="flex gap-2 shrink-0">
@@ -81,11 +85,12 @@ export default function JuryDossierDetail({ dossier, stage, remarques = [], cahi
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit mb-6">
+            <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit mb-6 flex-wrap">
                 {[
-                    { id: 'documents', label: `Documents (${dossier?.documents?.length ?? 0})`, icon: '📄' },
-                    { id: 'cahier',    label: `Cahier (${cahier.length})`,                       icon: '📓' },
-                    { id: 'remarques', label: `Remarques (${remarques.length})`,                 icon: '💬' },
+                    { id: 'documents', label: `Documents (${dossier?.documents?.length ?? 0})`,  icon: '📄' },
+                    { id: 'missions',  label: `Missions tuteur (${missions.length})`,             icon: '📌' },
+                    { id: 'cahier',    label: `Cahier (${cahier.length})`,                        icon: '📓' },
+                    { id: 'remarques', label: `Remarques (${remarques.length})`,                  icon: '💬' },
                 ].map(tab => (
                     <button key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
@@ -125,6 +130,45 @@ export default function JuryDossierDetail({ dossier, stage, remarques = [], cahi
                 </div>
             )}
 
+            {/* Tab: Missions tuteur */}
+            {activeTab === 'missions' && (
+                <div className="space-y-3">
+                    {missions.length === 0 ? (
+                        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 text-center text-slate-400">
+                            <p className="text-3xl mb-2">📌</p>
+                            Aucune mission affectée par le tuteur.
+                        </div>
+                    ) : (
+                        <>
+                            <p className="text-xs text-slate-400 mb-2">
+                                Missions affectées par{' '}
+                                <span className="font-semibold text-teal-600">
+                                    {stage?.tuteur?.utilisateur?.prenom} {stage?.tuteur?.utilisateur?.nom}
+                                </span>{' '}
+                                à l'étudiant dans le cadre de ce stage.
+                            </p>
+                            {missions.map((m, i) => (
+                                <div key={m.id} className="bg-white rounded-2xl border border-teal-100 shadow-sm p-5">
+                                    <div className="flex items-start gap-3">
+                                        <span className="shrink-0 w-6 h-6 rounded-full bg-teal-100 text-teal-700 text-xs font-black flex items-center justify-center">
+                                            {i + 1}
+                                        </span>
+                                        <div className="flex-1">
+                                            <p className="text-sm text-slate-700 leading-relaxed">{m.contenu}</p>
+                                            <p className="text-xs text-slate-400 mt-2">
+                                                Affectée le {new Date(m.created_at).toLocaleDateString('fr-FR', {
+                                                    day: 'numeric', month: 'long', year: 'numeric'
+                                                })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </>
+                    )}
+                </div>
+            )}
+
             {/* Tab: Cahier */}
             {activeTab === 'cahier' && (
                 <div className="space-y-6">
@@ -159,7 +203,6 @@ export default function JuryDossierDetail({ dossier, stage, remarques = [], cahi
             {/* Tab: Remarques */}
             {activeTab === 'remarques' && (
                 <div className="space-y-4">
-                    {/* Bouton + formulaire */}
                     <div className="flex justify-end">
                         <button onClick={() => setShowRemarque(p => !p)}
                             className="px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-xl hover:bg-purple-700 transition">
@@ -191,7 +234,6 @@ export default function JuryDossierDetail({ dossier, stage, remarques = [], cahi
                         </form>
                     )}
 
-                    {/* Liste remarques */}
                     {remarques.length === 0 && !showRemarque ? (
                         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 text-center text-slate-400">
                             Aucune remarque pour ce dossier.
