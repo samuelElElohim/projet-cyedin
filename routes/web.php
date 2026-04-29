@@ -204,6 +204,8 @@ Route::middleware(['auth', 'verified', 'role:T'])->prefix('tuteur')->name('tuteu
 
     // Remarques
     Route::post('/remarques', [TuteurDashboardController::class, 'store_remarque'])->name('remarques.store');
+
+    Route::get('/offres', [TuteurDashboardController::class, 'offres'])->name('offres');
 });
 
 /*

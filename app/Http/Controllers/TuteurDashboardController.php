@@ -241,4 +241,45 @@ class TuteurDashboardController extends Controller
 
         return back()->with('success', 'Remarque ajoutée.');
     }
+
+    public function offres(Request $request): Response
+    {
+        $query = \App\Models\Offre::with('entreprise')
+            ->withCount('candidatures')
+            ->where('est_active', true);
+ 
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('titre', 'ilike', '%' . $request->search . '%')
+                  ->orWhere('description', 'ilike', '%' . $request->search . '%');
+            });
+        }
+ 
+        if ($request->filled('duree_min')) {
+            $query->where('duree_semaines', '>=', $request->duree_min);
+        }
+ 
+        if ($request->filled('duree_max')) {
+            $query->where('duree_semaines', '<=', $request->duree_max);
+        }
+ 
+        if ($request->filled('secteur')) {
+            $query->whereHas('entreprise', fn($q) =>
+                $q->where('secteur', 'ilike', '%' . $request->secteur . '%')
+            );
+        }
+ 
+        $offres = $query->orderBy('created_at', 'desc')->get();
+ 
+        $secteurs = \App\Models\Entreprise::select('secteur')
+            ->distinct()
+            ->orderBy('secteur')
+            ->pluck('secteur');
+ 
+        return Inertia::render('Tuteur/tuteur.offres', [
+            'offres'   => $offres,
+            'secteurs' => $secteurs,
+            'filters'  => $request->only(['search', 'duree_min', 'duree_max', 'secteur']),
+        ]);
+    }
 }
