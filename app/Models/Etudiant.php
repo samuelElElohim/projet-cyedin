@@ -37,6 +37,25 @@ class Etudiant extends Model
         return $this->belongsToMany(Tag::class, 'etudiant_tag', 'etudiant_id', 'tag_id');
     }
 
+    public function tuteur()
+    {
+        return $this->belongsToMany(
+            Tuteur::class,
+            'tuteur_etudiant',
+            'etudiant_id',
+            'tuteur_id',
+            'utilisateurs_id',
+            'utilisateurs_id'
+        )->withTimestamps();
+    }
+
+    // Utilitaire pour vérifier si l'étudiant a un tuteur assigné
+    public function hasTuteur(): bool
+    {
+        return $this->tuteur()->exists();
+    }
+
+
     //scopes
 
     // Scope pour filtrer les etudiants par filiere

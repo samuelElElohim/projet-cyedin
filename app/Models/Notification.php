@@ -22,21 +22,17 @@ class Notification extends Model
         return $this->belongsTo(Offre::class);
     }
 
-    //scopes
-
-    // Scope pour les notifications non lues
+    // Scopes
     public function scopeNonLues($query)
     {
         return $query->where('est_lu', false);
     }
 
-    // Scope pour les notifications lues
     public function scopeLues($query)
     {
         return $query->where('est_lu', true);
     }
 
-    // Scope pour filtrer par proprietaire
     public function scopeParProprietaire($query, int $utilisateurId)
     {
         return $query->where('utilisateur_id', $utilisateurId);

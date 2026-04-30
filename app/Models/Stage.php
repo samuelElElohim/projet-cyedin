@@ -8,6 +8,8 @@ class Stage extends Model
 {
     protected $fillable = ['sujet', 'etudiant_id', 'entreprise_id', 'tuteur_id', 'duree_semaines'];
     protected $guarded = ['id'];
+    public $timestamps = false;
+   
 
 
     public function etudiant()
@@ -30,28 +32,29 @@ class Stage extends Model
         return $this->hasOne(Convention_stage::class, 'stage_id');
     }
 
-
-
-    //scopes
-
-    // Scope pour filtrer par tuteur
+    // Scopes
     public function scopeParTuteur($query, int $tuteurId)
     {
         return $query->where('tuteur_id', $tuteurId);
     }
 
-    // Scope pour filtrer par entreprise
     public function scopeParEntreprise($query, int $entrepriseId)
     {
         return $query->where('entreprise_id', $entrepriseId);
     }
 
-    // Scope pour filtrer les conventions completes
     public function scopeConventionComplete($query)
     {
-        return $query->whereHas('convention', fn($q) => $q->where('signer_par_entreprise', true)
+        return $query->whereHas('convention', fn($q) => $q
+            ->where('signer_par_entreprise', true)
             ->where('signer_par_tuteur', true)
             ->where('signer_par_etudiant', true)
         );
+    }
+
+    public function remarques()
+    {
+        return \App\Models\Remarque::where('cible_type', 'stage')
+                                    ->where('cible_id', $this->id);
     }
 }
