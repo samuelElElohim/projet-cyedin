@@ -20,6 +20,11 @@ class Offre extends Model
         return $this->belongsToMany(Tag::class, 'offre_tag');
     }
 
+    public function candidatures(): HasMany
+    {
+    return $this->hasMany(Candidature::class);
+    }
+
     //scopes
 
     // Scope pour filtrer les offres récentes (par défaut, les offres créées dans les 30 derniers jours)

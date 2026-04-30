@@ -32,4 +32,6 @@ public function notifierEtudiants(Offre $offre, array $tagIds): int
 
     return $count;
 }
+
+
 }

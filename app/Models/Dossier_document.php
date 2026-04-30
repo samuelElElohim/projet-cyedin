@@ -14,6 +14,11 @@ class Dossier_document extends Model
         return $this->belongsTo(Dossier_stage::class, 'dossier_id');
     }
 
+
+    public function candidatures(): HasMany
+    {
+    return $this->hasMany(Candidature::class, 'dossier_document_id');
+    }
     //scopes
 
     // Scope pour filtrer par type de document

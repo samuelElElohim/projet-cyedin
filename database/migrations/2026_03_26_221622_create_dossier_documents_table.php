@@ -12,9 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('dossier_documents', function (Blueprint $table) {
+            $table->id();
             $table->foreignId('dossier_id')->constrained('dossier_stages')->onDelete('cascade');
             $table->foreignId('document_id')->constrained('documents')->onDelete('cascade');
-            $table->primary(['dossier_id', 'document_id']); // cle primaire composee des deux
+            $table->primary(['id','dossier_id', 'document_id']); // cle primaire composee des deux
         });
     }
 

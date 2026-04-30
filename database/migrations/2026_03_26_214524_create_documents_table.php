@@ -19,7 +19,7 @@ return new class extends Migration
             //  donc la cle primaire est l'id du doc+id de l'etudiant
             $table->string('nom');
             $table->string('type', 50)->nullable(); // pdf? jpeg?? ou bien une brieve desciption du document, par exemple de photo truc ...
-            $table->timestamp('date_depot')->default(DB::raw('CURRENT_TIMESTAMP')); // date de l'ajout du document
+            $table->timestamps();
             $table->text('chemin_fichier');
 
         });
