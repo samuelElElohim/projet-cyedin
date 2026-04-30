@@ -92,7 +92,7 @@ export default function EntrepriseCandidatures({ candidatures_par_offre = {}, of
                                                     <div className="flex gap-2 shrink-0">
                                                         {c.chemin_cv && (
                                                             <a
-                                                                href={route('candidatures.download', { candidature: c.id, type: 'cv' })}
+                                                                href={route('entreprise.candidatures.download', { candidature: c.id, type: 'cv' })}
                                                                 className="flex items-center gap-1 px-2 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg hover:bg-blue-50 hover:text-blue-700 transition"
                                                             >
                                                                 📎 CV
@@ -100,7 +100,7 @@ export default function EntrepriseCandidatures({ candidatures_par_offre = {}, of
                                                         )}
                                                         {c.chemin_lettre && (
                                                             <a
-                                                                href={route('candidatures.download', { candidature: c.id, type: 'lettre' })}
+                                                                href={route('entreprise.candidatures.download', { candidature: c.id, type: 'lettre' })}
                                                                 className="flex items-center gap-1 px-2 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg hover:bg-blue-50 hover:text-blue-700 transition"
                                                             >
                                                                 📝 Lettre
