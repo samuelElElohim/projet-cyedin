@@ -135,7 +135,7 @@ class UtilisateurSeeder extends Seeder
         );
 
         Jury::updateOrCreate(
-            ['utilisateurs_id' => $juryUser->id],
+            ['utilisateur_id' => $juryUser->id],
             [
                 'departement' => 'Informatique',
             ]

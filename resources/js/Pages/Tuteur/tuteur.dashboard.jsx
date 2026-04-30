@@ -138,7 +138,7 @@ function ConventionMini({ cv }) {
             {[
                 { label: 'E', signed: cv.entreprise },
                 { label: 'T', signed: cv.tuteur },
-                { label: 'É', signed: cv.etudiant },
+                { label: 'S', signed: cv.etudiant },
             ].map(p => (
                 <span key={p.label} className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${
                     p.signed ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-400'

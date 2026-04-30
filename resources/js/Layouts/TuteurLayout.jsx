@@ -1,139 +1,99 @@
-import TuteurLayout from '@/Layouts/TuteurLayout';
-import { Head, router } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function TuteurOffres({ offres = [], secteurs = [], filieres = [], filters = {} }) {
-    const [search, setSearch]     = useState(filters.search ?? '');
-    const [dureeMin, setDureeMin] = useState(filters.duree_min ?? '');
-    const [dureeMax, setDureeMax] = useState(filters.duree_max ?? '');
-    const [secteur, setSecteur]   = useState(filters.secteur ?? '');
-    const [filiere, setFiliere]   = useState(filters.filiere ?? '');
+const NAV_ITEMS = [
+    { label: 'Tableau de bord',    href: 'tuteur.dashboard',     icon: '▦' },
+    { label: 'Offres de stage',    href: 'tuteur.offres',        icon: '🔍' },  // ← AJOUTER
+    { label: 'Affecter un stage',  href: 'tuteur.create.stage',  icon: '➕' },
+];
 
-    function applyFilters(overrides = {}) {
-        router.get(route('tuteur.offres'), {
-            search:    overrides.search    ?? search,
-            duree_min: overrides.duree_min ?? dureeMin,
-            duree_max: overrides.duree_max ?? dureeMax,
-            secteur:   overrides.secteur   ?? secteur,
-            filiere:   overrides.filiere   ?? filiere,
-        }, { preserveState: true, replace: true });
-    }
-
-    function reset() {
-        setSearch(''); setDureeMin(''); setDureeMax('');
-        setSecteur(''); setFiliere('');
-        router.get(route('tuteur.offres'), {}, { replace: true });
-    }
+export default function TuteurLayout({ children, title = 'Espace Tuteur' }) {
+    const { auth } = usePage().props;
+    const user = auth?.user;
+    const [sidebarOpen, setSidebarOpen] = useState(true);
 
     return (
-        <TuteurLayout title="Offres de stage disponibles">
-            <Head title="Offres — Tuteur" />
-
-            {/* Filtres */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-6">
-                <div className="flex flex-wrap gap-3">
-
-                    <input
-                        type="text"
-                        placeholder="Titre, missions, description…"
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && applyFilters()}
-                        className="flex-1 min-w-48 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-400"
-                    />
-
-                    {/* Filière — apparence custom pour éviter superposition texte/flèche */}
-                    <div className="relative">
-                        <select
-                            value={filiere}
-                            onChange={e => { setFiliere(e.target.value); applyFilters({ filiere: e.target.value }); }}
-                            className="appearance-none border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-100 bg-white"
-                        >
-                            <option value="">Toutes les filières</option>
-                            {filieres.map(f => <option key={f} value={f}>{f}</option>)}
-                        </select>
-                        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">▼</span>
-                    </div>
-
-                    {/* Secteur — même fix */}
-                    <div className="relative">
-                        <select
-                            value={secteur}
-                            onChange={e => { setSecteur(e.target.value); applyFilters({ secteur: e.target.value }); }}
-                            className="appearance-none border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-100 bg-white"
-                        >
-                            <option value="">Tous les secteurs</option>
-                            {secteurs.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">▼</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <label className="text-xs text-slate-500 whitespace-nowrap">Durée (sem.)</label>
-                        <input type="number" min="1" placeholder="min" value={dureeMin}
-                            onChange={e => setDureeMin(e.target.value)}
-                            className="w-16 border border-slate-200 rounded-xl px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-100" />
-                        <span className="text-slate-300">—</span>
-                        <input type="number" min="1" placeholder="max" value={dureeMax}
-                            onChange={e => setDureeMax(e.target.value)}
-                            className="w-16 border border-slate-200 rounded-xl px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-100" />
-                    </div>
-
-                    <button onClick={() => applyFilters()}
-                        className="px-4 py-2 bg-teal-600 text-white text-sm font-semibold rounded-xl hover:bg-teal-700 transition">
-                        Filtrer
-                    </button>
-                    <button onClick={reset}
-                        className="px-4 py-2 bg-slate-100 text-slate-600 text-sm rounded-xl hover:bg-slate-200 transition">
-                        Réinitialiser
+        <div className="min-h-screen bg-slate-50 flex">
+            {/* Sidebar */}
+            <aside className={`${sidebarOpen ? 'w-56' : 'w-14'} bg-white border-r border-slate-100 flex flex-col transition-all duration-200 shrink-0 shadow-sm`}>
+                <div className="h-16 flex items-center px-4 border-b border-slate-100">
+                    {sidebarOpen && (
+                        <span className="text-lg font-black tracking-tight text-slate-900">
+                            CY<span className="text-teal-600">edin</span>
+                            <span className="text-xs font-normal text-slate-400 ml-2">Tuteur</span>
+                        </span>
+                    )}
+                    <button
+                        onClick={() => setSidebarOpen(p => !p)}
+                        className="ml-auto text-slate-300 hover:text-slate-600 text-xl transition"
+                    >
+                        {sidebarOpen ? '←' : '→'}
                     </button>
                 </div>
-            </div>
 
-            <p className="text-sm text-slate-500 mb-4">
-                {offres.length} offre{offres.length !== 1 ? 's' : ''} disponible{offres.length !== 1 ? 's' : ''}
-            </p>
+                <nav className="flex-1 py-4 space-y-0.5 px-2 overflow-y-auto">
+                    {NAV_ITEMS.map(item => {
+                        const isActive = route().current(item.href);
+                        return (
+                            <Link
+                                key={item.href}
+                                href={route(item.href)}
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
+                                    isActive
+                                        ? 'bg-teal-50 text-teal-700'
+                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                                }`}
+                            >
+                                <span className="text-base shrink-0">{item.icon}</span>
+                                {sidebarOpen && <span className="truncate">{item.label}</span>}
+                            </Link>
+                        );
+                    })}
+                </nav>
 
-            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {offres.length === 0 ? (
-                    <div className="col-span-full text-center py-16 text-slate-400">
-                        <p className="text-3xl mb-2">🔍</p>
-                        Aucune offre ne correspond à votre recherche.
-                    </div>
-                ) : offres.map(offre => (
-                    <div key={offre.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col hover:border-teal-200 hover:shadow-md transition">
-                        <div className="flex items-start justify-between gap-2 mb-3">
-                            <div>
-                                <h3 className="font-semibold text-slate-900 text-sm">{offre.titre}</h3>
-                                <p className="text-xs text-slate-500 mt-0.5">{offre.entreprise?.nom_entreprise}</p>
-                            </div>
-                            <span className="shrink-0 px-2 py-1 bg-slate-50 text-slate-600 text-xs font-semibold rounded-lg border border-slate-100">
-                                {offre.duree_semaines} sem.
-                            </span>
+                <div className="border-t border-slate-100 p-4">
+                    {sidebarOpen && (
+                        <div className="text-xs text-slate-400 mb-2">
+                            <div className="font-semibold text-slate-700">{user?.prenom} {user?.nom}</div>
+                            <div className="truncate">{user?.email}</div>
                         </div>
+                    )}
+                    <Link
+                        href={route('logout')}
+                        method="post"
+                        as="button"
+                        className="text-xs text-red-400 hover:text-red-600 transition"
+                    >
+                        {sidebarOpen ? 'Déconnexion' : '⏻'}
+                    </Link>
+                </div>
+            </aside>
 
-                        <p className="text-xs text-slate-500 leading-relaxed flex-1 line-clamp-3 mb-4">
-                            {offre.description}
-                        </p>
-
-                        <div className="flex flex-wrap gap-2 mt-auto">
-                            {offre.entreprise?.secteur && (
-                                <span className="px-2 py-0.5 bg-teal-50 text-teal-700 text-[10px] font-bold uppercase tracking-wide rounded-md">
-                                    {offre.entreprise.secteur}
-                                </span>
-                            )}
-                            {offre.filiere_cible && (
-                                <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wide rounded-md">
-                                    🎓 {offre.filiere_cible}
-                                </span>
-                            )}
-                            <span className="text-xs text-slate-400 ml-auto">
-                                {offre.candidatures_count ?? 0} candidature{(offre.candidatures_count ?? 0) !== 1 ? 's' : ''}
-                            </span>
-                        </div>
-                    </div>
-                ))}
+            <div className="flex-1 flex flex-col min-w-0">
+                <header className="h-16 bg-white border-b border-slate-100 flex items-center px-6 shrink-0 shadow-sm">
+                    <h1 className="text-base font-semibold text-slate-800">{title}</h1>
+                    <NotifBadge />
+                </header>
+                <main className="flex-1 p-6 overflow-auto">
+                    {children}
+                </main>
             </div>
-        </TuteurLayout>
+        </div>
+    );
+}
+
+function NotifBadge() {
+    const count = usePage().props.notifications_count ?? 0;
+    return (
+        <div className="ml-auto relative">
+            <button className="relative p-2 text-slate-400 hover:text-slate-700 transition">
+                <span className="text-xl">🔔</span>
+                {count > 0 && (
+                    <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
+                        {count > 9 ? '9+' : count}
+                    </span>
+                )}
+            </button>
+        </div>
     );
 }
