@@ -5,7 +5,6 @@ import NotifDropdown from '@/Components/Shared/NotifDropdown';
 const NAV_ITEMS = [
     { label: "Vue d'ensemble",  href: 'admin.dashboard',       icon: '▦' },
     { label: 'Utilisateurs',    href: 'admin.main.user',       icon: '👤' },
-    { label: 'Entreprises',     href: 'admin.main.entreprise', icon: '🏢' },
     { label: 'Offres de stage', href: 'admin.index.offre',     icon: '📋' },
     { label: 'Stages',          href: 'admin.index.stage',     icon: '🎓' },
     { label: 'Dossiers',        href: 'admin.index.dossier',   icon: '📁' },

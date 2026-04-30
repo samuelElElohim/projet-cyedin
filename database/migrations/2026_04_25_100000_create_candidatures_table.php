@@ -22,14 +22,18 @@ return new class extends Migration
             $table->enum('statut', ['en_attente', 'acceptee', 'refusee'])
                 ->default('en_attente');
 
-            $table->text('lettre_motivation')->nullable();
+            $table->text('lettre_motivation')->nullable(); // Texte saisi dans un formulaire
 
-            // chemin vers le CV déposé (optionnel, peut pointer vers documents)
-            $table->text('chemin_cv')->nullable();
+            // Stockage des fichiers (Chemin hashé + Nom original pour l'utilisateur)
+            $table->string('chemin_cv')->nullable();
+            $table->string('nom_cv_original')->nullable();
+            
+            $table->string('chemin_lettre')->nullable();
+            $table->string('nom_lettre_original')->nullable();
 
-            $table->text('commentaire_entreprise')->nullable(); // réponse de l'entreprise
+            $table->text('commentaire_entreprise')->nullable();
 
-            $table->unique(['etudiant_id', 'offre_id']); // une seule candidature par offre
+            $table->unique(['etudiant_id', 'offre_id']);
 
             $table->timestamps();
         });

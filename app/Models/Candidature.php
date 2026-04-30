@@ -6,13 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Candidature extends Model
 {
+
     protected $fillable = [
         'etudiant_id',
         'offre_id',
         'statut',
         'lettre_motivation',
-        'chemin_lettre',
         'chemin_cv',
+        'nom_cv_original',
+        'chemin_lettre',
+        'nom_lettre_original',
         'commentaire_entreprise',
     ];
 

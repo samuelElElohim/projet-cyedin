@@ -8,7 +8,7 @@ export default function Home() {
             {/* --- Bande accent top --- */}
             <div className="fixed top-0 left-0 w-full h-[3px] bg-gradient-to-r from-blue-600 via-emerald-500 to-blue-700 z-[100]" />
 
-            {/* --- Header Navigation NOIR (page 2) --- */}
+            {/* --- Header Navigation --- */}
             <nav className="sticky top-0 z-50 w-full bg-slate-900/97 backdrop-blur-md border-b border-white/[0.07]">
                 <div className="max-w-7xl mx-auto px-6 md:px-12 h-[72px] flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -17,14 +17,12 @@ export default function Home() {
                             <div className="w-10 h-10 bg-emerald-500 rounded-xl -rotate-6 absolute inset-0 opacity-80 mix-blend-multiply" />
                             <span className="absolute inset-0 flex items-center justify-center text-white font-black text-xs">CY</span>
                         </div>
-                        <span className="text-2xl font-black tracking-tighter text-white">
+                        <span className="text-2xl font-black tracking-tighter text-blue-800">
                             CY<span className="text-blue-400">edin</span>
                         </span>
                     </div>
 
-                    <div className="hidden md:flex items-center gap-8">
-                        <Link href="#" className="text-sm font-bold text-white/55 hover:text-white transition">Offres</Link>
-                        <Link href="#" className="text-sm font-bold text-white/55 hover:text-white transition">Aide</Link>
+                    <div className="hidden md:flex items-center">
                         <Link
                             href="/login"
                             className="px-6 py-2.5 bg-white text-slate-900 text-sm font-bold rounded-full hover:bg-blue-600 hover:text-white hover:shadow-xl transition-all"
@@ -35,7 +33,7 @@ export default function Home() {
                 </div>
             </nav>
 
-            {/* --- Contenu principal scrollable --- */}
+            {/* --- Contenu principal --- */}
             <main className="relative max-w-7xl mx-auto px-6 md:px-12 pt-20 pb-24">
 
                 {/* Deco background */}
@@ -63,24 +61,19 @@ export default function Home() {
                             Centralisez vos documents, suivez vos validations et accédez à un écosystème pensé pour votre réussite professionnelle.
                         </p>
 
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <Link
-                                href="/login"
-                                className="px-10 py-5 bg-blue-600 text-white font-bold rounded-2xl shadow-2xl shadow-blue-200 hover:bg-blue-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 group"
-                            >
-                                Se connecter à l'espace
-                                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                </svg>
-                            </Link>
-
-                            <button className="px-10 py-5 bg-white text-slate-700 font-bold rounded-2xl border-2 border-slate-100 hover:border-emerald-500 hover:text-emerald-600 transition-all">
-                                Consulter les offres
-                            </button>
-                        </div>
+                        {/* --- Bouton recentré --- */}
+                        <Link
+                            href="/login"
+                            className="px-10 py-5 bg-blue-600 text-white font-bold rounded-2xl shadow-2xl shadow-blue-200 hover:bg-blue-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 group"
+                        >
+                            Se connecter à l'espace
+                            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                        </Link>
                     </div>
 
-                    {/* Dashboard Card */}
+                    {/* Dashboard Card (inchangé) */}
                     <div className="lg:col-span-5 relative">
                         <div className="absolute -inset-4 bg-gradient-to-tr from-emerald-100 to-blue-100 rounded-[3rem] blur-2xl opacity-50 -z-10" />
 
@@ -124,7 +117,7 @@ export default function Home() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-24">
                     {[
                         { label: "Étudiants", desc: "Suivez vos stages, déposez vos documents et accédez à vos validations.", color: "text-blue-600" },
-                        { label: "Entreprises", desc: "Publiez vos offres et gérez vos conventions en toute simplicité.", color: "text-emerald-600" },
+                        { label: "Entreprises", desc: "Publivez vos offres et gérez vos conventions en toute simplicité.", color: "text-emerald-600" },
                         { label: "Tuteurs", desc: "Accompagnez vos étudiants et validez leurs étapes clés.", color: "text-blue-600" },
                         { label: "Jurys", desc: "Consultez les dossiers et évaluez les parcours.", color: "text-emerald-600" }
                     ].map((role, i) => (

@@ -30,29 +30,33 @@ class CandidatureController extends Controller
 
 
 
-    public function download(Candidature $candidature, string $type): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function download(Candidature $candidature, string $type)
     {
+        // Vérification de sécurité (Entreprise propriétaire de l'offre)
         abort_unless(
             $candidature->offre->entreprise->utilisateurs_id === auth()->id(),
             403
         );
 
-        $path = match($type) {
-            'cv'     => $candidature->chemin_cv,
-            'lettre' => $candidature->chemin_lettre,
+        // Extraction des infos selon le type (cv ou lettre)
+        [$path, $friendlyName] = match($type) {
+            'cv'     => [$candidature->chemin_cv, $candidature->nom_cv_original ?? 'cv.pdf'],
+            'lettre' => [$candidature->chemin_lettre, $candidature->nom_lettre_original ?? 'lettre.pdf'],
             default  => abort(404),
         };
 
-        //abort_if(!$path || !Storage::disk('private')->exists($path), 404);
+        // Vérification de l'existence sur le disque
+        if (!$path || !Storage::disk('local')->exists($path)) {
+            abort(404, "Le fichier est introuvable sur le serveur.");
+        }
 
-        $fullPath = storage_path('app/' . $path);
-        abort_unless(file_exists($fullPath), 404);
-        return response()->download($fullPath);
+        // Téléchargement avec le nom d'origine
+        return Storage::disk('local')->download($path, $friendlyName);
     }
 
 
-   public function store(Request $request): RedirectResponse
-{
+    public function store(Request $request): RedirectResponse
+    {
     $request->validate([
         'offre_id'          => 'required|integer|exists:offres,id',
         'lettre_motivation' => 'nullable|string|max:2000',
@@ -62,7 +66,7 @@ class CandidatureController extends Controller
 
     $etudiantId = auth()->id();
 
-    $etudiant = Etudiant::where('utilisateurs_id', $etudiantId)->firstOrFail();
+    $etudiant = Etudiant::where('utilisateur_id', $etudiantId)->firstOrFail();
     abort_unless($etudiant->hasTuteur(), 422, 'Vous devez avoir un tuteur assigné pour postuler.');
 
     $offre = Offre::findOrFail($request->offre_id);
@@ -73,18 +77,28 @@ class CandidatureController extends Controller
         ->exists();
     abort_if($existe, 422, 'Vous avez déjà postulé à cette offre.');
 
-    // Stockage des fichiers
-    $cvPath     = $request->file('cv')->store('candidatures/cvs', 'local');
-    $lettrePath = $request->hasFile('lettre_fichier')
-        ? $request->file('lettre_fichier')->store('candidatures/lettres', 'local')
-        : null;
+    // Traitement du CV
+    $cvFile = $request->file('cv');
+    $cvPath = $cvFile->store('candidatures/cvs', 'local');
+    $cvName = $cvFile->getClientOriginalName();
+
+    // Traitement de la Lettre (optionnel)
+    $lettrePath = null;
+    $lettreName = null;
+    if ($request->hasFile('lettre_fichier')) {
+        $lettreFile = $request->file('lettre_fichier');
+        $lettrePath = $lettreFile->store('candidatures/lettres', 'local');
+        $lettreName = $lettreFile->getClientOriginalName();
+    }
 
     Candidature::create([
-        'etudiant_id'       => $etudiantId,
+        'etudiant_id'       => auth()->id(),
         'offre_id'          => $request->offre_id,
         'lettre_motivation' => $request->lettre_motivation,
         'chemin_cv'         => $cvPath,
+        'nom_cv_original'   => $cvName, // On stocke le nom propre
         'chemin_lettre'     => $lettrePath,
+        'nom_lettre_original' => $lettreName, // On stocke le nom propre
     ]);
 
     // Notifier l'entreprise
@@ -101,7 +115,7 @@ class CandidatureController extends Controller
     ]);
 
     return back()->with('success', 'Candidature envoyée.');
-}
+    }
 
     public function destroy(Candidature $candidature): RedirectResponse
     {
