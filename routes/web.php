@@ -65,7 +65,7 @@ Route::middleware('auth')->group(function () {
     // Dashboard générique de redirection
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
-    })->middleware(['verified'])->name('dashboard');
+    })->name('dashboard');
 
     Route::post('/notifications/mark-read', function () {
     \App\Models\Notification::where('proprietaire_id', auth()->id())
@@ -81,7 +81,7 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified', 'role:A'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:A'])->prefix('admin')->name('admin.')->group(function () {
     
     Route::get('/dashboard', [AdminDashboardController::class, 'dashboard'])->name('dashboard');
 
@@ -141,7 +141,7 @@ Route::middleware(['auth', 'verified', 'role:A'])->prefix('admin')->name('admin.
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified', 'role:E'])->prefix('entreprise')->name('entreprise.')->group(function () {
+Route::middleware(['auth', 'role:E'])->prefix('entreprise')->name('entreprise.')->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [EntrepriseDashboardController::class, 'dashboard'])->name('dashboard');
@@ -177,7 +177,7 @@ Route::middleware(['auth', 'verified', 'role:E'])->prefix('entreprise')->name('e
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified', 'role:S'])->prefix('etudiant')->name('etudiant.')->group(function () {
+Route::middleware(['auth', 'role:S'])->prefix('etudiant')->name('etudiant.')->group(function () {
 
     // Dashboard et Navigation principale
     Route::get('/dashboard',    [EtudiantDashboardController::class, 'dashboard'])->name('dashboard');
@@ -210,7 +210,7 @@ Route::middleware(['auth', 'verified', 'role:S'])->prefix('etudiant')->name('etu
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified', 'role:T'])->prefix('tuteur')->name('tuteur.')->group(function () {
+Route::middleware(['auth', 'role:T'])->prefix('tuteur')->name('tuteur.')->group(function () {
 
     Route::get('/dashboard', [TuteurDashboardController::class, 'dashboard'])->name('dashboard');
 
@@ -241,7 +241,7 @@ Route::middleware(['auth', 'verified', 'role:T'])->prefix('tuteur')->name('tuteu
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified', 'role:J'])->prefix('jury')->name('jury.')->group(function () {
+Route::middleware(['auth', 'role:J'])->prefix('jury')->name('jury.')->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [JuryDashboardController::class, 'dashboard'])->name('dashboard');

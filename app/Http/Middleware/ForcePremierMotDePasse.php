@@ -16,21 +16,18 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class ForcePremierMotDePasse
 {
-    public function handle(Request $request, Closure $next): Response
-    {
-        if (
-            Auth::check() &&
-            !Auth::user()->premier_mdp_changer &&
-            !$request->routeIs('password.premier') &&
-            !$request->routeIs('password.premier.store') &&
-            !$request->routeIs('verification.notice') &&   // ← ajout
-            !$request->routeIs('verification.verify') &&   // ← ajout
-            !$request->routeIs('verification.send') &&     // ← ajout
-            !$request->routeIs('logout')
-        ) {
-            return redirect()->route('password.premier');
-        }
-
-        return $next($request);
+    public function handle(Request $request, Closure $next): \Symfony\Component\HttpFoundation\Response
+{
+    if (
+        Auth::check() &&
+        !Auth::user()->premier_mdp_changer &&
+        !$request->routeIs('password.premier*') &&
+        //!$request->routeIs('verification.*') &&
+        !$request->routeIs('logout')
+    ) {
+        return redirect()->route('password.premier');
     }
+
+    return $next($request);
+}
 }

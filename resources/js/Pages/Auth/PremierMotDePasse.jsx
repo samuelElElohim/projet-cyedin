@@ -58,7 +58,7 @@ export default function PremierMotDePasse() {
                 </div>
 
                 <div className="mt-6 flex items-center justify-end">
-                    <Button variant="primary" disabled={processing}>
+                    <Button variant="primary" type="submit" disabled={processing}>
                         Enregistrer mon mot de passe
                     </Button>
                 </div>
