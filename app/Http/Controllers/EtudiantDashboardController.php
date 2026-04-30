@@ -154,6 +154,10 @@ class EtudiantDashboardController extends Controller
             );
         }
 
+        if ($request->filled('filiere')) {
+            $query->where('filiere_cible', $request->filiere);
+        }
+
         $offres = $query->orderBy('created_at', 'desc')->get();
 
         $dejaCandidature = Candidature::where('etudiant_id', $user->id)
@@ -168,7 +172,8 @@ class EtudiantDashboardController extends Controller
             'offres'            => $offres,
             'deja_candidature'  => $dejaCandidature,
             'secteurs'          => $secteurs,
-            'filters'           => $request->only(['search', 'duree_min', 'duree_max', 'secteur']),
+            'filieres' => \App\Models\Etudiant::select('filiere')->distinct()->orderBy('filiere')->pluck('filiere'),
+            'filters'  => $request->only(['search', 'duree_min', 'duree_max', 'secteur', 'filiere']),
         ]);
     }
 

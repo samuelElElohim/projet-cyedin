@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import NotifDropdown from '@/Components/Shared/NotifDropdown';
 
 const NAV_ITEMS = [
     { label: "Vue d'ensemble",  href: 'admin.dashboard',       icon: '▦' },
@@ -8,6 +9,7 @@ const NAV_ITEMS = [
     { label: 'Offres de stage', href: 'admin.index.offre',     icon: '📋' },
     { label: 'Stages',          href: 'admin.index.stage',     icon: '🎓' },
     { label: 'Dossiers',        href: 'admin.index.dossier',   icon: '📁' },
+    { label: 'Import CSV/Excel', href: 'admin.import.user', icon: '📥' },
     { label: 'Formations',      href: 'admin.index.formation', icon: '🔖' },
     { label: 'Fichier trace',   href: 'admin.trace',           icon: '📜' },
 ];
@@ -78,31 +80,15 @@ export default function AdminLayout({ children, title = 'Administration' }) {
                 {/* Top bar */}
                 <header className="h-16 bg-white border-b border-gray-200 flex items-center px-6 shrink-0">
                     <h1 className="text-lg font-semibold text-gray-800">{title}</h1>
-                    <NotifBadge />
+                    <div className="ml-auto">
+                        <NotifDropdown />
+                    </div>
                 </header>
 
                 <main className="flex-1 p-6 overflow-auto">
                     {children}
                 </main>
             </div>
-        </div>
-    );
-}
-
-function NotifBadge() {
-    const { notifications } = usePage().props;
-    const count = notifications?.length ?? 0;
-
-    return (
-        <div className="ml-auto relative">
-            <button className="relative p-2 text-gray-500 hover:text-gray-800">
-                <span className="text-xl">🔔</span>
-                {count > 0 && (
-                    <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center">
-                        {count > 9 ? '9+' : count}
-                    </span>
-                )}
-            </button>
         </div>
     );
 }

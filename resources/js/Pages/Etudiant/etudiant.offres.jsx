@@ -2,11 +2,12 @@ import EtudiantLayout from '@/Layouts/EtudiantLayout';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function EtudiantOffres({ offres = [], deja_candidature = {}, secteurs = [], filters = {} }) {
-    const [search, setSearch]     = useState(filters.search ?? '');
-    const [dureeMin, setDureeMin] = useState(filters.duree_min ?? '');
-    const [dureeMax, setDureeMax] = useState(filters.duree_max ?? '');
-    const [secteur, setSecteur]   = useState(filters.secteur ?? '');
+export default function EtudiantOffres({ offres = [], deja_candidature = {}, secteurs = [], filieres = [], filters = {} }) {
+    const [search, setSearch]         = useState(filters.search ?? '');
+    const [dureeMin, setDureeMin]     = useState(filters.duree_min ?? '');
+    const [dureeMax, setDureeMax]     = useState(filters.duree_max ?? '');
+    const [secteur, setSecteur]       = useState(filters.secteur ?? '');
+    const [filiere, setFiliere]       = useState(filters.filiere ?? '');
     const [modalOffre, setModalOffre] = useState(null);
 
     function applyFilters(overrides = {}) {
@@ -15,6 +16,7 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
             duree_min: overrides.duree_min ?? dureeMin,
             duree_max: overrides.duree_max ?? dureeMax,
             secteur:   overrides.secteur   ?? secteur,
+            filiere:   overrides.filiere   ?? filiere,
         }, { preserveState: true, replace: true });
     }
 
@@ -33,14 +35,33 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
                         onKeyDown={e => e.key === 'Enter' && applyFilters()}
                         className="flex-1 min-w-48 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
                     />
-                    <select
-                        value={secteur}
-                        onChange={e => { setSecteur(e.target.value); applyFilters({ secteur: e.target.value }); }}
-                        className="border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
-                    >
-                        <option value="">Tous les secteurs</option>
-                        {secteurs.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
+
+                    {/* Filière — fix superposition texte/flèche */}
+                    <div className="relative">
+                        <select
+                            value={filiere}
+                            onChange={e => { setFiliere(e.target.value); applyFilters({ filiere: e.target.value }); }}
+                            className="appearance-none border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
+                        >
+                            <option value="">Toutes les filières</option>
+                            {filieres.map(f => <option key={f} value={f}>{f}</option>)}
+                        </select>
+                        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">▼</span>
+                    </div>
+
+                    {/* Secteur — même fix */}
+                    <div className="relative">
+                        <select
+                            value={secteur}
+                            onChange={e => { setSecteur(e.target.value); applyFilters({ secteur: e.target.value }); }}
+                            className="appearance-none border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
+                        >
+                            <option value="">Tous les secteurs</option>
+                            {secteurs.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">▼</span>
+                    </div>
+
                     <div className="flex items-center gap-2">
                         <label className="text-xs text-slate-500 whitespace-nowrap">Durée (sem.)</label>
                         <input type="number" min="1" placeholder="min" value={dureeMin}
@@ -51,11 +72,14 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
                             onChange={e => setDureeMax(e.target.value)}
                             className="w-16 border border-slate-200 rounded-xl px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100" />
                     </div>
-                    <button onClick={() => applyFilters()} className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition">
+
+                    <button onClick={() => applyFilters()}
+                        className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition">
                         Filtrer
                     </button>
                     <button onClick={() => {
-                        setSearch(''); setDureeMin(''); setDureeMax(''); setSecteur('');
+                        setSearch(''); setDureeMin(''); setDureeMax('');
+                        setSecteur(''); setFiliere('');
                         router.get(route('etudiant.offres'), {}, { replace: true });
                     }} className="px-4 py-2 bg-slate-100 text-slate-600 text-sm rounded-xl hover:bg-slate-200 transition">
                         Réinitialiser
@@ -63,10 +87,8 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
                 </div>
             </div>
 
-            {/* Compteur */}
             <p className="text-sm text-slate-500 mb-4">{offres.length} offre{offres.length !== 1 ? 's' : ''} disponible{offres.length !== 1 ? 's' : ''}</p>
 
-            {/* Liste */}
             <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {offres.length === 0 ? (
                     <div className="col-span-full text-center py-16 text-slate-400">
@@ -77,7 +99,6 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
                     const statut = deja_candidature[offre.id];
                     return (
                         <div key={offre.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col hover:border-blue-200 hover:shadow-md transition">
-                            {/* Header */}
                             <div className="flex items-start justify-between gap-2 mb-3">
                                 <div>
                                     <h3 className="font-semibold text-slate-900 text-sm">{offre.titre}</h3>
@@ -88,19 +109,23 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
                                 </span>
                             </div>
 
-                            {/* Description */}
                             <p className="text-xs text-slate-500 leading-relaxed flex-1 line-clamp-3 mb-4">
                                 {offre.description}
                             </p>
 
-                            {/* Secteur */}
-                            {offre.entreprise?.secteur && (
-                                <span className="inline-block mb-3 px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wide rounded-md">
-                                    {offre.entreprise.secteur}
-                                </span>
-                            )}
+                            <div className="flex flex-wrap gap-2 mb-4">
+                                {offre.entreprise?.secteur && (
+                                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wide rounded-md">
+                                        {offre.entreprise.secteur}
+                                    </span>
+                                )}
+                                {offre.filiere_cible && (
+                                    <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-wide rounded-md">
+                                        🎓 {offre.filiere_cible}
+                                    </span>
+                                )}
+                            </div>
 
-                            {/* Action */}
                             {statut === 'acceptee' ? (
                                 <span className="w-full py-2 bg-green-100 text-green-800 text-xs font-bold rounded-xl text-center">✓ Candidature acceptée</span>
                             ) : statut === 'refusee' ? (
@@ -120,7 +145,6 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
                 })}
             </div>
 
-            {/* Modal candidature */}
             {modalOffre && (
                 <CandidatureModal offre={modalOffre} onClose={() => setModalOffre(null)} />
             )}
@@ -130,8 +154,8 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
 
 function CandidatureModal({ offre, onClose }) {
     const { data, setData, post, processing, errors, reset } = useForm({
-        offre_id:           offre.id,
-        lettre_motivation:  '',
+        offre_id:          offre.id,
+        lettre_motivation: '',
     });
 
     function submit(e) {
@@ -149,15 +173,12 @@ function CandidatureModal({ offre, onClose }) {
                 <p className="text-sm text-slate-500 mb-4">
                     <strong>{offre.titre}</strong> — {offre.entreprise?.nom_entreprise}
                 </p>
-
                 <form onSubmit={submit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
                             Lettre de motivation <span className="text-slate-400 font-normal">(optionnel)</span>
                         </label>
-                        <textarea
-                            rows={5}
-                            value={data.lettre_motivation}
+                        <textarea rows={5} value={data.lettre_motivation}
                             onChange={e => setData('lettre_motivation', e.target.value)}
                             placeholder="Présentez votre motivation pour ce stage…"
                             className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 resize-none"

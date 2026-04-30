@@ -82,9 +82,13 @@ class EntrepriseDashboardController extends Controller
     {
         $entreprise = $this->entreprise();
         $offres = $entreprise->offres()->withCount('candidatures')->orderBy('created_at', 'desc')->get();
-
+ 
+        $filieres = \App\Models\Etudiant::select('filiere')
+            ->distinct()->orderBy('filiere')->pluck('filiere');
+ 
         return Inertia::render('Entreprise/entreprise.offres', [
-            'offres' => $offres,
+            'offres'   => $offres,
+            'filieres' => $filieres,
         ]);
     }
 
@@ -94,14 +98,16 @@ class EntrepriseDashboardController extends Controller
             'titre'          => 'required|string|max:255',
             'description'    => 'required|string',
             'duree_semaines' => 'required|integer|min:1',
+            'filiere_cible'  => 'nullable|string|max:100',
         ]);
-
+ 
         $entreprise = $this->entreprise();
-
+ 
         Offre::create([
             'titre'          => $request->titre,
             'description'    => $request->description,
             'duree_semaines' => $request->duree_semaines,
+            'filiere_cible'  => $request->filiere_cible,
             'entreprise_id'  => $entreprise->id,
             'est_active'     => false,
         ]);

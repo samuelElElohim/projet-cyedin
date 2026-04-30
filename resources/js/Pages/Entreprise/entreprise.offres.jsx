@@ -2,13 +2,14 @@ import EntrepriseLayout from '@/Layouts/EntrepriseLayout';
 import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function EntrepriseOffres({ offres = [] }) {
+export default function EntrepriseOffres({ offres = [], filieres = [] }) {
     const [showForm, setShowForm] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        titre: '',
-        description: '',
+        titre:          '',
+        description:    '',
         duree_semaines: '',
+        filiere_cible:  '',
     });
 
     function submit(e) {
@@ -18,14 +19,13 @@ export default function EntrepriseOffres({ offres = [] }) {
         });
     }
 
-    const actives   = offres.filter(o => o.est_active).length;
-    const attente   = offres.filter(o => !o.est_active).length;
+    const actives = offres.filter(o => o.est_active).length;
+    const attente = offres.filter(o => !o.est_active).length;
 
     return (
         <EntrepriseLayout title="Mes offres de stage">
             <Head title="Offres — Entreprise" />
 
-            {/* Stats + bouton */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex gap-3">
                     <span className="px-3 py-1.5 bg-green-100 text-green-800 text-xs font-semibold rounded-xl">
@@ -55,6 +55,7 @@ export default function EntrepriseOffres({ offres = [] }) {
                                 className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-100" />
                             {errors.titre && <p className="mt-1 text-xs text-red-600">{errors.titre}</p>}
                         </div>
+
                         <div>
                             <label className="block text-xs font-medium text-slate-700 mb-1">Description / Missions *</label>
                             <textarea rows={4} value={data.description} onChange={e => setData('description', e.target.value)}
@@ -62,17 +63,43 @@ export default function EntrepriseOffres({ offres = [] }) {
                                 className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-100 resize-none" />
                             {errors.description && <p className="mt-1 text-xs text-red-600">{errors.description}</p>}
                         </div>
-                        <div className="w-40">
-                            <label className="block text-xs font-medium text-slate-700 mb-1">Durée (semaines) *</label>
-                            <input type="number" min="1" value={data.duree_semaines} onChange={e => setData('duree_semaines', e.target.value)}
-                                required
-                                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-100" />
-                            {errors.duree_semaines && <p className="mt-1 text-xs text-red-600">{errors.duree_semaines}</p>}
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-medium text-slate-700 mb-1">Durée (semaines) *</label>
+                                <input type="number" min="1" value={data.duree_semaines}
+                                    onChange={e => setData('duree_semaines', e.target.value)} required
+                                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-100" />
+                                {errors.duree_semaines && <p className="mt-1 text-xs text-red-600">{errors.duree_semaines}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-medium text-slate-700 mb-1">
+                                    Filière ciblée
+                                    <span className="text-slate-400 font-normal ml-1">(optionnel)</span>
+                                </label>
+                                {/* Select custom — évite superposition texte/flèche */}
+                                <div className="relative">
+                                    <select
+                                        value={data.filiere_cible}
+                                        onChange={e => setData('filiere_cible', e.target.value)}
+                                        className="appearance-none w-full border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-100 bg-white"
+                                    >
+                                        <option value="">Toutes filières</option>
+                                        {filieres.map(f => <option key={f} value={f}>{f}</option>)}
+                                    </select>
+                                    <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">▼</span>
+                                </div>
+                                {errors.filiere_cible && <p className="mt-1 text-xs text-red-600">{errors.filiere_cible}</p>}
+                            </div>
                         </div>
-                        <p className="text-xs text-slate-400">L'offre sera soumise à validation par un administrateur avant d'être visible par les étudiants.</p>
+
+                        <p className="text-xs text-slate-400">
+                            L'offre sera soumise à validation par un administrateur avant d'être visible par les étudiants.
+                        </p>
                         <button type="submit" disabled={processing}
                             className="px-6 py-2.5 bg-amber-500 text-white font-semibold rounded-xl hover:bg-amber-600 transition disabled:opacity-60 text-sm">
-                            {processing ? 'Envoi…' : 'Soumettre l\'offre'}
+                            {processing ? 'Envoi…' : "Soumettre l'offre"}
                         </button>
                     </form>
                 </div>
@@ -89,7 +116,7 @@ export default function EntrepriseOffres({ offres = [] }) {
                     <table className="w-full text-left">
                         <thead className="bg-slate-50 border-b border-slate-100">
                             <tr>
-                                {['Titre', 'Durée', 'Candidatures', 'Statut'].map(h => (
+                                {['Titre', 'Filière ciblée', 'Durée', 'Candidatures', 'Statut'].map(h => (
                                     <th key={h} className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>
                                 ))}
                             </tr>
@@ -100,6 +127,12 @@ export default function EntrepriseOffres({ offres = [] }) {
                                     <td className="px-4 py-3">
                                         <div className="text-sm font-medium text-slate-900">{o.titre}</div>
                                         <div className="text-xs text-slate-400 mt-0.5 line-clamp-1">{o.description}</div>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {o.filiere_cible
+                                            ? <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-md">{o.filiere_cible}</span>
+                                            : <span className="text-xs text-slate-300">—</span>
+                                        }
                                     </td>
                                     <td className="px-4 py-3 text-sm text-slate-600 text-center">{o.duree_semaines} sem.</td>
                                     <td className="px-4 py-3 text-center">

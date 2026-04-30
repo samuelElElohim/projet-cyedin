@@ -10,6 +10,7 @@ use App\Http\Controllers\CandidatureController;
 use App\Http\Controllers\EtudiantDashboardController;
 use App\Http\Controllers\TuteurDashboardController;
 use App\Http\Controllers\JuryDashboardController;
+use App\Http\Controllers\AdminImportController;
 use App\Http\Controllers\Auth\InscriptionEntrepriseController;
 use App\Http\Controllers\Auth\PremierMotDePasseController;
 use Illuminate\Support\Facades\Route;
@@ -65,6 +66,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->middleware(['verified'])->name('dashboard');
+
+    Route::post('/notifications/mark-read', function () {
+    \App\Models\Notification::where('proprietaire_id', auth()->id())
+        ->where('est_lu', false)
+        ->update(['est_lu' => true]);
+    return back();
+    })->name('notifications.mark-read');
 });
 
 /*
@@ -115,6 +123,16 @@ Route::middleware(['auth', 'verified', 'role:A'])->prefix('admin')->name('admin.
     Route::get('/dashboard/trace',               [AdminDashboardController::class, 'trace'])->name('trace');
     Route::get('/dashboard/trace/export',        [AdminDashboardController::class, 'export_trace'])->name('trace.export');
     Route::post('/dashboard/archiver',           [AdminDashboardController::class, 'archiver_annee'])->name('archiver.annee');
+
+    Route::get('/dashboard/archives',           [AdminDashboardController::class, 'lister_archives'])->name('lister.archives');
+    Route::get('/dashboard/archives/download',  [AdminDashboardController::class, 'telecharger_archive'])->name('telecharger.archive');
+    Route::post('/dashboard/reset-annee',       [AdminDashboardController::class, 'reset_annee'])->name('reset.annee');
+
+    Route::get('/dashboard/import',         [AdminImportController::class, 'create'])->name('import.user');
+    Route::post('/dashboard/import/preview',[AdminImportController::class, 'preview'])->name('import.user.preview');
+    Route::post('/dashboard/import/store',  [AdminImportController::class, 'store'])->name('import.user.store');
+
+
 });
 
 /*

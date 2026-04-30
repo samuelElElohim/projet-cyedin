@@ -466,4 +466,56 @@ class AdminDashboardController extends Controller
 
         return back()->with('success', "Archive {$annee} créée : {$filename}");
     }
+
+        public function reset_annee(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $annee = $request->input('annee', now()->year);
+ 
+        // 1. Archiver l'état courant avant de supprimer
+        $snapshot = [
+            'annee'    => (int) $annee,
+            'date'     => now()->toIso8601String(),
+            'type'     => 'reset_annuel',
+            'stages'   => Stage::with(['etudiant.utilisateur', 'entreprise', 'tuteur.utilisateur', 'convention'])->get()->toArray(),
+            'dossiers' => Dossier_stage::with(['etudiant.utilisateur', 'documents'])->get()->toArray(),
+        ];
+ 
+        $filename = "archive-reset-{$annee}-" . now()->format('Ymd-His') . '.json';
+        Storage::disk('local')->put(
+            "archives/{$filename}",
+            json_encode($snapshot, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+        );
+ 
+        // 2. Supprimer les données opérationnelles dans l'ordre des FK
+        \DB::table('dossier_documents')->delete();
+        \DB::table('convention_stages')->delete();
+        \DB::table('cahier_stages')->delete();
+        \DB::table('candidatures')->delete();
+        \DB::table('dossier_stages')->delete();
+        \DB::table('stages')->delete();
+ 
+        // Supprimer uniquement les notifications lues (garder les non-lues)
+        \DB::table('notifications')->where('est_lu', true)->delete();
+ 
+        // 3. Remettre les offres en attente de validation (nouveau cycle)
+        \DB::table('offres')->update(['est_active' => false]);
+ 
+        // 4. Notifier tous les admins
+        $adminIds = Administrateur::pluck('utilisateurs_id');
+        foreach ($adminIds as $adminId) {
+            Notification::create([
+                'proprietaire_id' => $adminId,
+                'message'         => "✅ Réinitialisation annuelle {$annee} effectuée. Archive créée : {$filename}. Les stages, dossiers, conventions et candidatures ont été remis à zéro.",
+            ]);
+        }
+ 
+        TraceLogger::log('reset_annee', [
+            'annee'    => $annee,
+            'fichier'  => $filename,
+            'admin_id' => auth()->id(),
+        ]);
+ 
+        return back()->with('success', "Réinitialisation {$annee} effectuée. Archive : {$filename}");
+    }
+
 }

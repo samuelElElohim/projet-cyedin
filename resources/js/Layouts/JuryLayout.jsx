@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import NotifDropdown from '@/Components/Shared/NotifDropdown';
 
 const NAV_ITEMS = [
     { label: 'Tableau de bord', href: 'jury.dashboard',       icon: '▦' },
@@ -71,28 +72,14 @@ export default function JuryLayout({ children, title = 'Espace Jury' }) {
             <div className="flex-1 flex flex-col min-w-0">
                 <header className="h-16 bg-white border-b border-slate-100 flex items-center px-6 shrink-0 shadow-sm">
                     <h1 className="text-base font-semibold text-slate-800">{title}</h1>
-                    <NotifBadge />
+                    <div className="ml-auto">
+                        <NotifDropdown />
+                    </div>
                 </header>
                 <main className="flex-1 p-6 overflow-auto">
                     {children}
                 </main>
             </div>
-        </div>
-    );
-}
-
-function NotifBadge() {
-    const count = usePage().props.notifications_count ?? 0;
-    return (
-        <div className="ml-auto relative">
-            <button className="relative p-2 text-slate-400 hover:text-slate-700 transition">
-                <span className="text-xl">🔔</span>
-                {count > 0 && (
-                    <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
-                        {count > 9 ? '9+' : count}
-                    </span>
-                )}
-            </button>
         </div>
     );
 }

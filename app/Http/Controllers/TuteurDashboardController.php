@@ -254,32 +254,30 @@ class TuteurDashboardController extends Controller
                   ->orWhere('description', 'ilike', '%' . $request->search . '%');
             });
         }
- 
         if ($request->filled('duree_min')) {
             $query->where('duree_semaines', '>=', $request->duree_min);
         }
- 
         if ($request->filled('duree_max')) {
             $query->where('duree_semaines', '<=', $request->duree_max);
         }
- 
         if ($request->filled('secteur')) {
             $query->whereHas('entreprise', fn($q) =>
                 $q->where('secteur', 'ilike', '%' . $request->secteur . '%')
             );
         }
+        if ($request->filled('filiere')) {                  // ← AJOUTER
+            $query->where('filiere_cible', $request->filiere);
+        }
  
-        $offres = $query->orderBy('created_at', 'desc')->get();
- 
-        $secteurs = \App\Models\Entreprise::select('secteur')
-            ->distinct()
-            ->orderBy('secteur')
-            ->pluck('secteur');
+        $offres   = $query->orderBy('created_at', 'desc')->get();
+        $secteurs = \App\Models\Entreprise::select('secteur')->distinct()->orderBy('secteur')->pluck('secteur');
+        $filieres = \App\Models\Etudiant::select('filiere')->distinct()->orderBy('filiere')->pluck('filiere'); // ← AJOUTER
  
         return Inertia::render('Tuteur/tuteur.offres', [
             'offres'   => $offres,
             'secteurs' => $secteurs,
-            'filters'  => $request->only(['search', 'duree_min', 'duree_max', 'secteur']),
+            'filieres' => $filieres,             // ← AJOUTER
+            'filters'  => $request->only(['search', 'duree_min', 'duree_max', 'secteur', 'filiere']),
         ]);
     }
 }
