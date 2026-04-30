@@ -139,7 +139,7 @@ class AdminDashboardController extends Controller
         ]);
 
         match ($validated['role']) {
-            'A' => \App\Models\Administrateur::create(['utilisateurs_id' => $utilisateur->id]),
+            'A' => Administrateur::create(['utilisateurs_id' => $utilisateur->id]),
             'S' => Etudiant::create([
                         'utilisateurs_id' => $utilisateur->id,
                         'filiere'         => $validated['filiere'],
@@ -419,7 +419,7 @@ class AdminDashboardController extends Controller
 
     public function trace()
     {
-        $content = \App\Services\TraceLogger::tail(300);
+        $content = TraceLogger::tail(300);
 
         return Inertia::render('Admin/admin.trace', [
             'trace' => $content,
