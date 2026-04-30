@@ -110,7 +110,7 @@ class UtilisateurSeeder extends Seeder
         );
 
         Tuteur::updateOrCreate(
-            ['utilisateurs_id' => $tuteurUser->id],
+            ['utilisateur_id' => $tuteurUser->id],
             [
                 'departement' => 'Informatique',
             ]
