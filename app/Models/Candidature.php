@@ -11,6 +11,7 @@ class Candidature extends Model
         'offre_id',
         'statut',
         'lettre_motivation',
+        'chemin_lettre',
         'chemin_cv',
         'commentaire_entreprise',
     ];

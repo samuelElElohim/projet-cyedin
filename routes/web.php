@@ -155,6 +155,11 @@ Route::middleware(['auth', 'verified', 'role:E'])->prefix('entreprise')->name('e
     Route::post('/candidatures/{candidature}/accepter',  [CandidatureController::class, 'accepter'])->name('candidatures.accepter');
     Route::post('/candidatures/{candidature}/refuser',   [CandidatureController::class, 'refuser'])->name('candidatures.refuser');
 
+    Route::get('/candidatures/{candidature}/download/{type}',
+        [CandidatureController::class, 'download'])
+        ->name('candidatures.download');
+
+
     // Stages
     Route::get('/stages',                    [EntrepriseDashboardController::class, 'index_stages'])->name('index.stage');
     Route::get('/stages/{stageId}',          [EntrepriseDashboardController::class, 'index_stage_detail'])->name('stage.detail');

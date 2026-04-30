@@ -88,6 +88,26 @@ export default function EntrepriseCandidatures({ candidatures_par_offre = {}, of
                                                         <div className="text-xs text-slate-400">{c.etudiant?.email}</div>
                                                     </div>
 
+                                                    {/* Téléchargements CV + Lettre */}
+                                                    <div className="flex gap-2 shrink-0">
+                                                        {c.chemin_cv && (
+                                                            <a
+                                                                href={route('candidatures.download', { candidature: c.id, type: 'cv' })}
+                                                                className="flex items-center gap-1 px-2 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg hover:bg-blue-50 hover:text-blue-700 transition"
+                                                            >
+                                                                📎 CV
+                                                            </a>
+                                                        )}
+                                                        {c.chemin_lettre && (
+                                                            <a
+                                                                href={route('candidatures.download', { candidature: c.id, type: 'lettre' })}
+                                                                className="flex items-center gap-1 px-2 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg hover:bg-blue-50 hover:text-blue-700 transition"
+                                                            >
+                                                                📝 Lettre
+                                                            </a>
+                                                        )}
+                                                    </div>
+
                                                     {/* Date */}
                                                     <div className="text-xs text-slate-400 hidden sm:block shrink-0">
                                                         {new Date(c.created_at).toLocaleDateString('fr-FR')}

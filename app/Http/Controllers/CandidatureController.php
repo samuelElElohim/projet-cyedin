@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Storage;
 
 class CandidatureController extends Controller
 {
@@ -27,48 +28,77 @@ class CandidatureController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+
+
+    public function download(Candidature $candidature, string $type): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
-        $request->validate([
-            'offre_id'          => 'required|integer|exists:offres,id',
-            'lettre_motivation' => 'nullable|string|max:3000',
-            'chemin_cv'         => 'nullable|string|max:255', // chemin d'un doc déjà uploadé
-        ]);
+        abort_unless(
+            $candidature->offre->entreprise->utilisateurs_id === auth()->id(),
+            403
+        );
 
-        $etudiantId = auth()->id();
+        $path = match($type) {
+            'cv'     => $candidature->chemin_cv,
+            'lettre' => $candidature->chemin_lettre,
+            default  => abort(404),
+        };
 
-        // Vérifier que l'offre est active
-        $offre = Offre::findOrFail($request->offre_id);
-        abort_unless($offre->est_active, 422, 'Cette offre n\'est plus disponible.');
+        //abort_if(!$path || !Storage::disk('private')->exists($path), 404);
 
-        // Une seule candidature par offre
-        $existe = Candidature::where('etudiant_id', $etudiantId)
-            ->where('offre_id', $request->offre_id)
-            ->exists();
-        abort_if($existe, 422, 'Vous avez déjà postulé à cette offre.');
-
-        Candidature::create([
-            'etudiant_id'       => $etudiantId,
-            'offre_id'          => $request->offre_id,
-            'lettre_motivation' => $request->lettre_motivation,
-            'chemin_cv'         => $request->chemin_cv,
-        ]);
-
-        // Notifier l'entreprise
-        if ($offre->entreprise?->utilisateurs_id) {
-            Notification::create([
-                'proprietaire_id' => $offre->entreprise->utilisateurs_id,
-                'message'         => 'Nouvelle candidature reçue pour l\'offre « ' . $offre->titre . ' ».',
-            ]);
-        }
-
-        TraceLogger::log('store_candidature', [
-            'etudiant_id' => $etudiantId,
-            'offre_id'    => $request->offre_id,
-        ]);
-
-        return back()->with('success', 'Candidature envoyée.');
+        $fullPath = storage_path('app/' . $path);
+        abort_unless(file_exists($fullPath), 404);
+        return response()->download($fullPath);
     }
+
+
+   public function store(Request $request): RedirectResponse
+{
+    $request->validate([
+        'offre_id'          => 'required|integer|exists:offres,id',
+        'lettre_motivation' => 'nullable|string|max:2000',
+        'cv'                => 'required|file|max:5120|mimes:pdf,doc,docx,jpg,jpeg,png',
+        'lettre_fichier'    => 'nullable|file|max:5120|mimes:pdf,doc,docx',
+    ]);
+
+    $etudiantId = auth()->id();
+
+    $offre = Offre::findOrFail($request->offre_id);
+    abort_unless($offre->est_active, 422, 'Cette offre n\'est plus disponible.');
+
+    $existe = Candidature::where('etudiant_id', $etudiantId)
+        ->where('offre_id', $request->offre_id)
+        ->exists();
+    abort_if($existe, 422, 'Vous avez déjà postulé à cette offre.');
+
+    // Stockage des fichiers
+    $cvPath     = $request->file('cv')->store('candidatures/cvs', 'local');
+    $lettrePath = $request->hasFile('lettre_fichier')
+        ? $request->file('lettre_fichier')->store('candidatures/lettres', 'local')
+        : null;
+
+    Candidature::create([
+        'etudiant_id'       => $etudiantId,
+        'offre_id'          => $request->offre_id,
+        'lettre_motivation' => $request->lettre_motivation,
+        'chemin_cv'         => $cvPath,
+        'chemin_lettre'     => $lettrePath,
+    ]);
+
+    // Notifier l'entreprise
+    if ($offre->entreprise?->utilisateurs_id) {
+        Notification::create([
+            'proprietaire_id' => $offre->entreprise->utilisateurs_id,
+            'message'         => 'Nouvelle candidature reçue pour l\'offre « ' . $offre->titre . ' ».',
+        ]);
+    }
+
+    TraceLogger::log('store_candidature', [
+        'etudiant_id' => $etudiantId,
+        'offre_id'    => $request->offre_id,
+    ]);
+
+    return back()->with('success', 'Candidature envoyée.');
+}
 
     public function destroy(Candidature $candidature): RedirectResponse
     {

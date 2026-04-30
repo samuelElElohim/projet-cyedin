@@ -178,7 +178,7 @@ function CandidatureModal({ offre, onClose }) {
 
     function submit(e) {
         e.preventDefault();
-        post(route('candidatures.store'), {
+        post(route('etudiant.candidatures.store'), {
             forceFormData: true,
             onSuccess: () => { reset(); onClose(); },
         });
