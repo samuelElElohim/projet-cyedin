@@ -28,6 +28,18 @@ class Tuteur extends Model
         return $this->hasMany(Stage::class, 'tuteurs_id', 'utilisateurs_id');
     }
 
+    public function etudiants()
+    {
+        return $this->belongsToMany(
+            Etudiant::class,
+            'tuteur_etudiant',
+            'tuteur_id',
+            'etudiant_id',
+            'utilisateurs_id',
+            'utilisateurs_id'
+        )->withTimestamps();
+    }
+
     // Scopes
     public function scopeJury($query)
     {

@@ -33,6 +33,25 @@ class Etudiant extends Model
     }
 
 
+    public function tuteur()
+    {
+        return $this->belongsToMany(
+            Tuteur::class,
+            'tuteur_etudiant',
+            'etudiant_id',
+            'tuteur_id',
+            'utilisateurs_id',
+            'utilisateurs_id'
+        )->withTimestamps();
+    }
+
+    // Utilitaire pour vérifier si l'étudiant a un tuteur assigné
+    public function hasTuteur(): bool
+    {
+        return $this->tuteur()->exists();
+    }
+
+
     //scopes
 
     // Scope pour filtrer les etudiants par filiere

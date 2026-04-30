@@ -225,6 +225,10 @@ Route::middleware(['auth', 'verified', 'role:T'])->prefix('tuteur')->name('tuteu
     Route::get('/etudiant/{etudiantId}/cahier',    [TuteurDashboardController::class, 'cahier'])->name('cahier');
     Route::get('/etudiant/{etudiantId}',            [TuteurDashboardController::class, 'documents'])->name('etudiant');
 
+    Route::get('/etudiants',                          [TuteurDashboardController::class, 'etudiants'])->name('etudiant.follow');
+    Route::post('/etudiants/{etudiant}/suivre',       [TuteurDashboardController::class, 'suivre'])->name('etudiants.suivre');
+    Route::delete('/etudiants/{etudiant}/retirer',    [TuteurDashboardController::class, 'retirer'])->name('etudiants.retirer');
+
     // Remarques
     Route::post('/remarques', [TuteurDashboardController::class, 'store_remarque'])->name('remarques.store');
 

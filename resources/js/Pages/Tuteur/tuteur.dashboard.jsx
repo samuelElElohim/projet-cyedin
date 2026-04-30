@@ -1,11 +1,17 @@
 import TuteurLayout from '@/Layouts/TuteurLayout';
 import { Head, Link, router } from '@inertiajs/react';
 
-export default function TuteurDashboard({ tuteur, stages = [], notifications = [], stats = {} }) {
+export default function TuteurDashboard({ tuteur, stages = [], notifications = [], etudiantsSuivis = [], stats = {} }) {
     function signerConvention(stageId) {
         if (!confirm('Signer la convention de ce stage ?')) return;
         router.post(route('tuteur.signer.convention', stageId));
     }
+
+    // Étudiants suivis sans stage
+    const suivisSansStage = etudiantsSuivis.filter(e =>
+        !stages.some(s => s.etudiants_id === e.id)
+    );
+
 
     return (
         <TuteurLayout title="Tableau de bord">
@@ -36,70 +42,80 @@ export default function TuteurDashboard({ tuteur, stages = [], notifications = [
             <div className="grid md:grid-cols-2 gap-6">
 
                 {/* Étudiants / Stages */}
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-sm font-semibold text-slate-700">Mes étudiants</h2>
-                        <Link href={route('tuteur.create.stage')}
-                            className="px-3 py-1.5 bg-teal-600 text-white text-xs font-semibold rounded-xl hover:bg-teal-700 transition">
-                            + Affecter stage
+                <div className="space-y-3">
+        {/* Étudiants avec stage */}
+        {stages.map(stage => {
+            const cv = stage.convention_status;
+            const etudiant = stage.etudiant?.utilisateur;
+            return (
+                <div key={stage.id} className="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-teal-100 transition">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                        <div>
+                            <div className="font-semibold text-slate-900 text-sm">
+                                {etudiant ? `${etudiant.prenom} ${etudiant.nom}` : '—'}
+                            </div>
+                            <div className="text-xs text-slate-500">{stage.sujet}</div>
+                            <div className="text-xs text-slate-400 mt-0.5">
+                                {stage.entreprise?.nom_entreprise} · {stage.duree_en_semaine} sem.
+                            </div>
+                        </div>
+                        <ConventionMini cv={cv} />
+                    </div>
+                    <div className="flex gap-2 mt-3 flex-wrap">
+                        {cv && !cv.tuteur && (
+                            <button onClick={() => signerConvention(stage.id)}
+                                className="px-2 py-1 bg-teal-600 text-white text-xs font-semibold rounded-lg hover:bg-teal-700 transition">
+                                ✍ Signer convention
+                            </button>
+                        )}
+                        <Link href={route('tuteur.cahier', { etudiantId: stage.etudiants_id })}
+                            className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg hover:bg-blue-100 transition">
+                            📓 Cahier
+                        </Link>
+                        <Link href={route('tuteur.etudiant', { etudiantId: stage.etudiants_id })}
+                            className="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-200 transition">
+                            📄 Documents & Remarques
                         </Link>
                     </div>
-
-                    {stages.length === 0 ? (
-                        <p className="text-sm text-slate-400 text-center py-6">Aucun stage assigné.</p>
-                    ) : (
-                        <div className="space-y-3">
-                            {stages.map(stage => {
-                                const cv = stage.convention_status;
-                                const etudiant = stage.etudiant?.utilisateur;
-                                return (
-                                    <div key={stage.id} className="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-teal-100 transition">
-                                        <div className="flex items-start justify-between gap-2 mb-2">
-                                            <div>
-                                                <div className="font-semibold text-slate-900 text-sm">
-                                                    {etudiant ? `${etudiant.prenom} ${etudiant.nom}` : '—'}
-                                                </div>
-                                                <div className="text-xs text-slate-500">{stage.sujet}</div>
-                                                <div className="text-xs text-slate-400 mt-0.5">
-                                                    {stage.entreprise?.nom_entreprise} · {stage.duree_en_semaine} sem.
-                                                </div>
-                                            </div>
-                                            <ConventionMini cv={cv} />
-                                        </div>
-
-                                        <div className="flex gap-2 mt-3 flex-wrap">
-                                            {/* Signer convention */}
-                                            {cv && !cv.tuteur && (
-                                                <button
-                                                    onClick={() => signerConvention(stage.id)}
-                                                    className="px-2 py-1 bg-teal-600 text-white text-xs font-semibold rounded-lg hover:bg-teal-700 transition"
-                                                >
-                                                    ✍ Signer convention
-                                                </button>
-                                            )}
-
-                                            {/* Cahier */}
-                                            <Link
-                                                href={route('tuteur.cahier', { etudiantId: stage.etudiants_id })}
-                                                className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg hover:bg-blue-100 transition"
-                                            >
-                                                📓 Cahier
-                                            </Link>
-
-                                            {/* Documents */}
-                                            <Link
-                                                href={route('tuteur.etudiant', { etudiantId: stage.etudiants_id })}
-                                                className="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-200 transition"
-                                            >
-                                                📄 Documents & Remarques
-                                            </Link>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
                 </div>
+            );
+        })}
+
+        {/* Étudiants suivis sans stage */}
+    {suivisSansStage.map(e => (
+        <div key={e.id} className="p-4 rounded-xl bg-amber-50 border border-amber-100">
+            <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-black text-xs shrink-0">
+                        {e.prenom?.[0]}
+                    </div>
+                    <div>
+                        <div className="font-semibold text-slate-900 text-sm">
+                            {e.prenom} {e.nom}
+                        </div>
+                        <div className="text-xs text-slate-400">{e.email}</div>
+                        <div className="text-xs text-slate-500 mt-0.5">{e.filiere} · Niv. {e.niveau}</div>
+                    </div>
+                </div>
+                <span className="text-xs px-2 py-1 bg-amber-200 text-amber-800 rounded-full font-semibold shrink-0">
+                    ⏳ Sans stage
+                </span>
+            </div>
+            <div className="flex gap-2 mt-3">
+                <Link href={route('tuteur.create.stage')}
+                    className="px-2 py-1 bg-teal-600 text-white text-xs font-semibold rounded-lg hover:bg-teal-700 transition">
+                    + Affecter stage
+                </Link>
+            </div>
+        </div>
+    ))}
+
+    {/* Aucun étudiant du tout */}
+    {stages.length === 0 && suivisSansStage.length === 0 && (
+        <p className="text-sm text-slate-400 text-center py-6">Aucun étudiant suivi.</p>
+    )}
+</div>
+
 
                 {/* Notifications */}
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">

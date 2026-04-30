@@ -44,6 +44,20 @@ class TuteurDashboardController extends Controller
                 return $stage;
             });
 
+        
+        $etudiantsSuivis = $tuteur->etudiants()
+        ->with('utilisateur')
+        ->get()
+        ->map(function ($e) {
+            return [
+                'id' => $e->utilisateurs_id,
+                'nom' => $e->utilisateur->nom,
+                'prenom' => $e->utilisateur->prenom,
+                'email' => $e->utilisateur->email,
+            ];
+        });
+
+
         $notifications = Notification::where('proprietaire_id', auth()->id())
             ->where('est_lu', false)
             ->orderBy('date_envoi', 'desc')
@@ -54,6 +68,7 @@ class TuteurDashboardController extends Controller
             'tuteur'        => $tuteur,
             'stages'        => $stages,
             'notifications' => $notifications,
+            'etudiantsSuivis' => $etudiantsSuivis,
             'stats' => [
                 'total_etudiants'       => $stages->count(),
                 'conventions_completes' => $stages->filter(fn($s) => ($s->convention_status['complete'] ?? false))->count(),
@@ -240,6 +255,44 @@ class TuteurDashboardController extends Controller
         ]);
 
         return back()->with('success', 'Remarque ajoutée.');
+    }
+
+    public function etudiants(): Response
+{
+    $tuteur = auth()->user()->tuteur;
+
+    // Tous les étudiants — filtrables par filière si besoin
+    $etudiants = Etudiant::with('utilisateur')
+        ->get()
+        ->map(fn ($e) => [
+            'id'          => $e->utilisateurs_id,
+            'nom'         => $e->utilisateur->nom,
+            'prenom'      => $e->utilisateur->prenom,
+            'email'       => $e->utilisateur->email,
+            'filiere'     => $e->filiere,
+            'niveau'      => $e->niveau_etud,
+            'suivi'       => $tuteur->etudiants->contains('utilisateurs_id', $e->utilisateurs_id),
+        ]);
+
+    return Inertia::render('Tuteur/tuteur.etudiant.follow', [
+        'etudiants' => $etudiants,
+    ]);
+}
+
+    public function suivre(Etudiant $etudiant): RedirectResponse
+    {
+        $tuteur = auth()->user()->tuteur;
+        $tuteur->etudiants()->syncWithoutDetaching([$etudiant->utilisateurs_id]);
+
+        return back()->with('success', 'Étudiant ajouté à votre suivi.');
+    }
+
+    public function retirer(Etudiant $etudiant): RedirectResponse
+    {
+        $tuteur = auth()->user()->tuteur;
+        $tuteur->etudiants()->detach($etudiant->utilisateurs_id);
+
+        return back()->with('success', 'Étudiant retiré de votre suivi.');
     }
 
     public function offres(Request $request): Response
