@@ -1,5 +1,5 @@
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import InputError from '@/Components/UI/InputError';
 
 const ROLES = [
@@ -10,18 +10,24 @@ const ROLES = [
 ];
 
 export default function AdminCreateUser() {
+
+    const {filieres} = usePage().props;
+
     const { data, setData, post, processing, errors, reset } = useForm({
         nom: '', prenom: '', email: '', role: '',
-        filiere: '', niveau_etud: '',
+        filiere_id: '', niveau_etud: '',
         addresse: '', secteur: '',
         departement: '', est_jury: false,
+        filieres_ids: [],
+
     });
 
     function handleRoleChange(e) {
         setData({
             ...data,
             role: e.target.value,
-            filiere: '', niveau_etud: '',
+            filieres_ids:[],
+            filiere_id: '', niveau_etud: '',
             addresse: '', secteur: '',
             departement: '', est_jury: false,
         });
@@ -29,6 +35,7 @@ export default function AdminCreateUser() {
 
     function submit(e) {
         e.preventDefault();
+        console.log(data);
         post(route('admin.store.user'));
     }
 
@@ -95,13 +102,22 @@ export default function AdminCreateUser() {
                         {data.role === 'S' && (
                             <div className="space-y-4 pt-2 border-t border-gray-100">
                                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Infos étudiant</p>
-                                <Field label="Filière *" error={errors.filiere}>
-                                    <Input
-                                        value={data.filiere}
-                                        onChange={e => setData('filiere', e.target.value)}
-                                        placeholder="ex: INFO, MECA, GC…"
-                                    />
+                                <Field label="Filière *" error={errors.filiere_id}>
+                                    <select
+                                        value={data.filiere_id}
+                                        onChange={e => setData('filiere_id', Number(e.target.value))}
+                                        className="border rounded px-3 py-2 w-full"
+                                    >
+                                        <option value="">-- Choisir une filière --</option>
+
+                                        {filieres.map(f => (
+                                            <option key={f.id} value={f.id}>
+                                                {f.filiere}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </Field>
+
                                 <Field label="Niveau d'étude *" error={errors.niveau_etud}>
                                     <Input
                                         type="number"
@@ -124,25 +140,46 @@ export default function AdminCreateUser() {
                                         placeholder="Adresse complète"
                                     />
                                 </Field>
-                                <Field label="Secteur *" error={errors.secteur}>
-                                    <Input
-                                        value={data.secteur}
-                                        onChange={e => setData('secteur', e.target.value)}
-                                        placeholder="ex: Informatique, Industrie…"
-                                    />
+                                <Field label="Filières de l'entreprise *" error={errors.filieres_ids}>
+                                    <select
+                                        multiple
+                                        value={data.filieres_ids}
+                                        onChange={e =>
+                                            setData(
+                                                'filieres_ids',
+                                                Array.from(e.target.selectedOptions, opt => Number(opt.value))
+                                            )
+                                        }
+                                        className="border rounded px-3 py-2 w-full h-32"
+                                    >
+                                        {filieres.map(f => (
+                                            <option key={f.id} value={f.id}>
+                                                {f.filiere}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </Field>
+
                             </div>
                         )}
 
                         {data.role === 'T' && (
                             <div className="space-y-4 pt-2 border-t border-gray-100">
                                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Infos tuteur</p>
-                                <Field label="Département *" error={errors.departement}>
-                                    <Input
-                                        value={data.departement}
-                                        onChange={e => setData('departement', e.target.value)}
-                                        placeholder="ex: Informatique, Mathématiques…"
-                                    />
+                                <Field label="Filière *" error={errors.filiere_id}>
+                                    <select
+                                        value={data.filiere_id}
+                                        onChange={e => setData('filiere_id', Number(e.target.value))}
+                                        className="border rounded px-3 py-2 w-full"
+                                    >
+                                        <option value="">-- Choisir une filière --</option>
+
+                                        {filieres.map(f => (
+                                            <option key={f.id} value={f.id}>
+                                                {f.filiere}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </Field>
                                 <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                                     <input

@@ -11,7 +11,7 @@ class Etudiant extends Model
     public $incrementing = false;
     protected $fillable = [
         'utilisateurs_id',
-        'filiere',
+        'filiere_id',
         'niveau_etud',
     ];
 

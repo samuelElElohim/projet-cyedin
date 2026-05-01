@@ -23,6 +23,16 @@ return new class extends Migration
             $table->text('description');
             $table->integer('duree_semaines');
             $table->boolean('est_active')->default(false);
+            
+            // Filière (MATHS, INFO)
+            $table->unsignedTinyInteger('filiere_id')->nullable();
+            $table->foreign('filiere_id')->references('id')->on('filieres'); // à voir si on autorise une entreprise à poster sur
+            // plusieurs secteurs...
+
+            $table->unsignedTinyInteger('secteur_id')->nullable();
+            $table->foreign('secteur_id')->references('id')->on('secteurs');
+
+            $table->date('dateDebut')->nullable()->after('duree_semaines');
             $table->timestamps();
         });
     }

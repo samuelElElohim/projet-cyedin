@@ -10,6 +10,7 @@ use App\Models\Entreprise;
 use App\Models\Tuteur;
 use App\Models\Jury;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class UtilisateurSeeder extends Seeder
 {
@@ -59,7 +60,7 @@ class UtilisateurSeeder extends Seeder
         Etudiant::updateOrCreate(
             ['utilisateurs_id' => $etuUser->id],
             [
-                'filiere' => 'dev',
+                'filiere_id' => 2,
                 'niveau_etud' => '1',
             ]
         );
@@ -82,14 +83,25 @@ class UtilisateurSeeder extends Seeder
             ]
         );
 
-        Entreprise::updateOrCreate(
+        $entr = Entreprise::updateOrCreate(
             ['utilisateurs_id' => $entUser->id],
             [
                 'nom_entreprise' => 'Entreprise Test',
                 'addresse' => '42 rue test',
-                'secteur' => 'info',
+                //'filiere_id' => '2',
             ]
         );
+
+        DB::table('entreprises_filieres')->insert([
+            [
+                'entreprise_id' => $entr->id,
+                'filiere_id' => 2 // Info
+            ]/*
+            ,[
+                'offre_id' => $offreId,
+                'tag_id' => 2, // Backend
+            ],*/
+        ]);
 
         /*
         |--------------------------------------------------------------------------
@@ -112,7 +124,7 @@ class UtilisateurSeeder extends Seeder
         Tuteur::updateOrCreate(
             ['utilisateurs_id' => $tuteurUser->id],
             [
-                'departement' => 'Informatique',
+                'filiere_id' => 2,
             ]
         );
 

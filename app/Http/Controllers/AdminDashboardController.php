@@ -16,6 +16,7 @@ use App\Services\TraceLogger;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -96,49 +97,74 @@ class AdminDashboardController extends Controller
     }
 
     public function edit_user(Request $request, $id)
-    {
-        Utilisateur::where('id', $id)->update(
-            $request->only(['nom', 'prenom', 'email', 'role'])
-        );
+{
+    Utilisateur::where('id', $id)->update(
+        $request->only(['nom', 'prenom', 'email', 'role'])
+    );
 
-        match ($request->role) {
-            'E' => Entreprise::where('utilisateurs_id', $id)->update(
-                        $request->only(['addresse', 'secteur'])
-                    ),
-            'T' => Tuteur::where('utilisateurs_id', $id)->update(
-                        $request->only(['departement'])
-                    ),
-            'S' => Etudiant::where('utilisateurs_id', $id)->update(
-                        $request->only(['filiere', 'niveau_etud'])
-                    ),
-            default => null,
-        };
+    match ($request->role) {
+        'E' => Entreprise::where('utilisateurs_id', $id)->update(
+            [
+                'addresse'   => $request->addresse,
+                //'filiere_id' => $request->secteur_id, // CHANGÉ => il faut ajouter/supp dans la table entreprises_filieres///
+            ]
+        ),
 
-        TraceLogger::log('edit_user', ['id' => $id]);
+        'T' => Tuteur::where('utilisateurs_id', $id)->update(
+            [
+                'filiere_id' => $request->filiere_id, // inchangé
+            ]
+        ),
 
-        return redirect()->route('admin.index.user');
-    }
+        'S' => Etudiant::where('utilisateurs_id', $id)->update(
+            [
+                'filiere_id'  => $request->filiere_id,  // CHANGÉ
+                'niveau_etud' => $request->niveau_etud,
+            ]
+        ),
+
+        default => null,
+    };
+
+    TraceLogger::log('edit_user', ['id' => $id]);
+
+    return redirect()->route('admin.index.user');
+}
+
 
     public function create_user()
     {
-        return Inertia::render('Admin/admin.create.user');
+        return Inertia::render('Admin/admin.create.user', [
+            'filieres' => \App\Models\Filiere::all(),
+        ]);
+
     }
 
     public function store_user(Request $request)
     {
+    
         $validated = $request->validate([
             'nom'         => 'required|string|max:25',
             'prenom'      => 'nullable|string|max:15',
             'email'       => 'required|string|max:42|unique:utilisateurs',
             'role'        => 'required|string|in:A,T,E,S',
-            'filiere'     => 'required_if:role,S|nullable|string|max:10',
+            'filiere_id' => [
+                'required_if:role,S',
+                'required_if:role,T',
+                'integer',
+                'nullable',
+                'exists:filieres,id'
+            ],
+            'filieres_ids' => 'required_if:role,E|array',
+            'filieres_ids.*' => 'integer|exists:filieres,id',
+                        
             'niveau_etud' => 'required_if:role,S|nullable|integer|min:1',
             'addresse'    => 'required_if:role,E|nullable|string',
-            'secteur'     => 'required_if:role,E|nullable|string',
-            'departement' => 'required_if:role,T|nullable|string',
+            //'secteur'     => 'required_if:role,E|nullable|string', > table entreprises_filieres
+            //'departement' => 'required_if:role,T|nullable|string',
             'est_jury'    => 'nullable|boolean',
         ]);
-
+    
         $utilisateur = Utilisateur::create([
             'nom'                  => $validated['nom'],
             'prenom'               => $validated['prenom'] ?? null,
@@ -149,25 +175,42 @@ class AdminDashboardController extends Controller
             'premier_mdp_changer'  => false,
         ]);
 
-        match ($validated['role']) {
-            'A' => Administrateur::create(['utilisateurs_id' => $utilisateur->id]),
-            'S' => Etudiant::create([
-                        'utilisateurs_id' => $utilisateur->id,
-                        'filiere'         => $validated['filiere'],
-                        'niveau_etud'     => $validated['niveau_etud'],
-                    ]),
-            'E' => Entreprise::create([
-                        'utilisateurs_id' => $utilisateur->id,
-                        'nom_entreprise'  => $validated['nom'],
-                        'addresse'        => $validated['addresse'],
-                        'secteur'         => $validated['secteur'],
-                    ]),
-            'T' => Tuteur::create([
-                        'utilisateurs_id' => $utilisateur->id,
-                        'departement'     => $validated['departement'],
-                    ]),
-            default => null,
-        };
+        switch ($validated['role']) {
+            case 'A':
+                Administrateur::create(['utilisateurs_id' => $utilisateur->id]);
+                break;
+
+            case 'S':
+                Etudiant::create([
+                    'utilisateurs_id' => $utilisateur->id,
+                    'filiere_id'      => $validated['filiere_id'],
+                    'niveau_etud'     => $validated['niveau_etud'],
+                ]);
+                break;
+
+            case 'E':
+                $entreprise = Entreprise::create([
+                    'utilisateurs_id' => $utilisateur->id,
+                    'nom_entreprise'  => $validated['nom'],
+                    'addresse'        => $validated['addresse'],
+                ]);
+                foreach ($validated['filieres_ids'] as $filiereId) {
+                    DB::table('entreprises_filieres')->insert([
+                        'entreprise_id' => $entreprise->id,
+                        'filiere_id'    => $filiereId,
+                        'created_at'    => now(),
+                        'updated_at'    => now(),
+                    ]);
+                }
+                break;
+
+            case 'T':
+                Tuteur::create([
+                    'utilisateurs_id' => $utilisateur->id,
+                    'filiere_id'      => $validated['filiere_id'],
+                ]);
+                break;
+        }
 
         TraceLogger::log('store_user', ['email' => $validated['email'], 'role' => $validated['role']]);
 
@@ -366,7 +409,8 @@ class AdminDashboardController extends Controller
         $demandes = $query->get();
 
         // Filières actuellement en base
-        $filieres = Etudiant::select('filiere')->distinct()->pluck('filiere')->sort()->values();
+        $filieres = Filiere::orderBy('filiere')->get();
+
 
         return Inertia::render('Admin/admin.index.formation', [
             'demandes' => $demandes,
@@ -380,8 +424,9 @@ class AdminDashboardController extends Controller
     {
         $request->validate([
             'commentaire_admin' => 'nullable|string|max:500',
-            'filiere_finale'    => 'required|string|max:10',
+            'filiere_finale'    => 'required|integer|exists:filieres,id',
         ]);
+
 
         $demande = DemandeFormation::findOrFail($id);
         $demande->update([
@@ -398,7 +443,7 @@ class AdminDashboardController extends Controller
 
         // Ajouter la filière à la liste (on peut mettre à jour l'étudiant directement)
         Etudiant::where('utilisateurs_id', $demande->etudiant_id)
-            ->update(['filiere' => $request->filiere_finale]);
+            ->update(['filiere_id' => $request->filiere_finale]);
 
         TraceLogger::log('valider_formation', ['demande_id' => $id, 'formation' => $demande->formation_demandee]);
 
