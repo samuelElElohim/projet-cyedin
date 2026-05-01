@@ -62,7 +62,7 @@ class CandidatureController extends Controller
 
         $etudiantId = auth()->id();
 
-        $etudiant = \App\Models\Etudiant::where('utilisateur_id', $etudiantId)->firstOrFail();
+        $etudiant = \App\Models\Etudiant::where('utilisateurs_id', $etudiantId)->firstOrFail();
         abort_unless($etudiant->hasTuteur(), 422, 'Vous devez avoir un tuteur assigné pour postuler.');
 
         $offre = Offre::findOrFail($request->offre_id);

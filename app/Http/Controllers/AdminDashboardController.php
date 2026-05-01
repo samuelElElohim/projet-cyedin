@@ -73,6 +73,17 @@ class AdminDashboardController extends Controller
         ]);
     }
 
+    public function destroy(int $id)
+    {
+        $user = Utilisateur::findOrFail($id);
+        abort_if($user->role === 'A', 403, 'Impossible de supprimer un administrateur.');
+        
+        $user->delete();
+
+        TraceLogger::log('delete_user', ['user_id' => $id]);
+
+        return back()->with('success', 'Utilisateur supprimé.');
+    }
     public function toggle_user(Request $request, $id)
     {
         $user = Utilisateur::findOrFail($id);

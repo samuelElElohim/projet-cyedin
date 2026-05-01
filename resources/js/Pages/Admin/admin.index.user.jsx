@@ -41,6 +41,11 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
         });
     }
 
+    function deleteUser(userId) {
+        if (!confirm('Supprimer définitivement cet utilisateur ?')) return;
+        router.delete(route('admin.delete.user', { id: userId }));
+    }
+
     function toggleActive(userId) {
         router.post(route('admin.toggle.user', { id: userId }));
     }
@@ -127,13 +132,15 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                                 <Td><StatusBadge active={user.est_active} /></Td>
                                 <Td>
                                     <ActionButtons
-                                        isEditing={editingId === user.id}
-                                        onEdit={() => startEditUser(user)}
-                                        onSave={save}
-                                        onCancel={() => setEditingId(null)}
-                                        onToggle={() => toggleActive(user.id)}
-                                        active={user.est_active}
-                                    />
+                                    isEditing={editingId === user.id}
+                                    onEdit={() => startEditUser(user)}
+                                    onSave={save}
+                                    onCancel={() => setEditingId(null)}
+                                    onToggle={() => toggleActive(user.id)}
+                                    onDelete={() => deleteUser(user.id)}
+                                    showDelete={user.role !== 'A'}   // ← pas de delete pour les admins
+                                    active={user.est_active}
+                                />
                                 </Td>
                             </tr>
                         )}
@@ -187,6 +194,8 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                                         onCancel={() => setEditingId(null)}
                                         onToggle={() => toggleActive(stu.utilisateur.id)}
                                         active={stu.utilisateur.est_active}
+                                        onDelete={() => deleteUser(stu.utilisateur.id)}
+                                        showDelete={true}
                                     />
                                 </Td>
                             </tr>
@@ -215,6 +224,8 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                                         onCancel={() => setEditingId(null)}
                                         onToggle={() => toggleActive(ent.utilisateur.id)}
                                         active={ent.utilisateur.est_active}
+                                        onDelete={() => deleteUser(ent.utilisateur.id)}
+                                        showDelete={true}
                                     />
                                 </Td>
                             </tr>
@@ -242,6 +253,8 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                                         onCancel={() => setEditingId(null)}
                                         onToggle={() => toggleActive(tut.utilisateur.id)}
                                         active={tut.utilisateur.est_active}
+                                        onDelete={() => deleteUser(tut.utilisateur.id)}
+                                        showDelete={true}
                                     />
                                 </Td>
                             </tr>
@@ -328,7 +341,7 @@ function RoleSelect({ value, onChange }) {
     );
 }
 
-function ActionButtons({ isEditing, onEdit, onSave, onCancel, onToggle, active }) {
+function ActionButtons({ isEditing, onEdit, onSave, onCancel, onToggle, onDelete, active, showDelete = false }) {
     return (
         <div className="flex items-center gap-2">
             {isEditing ? (
@@ -348,13 +361,19 @@ function ActionButtons({ isEditing, onEdit, onSave, onCancel, onToggle, active }
                     <button
                         onClick={onToggle}
                         className={`px-2 py-1 text-xs rounded ${
-                            active
-                                ? 'bg-red-50 text-red-700 hover:bg-red-100'
-                                : 'bg-green-50 text-green-700 hover:bg-green-100'
+                            active ? 'bg-red-50 text-red-700 hover:bg-red-100' : 'bg-green-50 text-green-700 hover:bg-green-100'
                         }`}
                     >
                         {active ? 'Désactiver' : 'Activer'}
                     </button>
+                    {showDelete && (
+                        <button
+                            onClick={onDelete}
+                            className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                        >
+                            🗑 Supprimer
+                        </button>
+                    )}
                 </>
             )}
         </div>

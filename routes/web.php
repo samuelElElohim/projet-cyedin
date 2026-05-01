@@ -91,6 +91,9 @@ Route::middleware(['auth', 'role:A'])->prefix('admin')->name('admin.')->group(fu
     Route::post('/dashboard/user/add',          [AdminDashboardController::class, 'store_user'])->name('store.user');
     Route::post('/dashboard/user/{id}',         [AdminDashboardController::class, 'edit_user'])->name('edit.user');
     Route::post('/dashboard/user/toggle/{id}',  [AdminDashboardController::class, 'toggle_user'])->name('toggle.user');
+    // routes/web.php
+    Route::delete('/admin/users/{id}', [AdminDashboardController::class, 'destroy'])->name('delete.user');
+
     Route::get('/dashboard/user', function () {
         return Inertia::render('Admin/admin.main.user');
     })->name('main.user');
@@ -241,7 +244,7 @@ Route::middleware(['auth', 'role:T'])->prefix('tuteur')->name('tuteur.')->group(
     Route::get('/offres', [TuteurDashboardController::class, 'offres'])->name('offres');
 });
 
-/*
+/* 
 |--------------------------------------------------------------------------
 | Espace JURY (role:J) - Bloc Mis à jour
 |--------------------------------------------------------------------------
