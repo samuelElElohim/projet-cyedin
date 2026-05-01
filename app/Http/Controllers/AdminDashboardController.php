@@ -59,11 +59,11 @@ class AdminDashboardController extends Controller
     {
         $users       = Utilisateur::orderBy('id', 'asc')->get();
         $admins      = Administrateur::with('utilisateur')->orderBy('utilisateurs_id')->get();
-        $students    = Etudiant::with('utilisateur')->orderBy('utilisateurs_id')->get();
+        $students = Etudiant::with(['utilisateur', 'filiere'])->get();
         $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateurs_id')->get();
-        $tutors      = Tuteur::with('utilisateur')->orderBy('utilisateurs_id')->get();
+        $tutors      = Tuteur::with(['utilisateur', 'filiere'])->orderBy('utilisateurs_id')->get();
         $count       = Utilisateur::count();
-
+        //$filieres = Filieres::all();
         return Inertia::render('Admin/admin.index.user', [
             'users'       => $users,
             'admins'      => $admins,

@@ -43,12 +43,19 @@ class Tuteur extends Model
         )->withTimestamps();
     }
 
+    public function filiere()
+    {
+        return $this->belongsTo(Filiere::class);
+    }
+
     // Scopes
     public function scopeJury($query)
     {
         return $query->where('est_jury', true);
     }
 
+
+    // deprecated
     public function scopeDepartement($query, string $departement)
     {
         return $query->where('departement', $departement);

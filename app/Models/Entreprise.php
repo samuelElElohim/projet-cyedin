@@ -12,7 +12,7 @@ class Entreprise extends Model
         'utilisateurs_id',
         'nom_entreprise',
         'addresse',
-        'secteur'
+        //'secteur'
     ];
 
 

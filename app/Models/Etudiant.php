@@ -37,6 +37,10 @@ class Etudiant extends Model
         return $this->hasOne(Dossier_stage::class, 'etudiants_id', 'utilisateurs_id');
     }
 
+    public function filiere()
+    {
+        return $this->belongsTo(Filiere::class);
+    }
 
     public function tuteur()
     {

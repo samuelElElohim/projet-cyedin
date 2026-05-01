@@ -12,7 +12,7 @@ const ROLE_TABS = [
 
 const ROLE_LABELS = { A: 'Admin', S: 'Étudiant', E: 'Entreprise', T: 'Tuteur', J: 'Jury' };
 
-export default function AdminIndexUser({ users, admins, students, entreprises, tutors, count }) {
+export default function AdminIndexUser({ users, admins, students, entreprises, tutors, count, filieres }) {
     const [activeTab, setActiveTab]   = useState('users');
     const [editingId, setEditingId]   = useState(null);
     const [editData, setEditData]     = useState({});
@@ -174,16 +174,18 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                 )}
 
                 {/* ── Étudiants ── */}
+                
                 {activeTab === 'students' && (
                     <Table
+                    
                         heads={['ID', 'Nom', 'Email', 'Filière', 'Niveau', 'Statut', '']}
                         rows={filterRows(students, s => `${s.utilisateur.nom} ${s.utilisateur.email} ${s.filiere}`)}
-                        renderRow={stu => (
+                        renderRow={stu => {console.log(stu); return(
                             <tr key={stu.utilisateurs_id} className="border-t border-gray-50 hover:bg-gray-50">
                                 <Td>{stu.utilisateur.id}</Td>
                                 <Td>{stu.utilisateur.nom} {stu.utilisateur.prenom}</Td>
                                 <Td>{stu.utilisateur.email}</Td>
-                                <Td>{field('filiere', 'Filière', editingId === stu.utilisateur.id, stu.filiere)}</Td>
+                                <Td>{field('filiere', 'Filière', editingId === stu.utilisateur.id, stu.filiere?.filiere)}</Td>
                                 <Td>{field('niveau_etud', 'Niveau', editingId === stu.utilisateur.id, stu.niveau_etud)}</Td>
                                 <Td><StatusBadge active={stu.utilisateur.est_active} /></Td>
                                 <Td>
@@ -200,26 +202,28 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                                 </Td>
                             </tr>
                         )}
+                    }
+                        
                     />
                 )}
 
                 {/* ── Entreprises ── */}
                 {activeTab === 'entreprises' && (
                     <Table
-                        heads={['ID', 'Nom entreprise', 'Email', 'Secteur', 'Adresse', 'Statut', '']}
-                        rows={filterRows(entreprises, e => `${e.nom_entreprise} ${e.utilisateur.email} ${e.secteur}`)}
+                        heads={['ID', 'Nom entreprise', 'Email', 'Filiere', 'Adresse', 'Statut', '']}
+                        rows={filterRows(entreprises, e => `${e.nom_entreprise} ${e.utilisateur.email} ${e.filiere}`)}
                         renderRow={ent => (
                             <tr key={ent.utilisateurs_id} className="border-t border-gray-50 hover:bg-gray-50">
                                 <Td>{ent.utilisateur.id}</Td>
                                 <Td className="font-medium">{field('nom', 'Nom', editingId === ent.utilisateur.id, ent.utilisateur.nom)}</Td>
                                 <Td>{ent.utilisateur.email}</Td>
-                                <Td>{field('secteur', 'Secteur', editingId === ent.utilisateur.id, ent.secteur)}</Td>
+                                <Td>{field('filiere', 'Filiere', editingId === ent.utilisateur.id, ent.filiere)}</Td>
                                 <Td>{field('addresse', 'Adresse', editingId === ent.utilisateur.id, ent.addresse)}</Td>
                                 <Td><StatusBadge active={ent.utilisateur.est_active} /></Td>
                                 <Td>
                                     <ActionButtons
                                         isEditing={editingId === ent.utilisateur.id}
-                                        onEdit={() => startEdit(ent, ['addresse', 'secteur'])}
+                                        onEdit={() => startEdit(ent, ['addresse', 'filiere'])}
                                         onSave={save}
                                         onCancel={() => setEditingId(null)}
                                         onToggle={() => toggleActive(ent.utilisateur.id)}
@@ -236,19 +240,19 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                 {/* ── Tuteurs ── */}
                 {activeTab === 'tutors' && (
                     <Table
-                        heads={['ID', 'Nom', 'Email', 'Département', 'Statut', '']}
-                        rows={filterRows(tutors ?? [], t => `${t.utilisateur.nom} ${t.utilisateur.email} ${t.departement}`)}
-                        renderRow={tut => (
+                        heads={['ID', 'Nom', 'Email', 'Filière', 'Statut', '']}
+                        rows={filterRows(tutors ?? [], t => `${t.utilisateur.nom} ${t.utilisateur.email} ${t.filiere}`)}
+                        renderRow={tut => {console.log(tut);return(
                             <tr key={tut.utilisateurs_id} className="border-t border-gray-50 hover:bg-gray-50">
                                 <Td>{tut.utilisateur.id}</Td>
                                 <Td>{tut.utilisateur.nom} {tut.utilisateur.prenom}</Td>
                                 <Td>{tut.utilisateur.email}</Td>
-                                <Td>{field('departement', 'Département', editingId === tut.utilisateur.id, tut.departement)}</Td>
+                                <Td>{field('filiere_id', 'Filière', editingId === tut.utilisateur.id, tut.filiere?.filiere)}</Td>
                                 <Td><StatusBadge active={tut.utilisateur.est_active} /></Td>
                                 <Td>
                                     <ActionButtons
                                         isEditing={editingId === tut.utilisateur.id}
-                                        onEdit={() => startEdit(tut, ['departement'])}
+                                        onEdit={() => startEdit(tut, ['filiere_id'])}
                                         onSave={save}
                                         onCancel={() => setEditingId(null)}
                                         onToggle={() => toggleActive(tut.utilisateur.id)}
@@ -259,6 +263,7 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                                 </Td>
                             </tr>
                         )}
+                    }
                     />
                 )}
             </div>

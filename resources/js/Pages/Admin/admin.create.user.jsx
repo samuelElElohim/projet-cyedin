@@ -22,16 +22,18 @@ export default function AdminCreateUser() {
 
     });
 
-    function handleRoleChange(e) {
-        setData({
-            ...data,
-            role: e.target.value,
-            filieres_ids:[],
-            filiere_id: '', niveau_etud: '',
-            addresse: '', secteur: '',
-            departement: '', est_jury: false,
-        });
-    }
+   function handleRoleChange(e) {
+    const role = e.target.value;
+    setData({
+        ...data,  // garde les champs communs
+        role,
+        filiere_id:   '',
+        niveau_etud:  '',
+        addresse:     '',
+        est_jury:     false,
+        filieres_ids: [],
+    });
+}
 
     function submit(e) {
         e.preventDefault();
