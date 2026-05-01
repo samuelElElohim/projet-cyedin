@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Administrateur;
-use App\Models\DemandeFormation;
+use App\Models\DemandeHierarchie;
 use App\Models\Notification;
 use App\Models\Offre;
 use App\Models\Utilisateur;
@@ -18,17 +18,17 @@ class NotificationsPeriodiques extends Command
     {
         $offresEnAttente      = Offre::where('est_active', false)->count();
         $entreprisesEnAttente = Utilisateur::where('role', 'E')->where('est_active', false)->count();
-        $demandesEnAttente    = DemandeFormation::enAttente()->count();
+        $demandesEnAttente    = DemandeHierarchie::where('statut', 'en_attente')->count();
 
         if ($offresEnAttente === 0 && $entreprisesEnAttente === 0 && $demandesEnAttente === 0) {
             $this->info('Aucune requête en attente. Aucune notification envoyée.');
             return;
         }
 
-        $message = "📊 Résumé périodique : "
+        $message = "Résumé périodique : "
             . "{$offresEnAttente} offre(s) en attente de validation, "
             . "{$entreprisesEnAttente} entreprise(s) à valider, "
-            . "{$demandesEnAttente} demande(s) de formation en attente.";
+            . "{$demandesEnAttente} demande(s) de secteur/tag en attente.";
 
         $adminIds = Administrateur::pluck('utilisateurs_id');
 

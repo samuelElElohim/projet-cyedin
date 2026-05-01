@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminHierarchieController;
+use App\Http\Controllers\DemandeHierarchieController;
 use App\Http\Controllers\EntrepriseDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\OffreController;
@@ -68,11 +70,15 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard');
 
     Route::post('/notifications/mark-read', function () {
-    \App\Models\Notification::where('proprietaire_id', auth()->id())
-        ->where('est_lu', false)
-        ->update(['est_lu' => true]);
-    return back();
+        \App\Models\Notification::where('proprietaire_id', auth()->id())
+            ->where('est_lu', false)
+            ->update(['est_lu' => true]);
+        return back();
     })->name('notifications.mark-read');
+
+    // Demandes de hiérarchie (partagée tous rôles connectés)
+    Route::get('/suggerer',  [DemandeHierarchieController::class, 'index'])->name('demande.hierarchie');
+    Route::post('/suggerer', [DemandeHierarchieController::class, 'store'])->name('demande.hierarchie.store');
 });
 
 /*
@@ -117,11 +123,6 @@ Route::middleware(['auth', 'role:A'])->prefix('admin')->name('admin.')->group(fu
     Route::get('/dashboard/stages',              [AdminDashboardController::class, 'index_stage'])->name('index.stage');
     Route::get('/dashboard/candidatures',        [CandidatureController::class, 'indexAdmin'])->name('index.candidature');
 
-    // Formations
-    Route::get('/dashboard/formations',              [AdminDashboardController::class, 'index_formation'])->name('index.formation');
-    Route::post('/dashboard/formations/valider/{id}', [AdminDashboardController::class, 'valider_formation'])->name('valider.formation');
-    Route::post('/dashboard/formations/refuser/{id}', [AdminDashboardController::class, 'refuser_formation'])->name('refuser.formation');
-
     // Traces et Archives
     Route::get('/dashboard/trace',               [AdminDashboardController::class, 'trace'])->name('trace');
     Route::get('/dashboard/trace/export',        [AdminDashboardController::class, 'export_trace'])->name('trace.export');
@@ -135,6 +136,22 @@ Route::middleware(['auth', 'role:A'])->prefix('admin')->name('admin.')->group(fu
     Route::post('/dashboard/import/preview',[AdminImportController::class, 'preview'])->name('import.user.preview');
     Route::post('/dashboard/import/store',  [AdminImportController::class, 'store'])->name('import.user.store');
 
+    // Demandes de hiérarchie (admin)
+    Route::get('/dashboard/demandes',                    [DemandeHierarchieController::class, 'admin_index'])->name('demandes');
+    Route::post('/dashboard/demandes/{id}/approuver',    [DemandeHierarchieController::class, 'approuver'])->name('demandes.approuver');
+    Route::post('/dashboard/demandes/{id}/refuser',      [DemandeHierarchieController::class, 'refuser'])->name('demandes.refuser');
+
+    // Gestion hiérarchie Filière → Secteur → Tag
+    Route::get('/dashboard/hierarchie',                    [AdminHierarchieController::class, 'index'])->name('hierarchie');
+    Route::post('/dashboard/hierarchie/filieres',          [AdminHierarchieController::class, 'store_filiere'])->name('hierarchie.filiere.store');
+    Route::put('/dashboard/hierarchie/filieres/{id}',      [AdminHierarchieController::class, 'update_filiere'])->name('hierarchie.filiere.update');
+    Route::delete('/dashboard/hierarchie/filieres/{id}',   [AdminHierarchieController::class, 'destroy_filiere'])->name('hierarchie.filiere.destroy');
+    Route::post('/dashboard/hierarchie/secteurs',          [AdminHierarchieController::class, 'store_secteur'])->name('hierarchie.secteur.store');
+    Route::put('/dashboard/hierarchie/secteurs/{id}',      [AdminHierarchieController::class, 'update_secteur'])->name('hierarchie.secteur.update');
+    Route::delete('/dashboard/hierarchie/secteurs/{id}',   [AdminHierarchieController::class, 'destroy_secteur'])->name('hierarchie.secteur.destroy');
+    Route::post('/dashboard/hierarchie/tags',              [AdminHierarchieController::class, 'store_tag'])->name('hierarchie.tag.store');
+    Route::put('/dashboard/hierarchie/tags/{id}',          [AdminHierarchieController::class, 'update_tag'])->name('hierarchie.tag.update');
+    Route::delete('/dashboard/hierarchie/tags/{id}',       [AdminHierarchieController::class, 'destroy_tag'])->name('hierarchie.tag.destroy');
 
 });
 
@@ -200,9 +217,6 @@ Route::middleware(['auth', 'role:S'])->prefix('etudiant')->name('etudiant.')->gr
     // Remarques spécifiques
     Route::post('/remarques', [EtudiantDashboardController::class, 'store_remarque'])->name('remarques.store');
 
-    // Demande de filière / formation
-    Route::get('/formations',  [EtudiantDashboardController::class, 'index_demande_formation'])->name('demande.formation');
-    Route::post('/formations', [EtudiantDashboardController::class, 'store_demande_formation'])->name('demande.formation.store');
     Route::get('/entreprises', [EtudiantDashboardController::class, 'entreprises'])->name('entreprises');
     Route::post('/notify-tuteur', [EtudiantDashboardController::class, 'notify_tuteur'])->name('notify.tuteur');
 

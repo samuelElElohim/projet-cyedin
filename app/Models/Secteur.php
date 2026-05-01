@@ -16,27 +16,35 @@ class Secteur extends Model
         'filiere_id',
     ];
 
-    /**
-     * Un secteur appartient à une filière.
-     */
     public function filiere()
     {
         return $this->belongsTo(Filiere::class);
     }
 
-    /**
-     * Un secteur possède plusieurs tags.
-     */
     public function tags()
     {
         return $this->hasMany(Tag::class);
     }
 
-    /**
-     * Un secteur peut être lié à plusieurs offres.
-     */
     public function offres()
     {
         return $this->hasMany(Offre::class);
+    }
+
+    public function tuteurs()
+    {
+        return $this->belongsToMany(
+            Tuteur::class,
+            'tuteur_secteurs',
+            'secteur_id',
+            'tuteur_id',
+            'id',
+            'utilisateurs_id'
+        )->withTimestamps();
+    }
+
+    public function entreprises()
+    {
+        return $this->belongsToMany(Entreprise::class, 'entreprise_secteurs');
     }
 }

@@ -18,7 +18,7 @@ export default function EtudiantDashboard({
     const quickLinks = [
         { label: 'Parcourir les offres',  href: 'etudiant.offres',           icon: '🔍', show: true },
         { label: 'Mes candidatures',      href: 'etudiant.candidatures',      icon: '📨', show: true },
-        { label: 'Demander une filière',  href: 'etudiant.demande.formation', icon: '🔖', show: true },
+        { label: 'Suggérer un secteur/tag', href: 'demande.hierarchie', icon: '💡', show: true },
         { label: 'Mon dossier complet',   href: 'etudiant.dossier',           icon: '📁', show: hasStage },
         { label: 'Cahier de stage',       href: 'etudiant.cahier',            icon: '📓', show: conventionComplete && dossierValide },
     ].filter(item => item.show);

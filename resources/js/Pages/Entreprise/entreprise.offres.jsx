@@ -1,27 +1,46 @@
 import EntrepriseLayout from '@/Layouts/EntrepriseLayout';
 import { Head, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
-export default function EntrepriseOffres({ offres = [], filieres = [] }) {
+export default function EntrepriseOffres({ offres = [], secteurs = [], tags = [] }) {
     const [showForm, setShowForm] = useState(false);
+    const [selectedSecteur, setSelectedSecteur] = useState('');
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        titre:          '',
-        description:    '',
-        duree_semaines: '',
-        filiere_cible:  '',
-        dateDebut:      '',
+        titre: '', description: '', duree_semaines: '',
+        secteur_id: '', tags_ids: [], dateDebut: '',
     });
+
+    // Tags filtrés selon le secteur sélectionné dans le form
+    const tagsForSecteur = useMemo(
+        () => selectedSecteur
+            ? tags.filter(t => t.secteur_id === Number(selectedSecteur))
+            : tags,
+        [selectedSecteur, tags]
+    );
+
+    function handleSecteurChange(v) {
+        setSelectedSecteur(v);
+        setData(d => ({ ...d, secteur_id: v ? Number(v) : '', tags_ids: [] }));
+    }
+
+    function toggleTag(id) {
+        setData('tags_ids', data.tags_ids.includes(id)
+            ? data.tags_ids.filter(x => x !== id)
+            : [...data.tags_ids, id]
+        );
+    }
 
     function submit(e) {
         e.preventDefault();
         post(route('entreprise.store.offre'), {
-            onSuccess: () => { reset(); setShowForm(false); },
+            onSuccess: () => { reset(); setShowForm(false); setSelectedSecteur(''); },
         });
     }
 
     const actives = offres.filter(o => o.est_active).length;
     const attente = offres.filter(o => !o.est_active).length;
+
 
     return (
         <EntrepriseLayout title="Mes offres de stage">
@@ -44,7 +63,6 @@ export default function EntrepriseOffres({ offres = [], filieres = [] }) {
                 </button>
             </div>
 
-            {/* Formulaire */}
             {showForm && (
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-6">
                     <h2 className="text-sm font-semibold text-slate-700 mb-4">Déposer une offre</h2>
@@ -65,7 +83,7 @@ export default function EntrepriseOffres({ offres = [], filieres = [] }) {
                             {errors.description && <p className="mt-1 text-xs text-red-600">{errors.description}</p>}
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-medium text-slate-700 mb-1">Durée (semaines) *</label>
                                 <input type="number" min="1" value={data.duree_semaines}
@@ -73,37 +91,55 @@ export default function EntrepriseOffres({ offres = [], filieres = [] }) {
                                     className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-100" />
                                 {errors.duree_semaines && <p className="mt-1 text-xs text-red-600">{errors.duree_semaines}</p>}
                             </div>
-
                             <div>
                                 <label className="block text-xs font-medium text-slate-700 mb-1">Date de début *</label>
-                                <input type="date" value={data.dateDebut}
-                                    onChange={e => setData('dateDebut', e.target.value)} required
+                                <input type="date" value={data.dateDebut} onChange={e => setData('dateDebut', e.target.value)} required
                                     className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-100" />
                                 {errors.dateDebut && <p className="mt-1 text-xs text-red-600">{errors.dateDebut}</p>}
                             </div>
-
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">
-                                    Filière ciblée
-                                    <span className="text-slate-400 font-normal ml-1">(optionnel)</span>
-                                </label>
-                                <div className="relative">
-                                    <select
-                                        value={data.filiere_cible}
-                                        onChange={e => setData('filiere_cible', e.target.value)}
-                                        className="appearance-none w-full border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-100 bg-white"
-                                    >
-                                        <option value="">Toutes filières</option>
-                                        {filieres.map(f => <option key={f} value={f}>{f}</option>)}
-                                    </select>
-                                    <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">▼</span>
-                                </div>
-                                {errors.filiere_cible && <p className="mt-1 text-xs text-red-600">{errors.filiere_cible}</p>}
-                            </div>
                         </div>
 
+                        {/* Secteur ciblé */}
+                        <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                                Secteur ciblé <span className="text-slate-400 font-normal">(optionnel)</span>
+                            </label>
+                            <select
+                                value={selectedSecteur}
+                                onChange={e => handleSecteurChange(e.target.value)}
+                                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-100 bg-white"
+                            >
+                                <option value="">— Tous secteurs —</option>
+                                {secteurs.map(s => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.filiere?.filiere} / {s.secteur}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Tags (filtrés par secteur si sélectionné) */}
+                        {tagsForSecteur.length > 0 && (
+                            <div>
+                                <label className="block text-xs font-medium text-slate-700 mb-2">Tags compétences</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {tagsForSecteur.map(tag => (
+                                        <label key={tag.id} className="flex items-center gap-1.5 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={data.tags_ids.includes(tag.id)}
+                                                onChange={() => toggleTag(tag.id)}
+                                                className="rounded border-gray-300 text-amber-500"
+                                            />
+                                            <span className="text-sm text-slate-700">{tag.tag}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         <p className="text-xs text-slate-400">
-                            L'offre sera soumise à validation par un administrateur avant d'être visible par les étudiants.
+                            L'offre sera soumise à validation par un administrateur avant d'être visible.
                         </p>
                         <button type="submit" disabled={processing}
                             className="px-6 py-2.5 bg-amber-500 text-white font-semibold rounded-xl hover:bg-amber-600 transition disabled:opacity-60 text-sm">
@@ -113,7 +149,7 @@ export default function EntrepriseOffres({ offres = [], filieres = [] }) {
                 </div>
             )}
 
-            {/* Liste */}
+            {/* Liste des offres */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                 {offres.length === 0 ? (
                     <div className="text-center py-16 text-slate-400">
@@ -124,7 +160,7 @@ export default function EntrepriseOffres({ offres = [], filieres = [] }) {
                     <table className="w-full text-left">
                         <thead className="bg-slate-50 border-b border-slate-100">
                             <tr>
-                                {['Titre', 'Filière ciblée', 'Durée', 'Candidatures', 'Statut'].map(h => (
+                                {['Titre', 'Secteur', 'Tags', 'Durée', 'Candidatures', 'Statut'].map(h => (
                                     <th key={h} className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>
                                 ))}
                             </tr>
@@ -136,11 +172,20 @@ export default function EntrepriseOffres({ offres = [], filieres = [] }) {
                                         <div className="text-sm font-medium text-slate-900">{o.titre}</div>
                                         <div className="text-xs text-slate-400 mt-0.5 line-clamp-1">{o.description}</div>
                                     </td>
+                                    <td className="px-4 py-3 text-xs text-slate-600">
+                                        {o.secteur ? (
+                                            <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md font-semibold">
+                                                {o.secteur.filiere?.filiere} / {o.secteur.secteur}
+                                            </span>
+                                        ) : <span className="text-slate-300">—</span>}
+                                    </td>
                                     <td className="px-4 py-3">
-                                        {o.filiere_cible
-                                            ? <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-md">{o.filiere_cible}</span>
-                                            : <span className="text-xs text-slate-300">—</span>
-                                        }
+                                        <div className="flex flex-wrap gap-1">
+                                            {o.tags?.map(t => (
+                                                <span key={t.id} className="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded-full">{t.tag}</span>
+                                            ))}
+                                            {(!o.tags || o.tags.length === 0) && <span className="text-slate-300 text-xs">—</span>}
+                                        </div>
                                     </td>
                                     <td className="px-4 py-3 text-sm text-slate-600 text-center">{o.duree_semaines} sem.</td>
                                     <td className="px-4 py-3 text-center">

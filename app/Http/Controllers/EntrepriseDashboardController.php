@@ -9,7 +9,9 @@ use App\Models\Entreprise;
 use App\Models\Notification;
 use App\Models\Offre;
 use App\Models\Remarque;
+use App\Models\Secteur;
 use App\Models\Stage;
+use App\Models\Tag;
 use App\Services\TraceLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -81,14 +83,21 @@ class EntrepriseDashboardController extends Controller
     public function index_offre(): Response
     {
         $entreprise = $this->entreprise();
-        $offres = $entreprise->offres()->withCount('candidatures')->orderBy('created_at', 'desc')->get();
- 
-        $filieres = \App\Models\Etudiant::select('filiere')
-            ->distinct()->orderBy('filiere')->pluck('filiere');
- 
+        // Charger les offres avec secteur, filière et tags
+        $offres = $entreprise->offres()
+            ->with(['secteur.filiere', 'tags'])
+            ->withCount('candidatures')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Secteurs disponibles groupés par filière pour le formulaire
+        $secteurs = Secteur::with('filiere')->orderBy('secteur')->get();
+        $tags = Tag::with('secteur')->orderBy('tag')->get();
+
         return Inertia::render('Entreprise/entreprise.offres', [
             'offres'   => $offres,
-            'filieres' => $filieres,
+            'secteurs' => $secteurs,
+            'tags'     => $tags,
         ]);
     }
 
@@ -98,24 +107,35 @@ class EntrepriseDashboardController extends Controller
             'titre'          => 'required|string|max:255',
             'description'    => 'required|string',
             'duree_semaines' => 'required|integer|min:1',
-            'filiere_cible'  => 'nullable|string|max:100',
-            'dateDebut'      => 'required|date',           // ← AJOUTER
+            'secteur_id'     => 'nullable|integer|exists:secteurs,id',
+            'tags_ids'       => 'nullable|array',
+            'tags_ids.*'     => 'integer|exists:tags,id',
+            'dateDebut'      => 'required|date',
         ]);
- 
+
         $entreprise = $this->entreprise();
- 
-        Offre::create([
+
+        $offre = Offre::create([
             'titre'          => $request->titre,
             'description'    => $request->description,
             'duree_semaines' => $request->duree_semaines,
-            'filiere_cible'  => $request->filiere_cible,
-            'dateDebut'      => $request->dateDebut,       // ← AJOUTER
+            'secteur_id'     => $request->secteur_id,
+            // filiere_id déduit du secteur
+            'filiere_id'     => $request->secteur_id
+                ? Secteur::find($request->secteur_id)?->filiere_id
+                : null,
+            'dateDebut'      => $request->dateDebut,
             'entreprise_id'  => $entreprise->id,
             'est_active'     => false,
         ]);
- 
-        TraceLogger::log('store_offre', ['entreprise_id' => $entreprise->id]);
- 
+
+        // Tags many-to-many
+        if ($request->filled('tags_ids')) {
+            $offre->tags()->sync($request->tags_ids);
+        }
+
+        TraceLogger::log('store_offre', ['entreprise_id' => $entreprise->id, 'offre_id' => $offre->id]);
+
         return redirect()->route('entreprise.index.offre')
             ->with('success', 'Offre soumise, en attente de validation.');
     }

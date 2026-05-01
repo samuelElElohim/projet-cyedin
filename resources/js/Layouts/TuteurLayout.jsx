@@ -6,7 +6,8 @@ const NAV_ITEMS = [
     { label: 'Tableau de bord',    href: 'tuteur.dashboard',     icon: '▦' },
     { label: 'Offres de stage',    href: 'tuteur.offres',        icon: '🔍' },  // ← AJOUTER
     { label: 'Affecter un stage',  href: 'tuteur.create.stage',  icon: '➕' },
-    { label: 'Suivre Étudiant', href:'tuteur.etudiant.follow', icon : '( * )'},
+    { label: 'Suivre Étudiant', href: 'tuteur.etudiant.follow', icon: '( * )' },
+    { label: 'Suggérer',        href: 'demande.hierarchie',     icon: '💡' },
 ];
 
 export default function TuteurLayout({ children, title = 'Espace Tuteur' }) {

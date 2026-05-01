@@ -8,8 +8,9 @@ const NAV_ITEMS = [
     { label: 'Offres de stage', href: 'admin.index.offre',     icon: '📋' },
     { label: 'Stages',          href: 'admin.index.stage',     icon: '🎓' },
     { label: 'Dossiers',        href: 'admin.index.dossier',   icon: '📁' },
-    { label: 'Import CSV/Excel', href: 'admin.import.user', icon: '📥' },
-    { label: 'Formations',      href: 'admin.index.formation', icon: '🔖' },
+    { label: 'Import CSV/Excel', href: 'admin.import.user',   icon: '📥' },
+    { label: 'Hiérarchie',      href: 'admin.hierarchie',      icon: '🏷️' },
+    { label: 'Demandes',        href: 'admin.demandes',        icon: '📬' },
     { label: 'Fichier trace',   href: 'admin.trace',           icon: '📜' },
 ];
 

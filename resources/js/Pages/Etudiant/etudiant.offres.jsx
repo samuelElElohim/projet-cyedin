@@ -3,21 +3,28 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { useRef } from 'react';
 
-export default function EtudiantOffres({ offres = [], deja_candidature = {}, secteurs = [], filieres = [], filters = {} }) {
-    const [search, setSearch]         = useState(filters.search ?? '');
-    const [dureeMin, setDureeMin]     = useState(filters.duree_min ?? '');
-    const [dureeMax, setDureeMax]     = useState(filters.duree_max ?? '');
-    const [secteur, setSecteur]       = useState(filters.secteur ?? '');
-    const [filiere, setFiliere]       = useState(filters.filiere ?? '');
+export default function EtudiantOffres({ offres = [], deja_candidature = {}, secteurs = [], filieres = [], tags = [], filters = {} }) {
+    const [search, setSearch]       = useState(filters.search ?? '');
+    const [dureeMin, setDureeMin]   = useState(filters.duree_min ?? '');
+    const [dureeMax, setDureeMax]   = useState(filters.duree_max ?? '');
+    const [filiereId, setFiliereId] = useState(filters.filiere_id ?? '');
+    const [secteurId, setSecteurId] = useState(filters.secteur_id ?? '');
+    const [tagId, setTagId]         = useState(filters.tag_id ?? '');
     const [modalOffre, setModalOffre] = useState(null);
+
+    // Tags filtrés selon le secteur sélectionné
+    const tagsVisible = secteurId
+        ? tags.filter(t => String(t.secteur_id) === String(secteurId))
+        : tags;
 
     function applyFilters(overrides = {}) {
         router.get(route('etudiant.offres'), {
-            search:    overrides.search    ?? search,
-            duree_min: overrides.duree_min ?? dureeMin,
-            duree_max: overrides.duree_max ?? dureeMax,
-            secteur:   overrides.secteur   ?? secteur,
-            filiere:   overrides.filiere   ?? filiere,
+            search:     overrides.search     ?? search,
+            duree_min:  overrides.duree_min  ?? dureeMin,
+            duree_max:  overrides.duree_max  ?? dureeMax,
+            filiere_id: overrides.filiere_id ?? filiereId,
+            secteur_id: overrides.secteur_id ?? secteurId,
+            tag_id:     overrides.tag_id     ?? tagId,
         }, { preserveState: true, replace: true });
     }
 
@@ -37,28 +44,41 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
                         className="flex-1 min-w-48 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
                     />
 
-                    {/* Filière — fix superposition texte/flèche */}
+                    {/* Filière */}
                     <div className="relative">
                         <select
-                            value={filiere}
-                            onChange={e => { setFiliere(e.target.value); applyFilters({ filiere: e.target.value }); }}
+                            value={filiereId}
+                            onChange={e => { setFiliereId(e.target.value); applyFilters({ filiere_id: e.target.value }); }}
                             className="appearance-none border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
                         >
                             <option value="">Toutes les filières</option>
-                            {filieres.map(f => <option key={f} value={f}>{f}</option>)}
+                            {filieres.map(f => <option key={f.id} value={f.id}>{f.filiere}</option>)}
                         </select>
                         <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">▼</span>
                     </div>
 
-                    {/* Secteur — même fix */}
+                    {/* Secteur */}
                     <div className="relative">
                         <select
-                            value={secteur}
-                            onChange={e => { setSecteur(e.target.value); applyFilters({ secteur: e.target.value }); }}
+                            value={secteurId}
+                            onChange={e => { setSecteurId(e.target.value); setTagId(''); applyFilters({ secteur_id: e.target.value, tag_id: '' }); }}
                             className="appearance-none border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
                         >
                             <option value="">Tous les secteurs</option>
-                            {secteurs.map(s => <option key={s} value={s}>{s}</option>)}
+                            {secteurs.map(s => <option key={s.id} value={s.id}>{s.filiere?.filiere} / {s.secteur}</option>)}
+                        </select>
+                        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">▼</span>
+                    </div>
+
+                    {/* Tag */}
+                    <div className="relative">
+                        <select
+                            value={tagId}
+                            onChange={e => { setTagId(e.target.value); applyFilters({ tag_id: e.target.value }); }}
+                            className="appearance-none border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
+                        >
+                            <option value="">Tous les tags</option>
+                            {tagsVisible.map(t => <option key={t.id} value={t.id}>{t.tag}</option>)}
                         </select>
                         <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">▼</span>
                     </div>
@@ -80,7 +100,7 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
                     </button>
                     <button onClick={() => {
                         setSearch(''); setDureeMin(''); setDureeMax('');
-                        setSecteur(''); setFiliere('');
+                        setSecteurId(''); setFiliereId(''); setTagId('');
                         router.get(route('etudiant.offres'), {}, { replace: true });
                     }} className="px-4 py-2 bg-slate-100 text-slate-600 text-sm rounded-xl hover:bg-slate-200 transition">
                         Réinitialiser
@@ -114,17 +134,17 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
                                 {offre.description}
                             </p>
 
-                            <div className="flex flex-wrap gap-2 mb-4">
-                                {offre.entreprise?.secteur && (
-                                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wide rounded-md">
-                                        {offre.entreprise.secteur}
-                                    </span>
-                                )}
-                                {offre.filiere_cible && (
+                            <div className="flex flex-wrap gap-1.5 mb-4">
+                                {offre.secteur && (
                                     <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-wide rounded-md">
-                                        🎓 {offre.filiere_cible}
+                                        {offre.secteur.filiere?.filiere} / {offre.secteur.secteur}
                                     </span>
                                 )}
+                                {offre.tags?.map(t => (
+                                    <span key={t.id} className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-semibold rounded-full">
+                                        {t.tag}
+                                    </span>
+                                ))}
                             </div>
 
                             {statut === 'acceptee' ? (

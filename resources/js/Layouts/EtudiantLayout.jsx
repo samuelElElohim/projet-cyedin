@@ -8,7 +8,7 @@ const ALL_NAV_ITEMS = [
     { label: 'Mes candidatures', href: 'etudiant.candidatures',      icon: '📨', always: true },
     { label: 'Mon dossier',      href: 'etudiant.dossier',           icon: '📁', needsStage: true },
     { label: 'Cahier de stage',  href: 'etudiant.cahier',            icon: '📓', needsCahier: true },
-    { label: 'Demander filière', href: 'etudiant.demande.formation', icon: '🔖', always: true },
+    { label: 'Suggérer',         href: 'demande.hierarchie',         icon: '💡', always: true },
 ];
 
 export default function EtudiantLayout({ children, title = 'Espace Étudiant' }) {

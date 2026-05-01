@@ -262,16 +262,16 @@ class TuteurDashboardController extends Controller
     $tuteur = auth()->user()->tuteur;
 
     // Tous les étudiants — filtrables par filière si besoin
-    $etudiants = Etudiant::with('utilisateur')
+    $etudiants = Etudiant::with(['utilisateur', 'filiere'])
         ->get()
         ->map(fn ($e) => [
-            'id'          => $e->utilisateurs_id,
-            'nom'         => $e->utilisateur->nom,
-            'prenom'      => $e->utilisateur->prenom,
-            'email'       => $e->utilisateur->email,
-            'filiere'     => $e->filiere,
-            'niveau'      => $e->niveau_etud,
-            'suivi'       => $tuteur->etudiants->contains('utilisateurs_id', $e->utilisateurs_id),
+            'id'      => $e->utilisateurs_id,
+            'nom'     => $e->utilisateur->nom,
+            'prenom'  => $e->utilisateur->prenom,
+            'email'   => $e->utilisateur->email,
+            'filiere' => $e->filiere?->filiere,
+            'niveau'  => $e->niveau_etud,
+            'suivi'   => $tuteur->etudiants->contains('utilisateurs_id', $e->utilisateurs_id),
         ]);
 
     return Inertia::render('Tuteur/tuteur.etudiant.follow', [
@@ -297,10 +297,10 @@ class TuteurDashboardController extends Controller
 
     public function offres(Request $request): Response
     {
-        $query = \App\Models\Offre::with('entreprise')
+        $query = \App\Models\Offre::with(['entreprise', 'secteur.filiere', 'tags'])
             ->withCount('candidatures')
             ->where('est_active', true);
- 
+
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('titre', 'ilike', '%' . $request->search . '%')
@@ -313,24 +313,20 @@ class TuteurDashboardController extends Controller
         if ($request->filled('duree_max')) {
             $query->where('duree_semaines', '<=', $request->duree_max);
         }
-        if ($request->filled('secteur')) {
-            $query->whereHas('entreprise', fn($q) =>
-                $q->where('secteur', 'ilike', '%' . $request->secteur . '%')
-            );
+        if ($request->filled('secteur_id')) {
+            $query->where('secteur_id', $request->secteur_id);
         }
-        if ($request->filled('filiere')) {                  // ← AJOUTER
-            $query->where('filiere_cible', $request->filiere);
+        if ($request->filled('filiere_id')) {
+            $query->where('filiere_id', $request->filiere_id);
         }
- 
-        $offres   = $query->orderBy('created_at', 'desc')->get();
-        $secteurs = \App\Models\Entreprise::select('secteur')->distinct()->orderBy('secteur')->pluck('secteur');
-        $filieres = \App\Models\Etudiant::select('filiere')->distinct()->orderBy('filiere')->pluck('filiere'); // ← AJOUTER
- 
+
+        $offres = $query->orderBy('created_at', 'desc')->get();
+
         return Inertia::render('Tuteur/tuteur.offres', [
             'offres'   => $offres,
-            'secteurs' => $secteurs,
-            'filieres' => $filieres,             // ← AJOUTER
-            'filters'  => $request->only(['search', 'duree_min', 'duree_max', 'secteur', 'filiere']),
+            'secteurs' => \App\Models\Secteur::with('filiere')->orderBy('secteur')->get(),
+            'filieres' => \App\Models\Filiere::orderBy('filiere')->get(),
+            'filters'  => $request->only(['search', 'duree_min', 'duree_max', 'secteur_id', 'filiere_id']),
         ]);
     }
 }

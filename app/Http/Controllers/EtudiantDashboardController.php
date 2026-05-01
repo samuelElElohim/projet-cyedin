@@ -4,13 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\CahierStage;
 use App\Models\Candidature;
-use App\Models\DemandeFormation;
 use App\Models\Document;
 use App\Models\Dossier_stage;
 use App\Models\Etudiant;
+use App\Models\Filiere;
 use App\Models\Notification;
 use App\Models\Offre;
 use App\Models\Remarque;
+use App\Models\Secteur;
+use App\Models\Tag;
 use App\Models\Administrateur;
 use App\Services\TraceLogger;
 use Illuminate\Http\RedirectResponse;
@@ -130,7 +132,7 @@ class EtudiantDashboardController extends Controller
     {
         $user = auth()->user();
 
-        $query = Offre::with('entreprise')
+        $query = Offre::with(['entreprise', 'secteur.filiere', 'tags'])
             ->where('est_active', true);
 
         if ($request->filled('search')) {
@@ -148,14 +150,16 @@ class EtudiantDashboardController extends Controller
             $query->where('duree_semaines', '>=', $request->duree_min);
         }
 
-        if ($request->filled('secteur')) {
-            $query->whereHas('entreprise', fn ($q) =>
-                $q->where('secteur', 'ilike', '%' . $request->secteur . '%')
-            );
+        if ($request->filled('secteur_id')) {
+            $query->where('secteur_id', $request->secteur_id);
         }
 
-        if ($request->filled('filiere')) {
-            $query->where('filiere_cible', $request->filiere);
+        if ($request->filled('filiere_id')) {
+            $query->where('filiere_id', $request->filiere_id);
+        }
+
+        if ($request->filled('tag_id')) {
+            $query->whereHas('tags', fn($q) => $q->where('tags.id', $request->tag_id));
         }
 
         $offres = $query->orderBy('created_at', 'desc')->get();
@@ -163,17 +167,13 @@ class EtudiantDashboardController extends Controller
         $dejaCandidature = Candidature::where('etudiant_id', $user->id)
             ->pluck('statut', 'offre_id');
 
-        $secteurs = \App\Models\Entreprise::select('secteur')
-            ->distinct()
-            ->orderBy('secteur')
-            ->pluck('secteur');
-
         return Inertia::render('Etudiant/etudiant.offres', [
-            'offres'            => $offres,
-            'deja_candidature'  => $dejaCandidature,
-            'secteurs'          => $secteurs,
-            'filieres' => \App\Models\Etudiant::select('filiere')->distinct()->orderBy('filiere')->pluck('filiere'),
-            'filters'  => $request->only(['search', 'duree_min', 'duree_max', 'secteur', 'filiere']),
+            'offres'           => $offres,
+            'deja_candidature' => $dejaCandidature,
+            'secteurs'         => \App\Models\Secteur::with('filiere')->orderBy('secteur')->get(),
+            'filieres'         => \App\Models\Filiere::orderBy('filiere')->get(),
+            'tags'             => \App\Models\Tag::with('secteur')->orderBy('tag')->get(),
+            'filters'          => $request->only(['search', 'duree_min', 'duree_max', 'secteur_id', 'filiere_id', 'tag_id']),
         ]);
     }
 
@@ -306,57 +306,6 @@ class EtudiantDashboardController extends Controller
         ]);
 
         return back()->with('success', 'Remarque ajoutée.');
-    }
-
-    // ─── Demande de filière ───────────────────────────────────────────────────
-
-    public function index_demande_formation(): Response
-    {
-        $etudiantId = auth()->id();
-
-        $demandes = DemandeFormation::where('etudiant_id', $etudiantId)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        $filieres = Etudiant::select('filiere')
-            ->distinct()
-            ->pluck('filiere')
-            ->sort()
-            ->values();
-
-        return Inertia::render('Etudiant/etudiant.demande.formation', [
-            'demandes' => $demandes,
-            'filieres' => $filieres,
-        ]);
-    }
-
-    public function store_demande_formation(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'formation_demandee' => 'required|string|max:100',
-            'justification'      => 'nullable|string|max:1000',
-        ]);
-
-        $demande = DemandeFormation::create([
-            'etudiant_id'        => auth()->id(),
-            'formation_demandee' => $request->formation_demandee,
-            'justification'      => $request->justification,
-        ]);
-
-        $adminIds = Administrateur::pluck('utilisateurs_id');
-        foreach ($adminIds as $adminId) {
-            Notification::create([
-                'proprietaire_id' => $adminId,
-                'message'         => "Nouvelle demande de filière « {$request->formation_demandee} » de la part de " . auth()->user()->nom . '.',
-            ]);
-        }
-
-        TraceLogger::log('store_demande_formation', [
-            'etudiant_id' => auth()->id(),
-            'formation'   => $request->formation_demandee,
-        ]);
-
-        return back()->with('success', 'Demande envoyée.');
     }
 
     public function entreprises(Request $request): Response

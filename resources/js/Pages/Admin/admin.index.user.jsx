@@ -210,20 +210,31 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                 {/* ── Entreprises ── */}
                 {activeTab === 'entreprises' && (
                     <Table
-                        heads={['ID', 'Nom entreprise', 'Email', 'Filiere', 'Adresse', 'Statut', '']}
-                        rows={filterRows(entreprises, e => `${e.nom_entreprise} ${e.utilisateur.email} ${e.filiere}`)}
+                        heads={['ID', 'Nom entreprise', 'Email', 'Secteurs', 'Adresse', 'Statut', '']}
+                        rows={filterRows(entreprises, e => `${e.nom_entreprise} ${e.utilisateur.email}`)}
                         renderRow={ent => (
                             <tr key={ent.utilisateurs_id} className="border-t border-gray-50 hover:bg-gray-50">
                                 <Td>{ent.utilisateur.id}</Td>
                                 <Td className="font-medium">{field('nom', 'Nom', editingId === ent.utilisateur.id, ent.utilisateur.nom)}</Td>
                                 <Td>{ent.utilisateur.email}</Td>
-                                <Td>{field('filiere', 'Filiere', editingId === ent.utilisateur.id, ent.filiere)}</Td>
+                                <Td>
+                                    <div className="flex flex-wrap gap-1">
+                                        {ent.secteurs?.length > 0
+                                            ? ent.secteurs.map(s => (
+                                                <span key={s.id} className="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 text-xs rounded-full">
+                                                    {s.filiere?.filiere} / {s.secteur}
+                                                </span>
+                                            ))
+                                            : <span className="text-xs text-gray-300">—</span>
+                                        }
+                                    </div>
+                                </Td>
                                 <Td>{field('addresse', 'Adresse', editingId === ent.utilisateur.id, ent.addresse)}</Td>
                                 <Td><StatusBadge active={ent.utilisateur.est_active} /></Td>
                                 <Td>
                                     <ActionButtons
                                         isEditing={editingId === ent.utilisateur.id}
-                                        onEdit={() => startEdit(ent, ['addresse', 'filiere'])}
+                                        onEdit={() => startEdit(ent, ['addresse'])}
                                         onSave={save}
                                         onCancel={() => setEditingId(null)}
                                         onToggle={() => toggleActive(ent.utilisateur.id)}
@@ -240,19 +251,30 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                 {/* ── Tuteurs ── */}
                 {activeTab === 'tutors' && (
                     <Table
-                        heads={['ID', 'Nom', 'Email', 'Filière', 'Statut', '']}
-                        rows={filterRows(tutors ?? [], t => `${t.utilisateur.nom} ${t.utilisateur.email} ${t.filiere}`)}
-                        renderRow={tut => {console.log(tut);return(
+                        heads={['ID', 'Nom', 'Email', 'Secteurs supervisés', 'Statut', '']}
+                        rows={filterRows(tutors ?? [], t => `${t.utilisateur.nom} ${t.utilisateur.email}`)}
+                        renderRow={tut => (
                             <tr key={tut.utilisateurs_id} className="border-t border-gray-50 hover:bg-gray-50">
                                 <Td>{tut.utilisateur.id}</Td>
                                 <Td>{tut.utilisateur.nom} {tut.utilisateur.prenom}</Td>
                                 <Td>{tut.utilisateur.email}</Td>
-                                <Td>{field('filiere_id', 'Filière', editingId === tut.utilisateur.id, tut.filiere?.filiere)}</Td>
+                                <Td>
+                                    <div className="flex flex-wrap gap-1">
+                                        {tut.secteurs?.length > 0
+                                            ? tut.secteurs.map(s => (
+                                                <span key={s.id} className="px-1.5 py-0.5 bg-teal-50 text-teal-700 text-xs rounded-full">
+                                                    {s.filiere?.filiere} / {s.secteur}
+                                                </span>
+                                            ))
+                                            : <span className="text-xs text-gray-300">—</span>
+                                        }
+                                    </div>
+                                </Td>
                                 <Td><StatusBadge active={tut.utilisateur.est_active} /></Td>
                                 <Td>
                                     <ActionButtons
                                         isEditing={editingId === tut.utilisateur.id}
-                                        onEdit={() => startEdit(tut, ['filiere_id'])}
+                                        onEdit={() => startEdit(tut)}
                                         onSave={save}
                                         onCancel={() => setEditingId(null)}
                                         onToggle={() => toggleActive(tut.utilisateur.id)}
@@ -263,7 +285,6 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                                 </Td>
                             </tr>
                         )}
-                    }
                     />
                 )}
             </div>

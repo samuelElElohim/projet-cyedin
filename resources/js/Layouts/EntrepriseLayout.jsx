@@ -7,6 +7,7 @@ const NAV_ITEMS = [
     { label: 'Mes offres',        href: 'entreprise.index.offre',    icon: '📋' },
     { label: 'Candidatures',      href: 'entreprise.candidatures',   icon: '📨' },
     { label: 'Mes stages',        href: 'entreprise.index.stage',    icon: '🎓' },
+    { label: 'Suggérer',          href: 'demande.hierarchie',         icon: '💡' },
 ];
 
 export default function EntrepriseLayout({ children, title = 'Espace Entreprise' }) {

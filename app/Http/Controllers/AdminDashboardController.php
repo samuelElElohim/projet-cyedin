@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DemandeFormation;
 use App\Models\Entreprise;
+use App\Models\Filiere;
+use App\Models\Secteur;
 use App\Models\Utilisateur;
 use App\Models\Administrateur;
 use App\Models\Tuteur;
@@ -38,8 +39,8 @@ class AdminDashboardController extends Controller
                                             ->where('est_active', false)
                                             ->count(),
                 'stages_en_cours'     => Stage::count(),
-                'dossiers_pending'    => Dossier_stage::where('est_valide', false)->count(),
-                'formations_pending'  => DemandeFormation::enAttente()->count(),
+                'dossiers_pending'      => Dossier_stage::where('est_valide', false)->count(),
+                'demandes_pending'      => \App\Models\DemandeHierarchie::where('statut', 'en_attente')->count(),
             ],
             'notifications' => Notification::where('proprietaire_id', auth()->id())
                                 ->where('est_lu', false)
@@ -59,11 +60,11 @@ class AdminDashboardController extends Controller
     {
         $users       = Utilisateur::orderBy('id', 'asc')->get();
         $admins      = Administrateur::with('utilisateur')->orderBy('utilisateurs_id')->get();
-        $students = Etudiant::with(['utilisateur', 'filiere'])->get();
-        $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateurs_id')->get();
-        $tutors      = Tuteur::with(['utilisateur', 'filiere'])->orderBy('utilisateurs_id')->get();
+        $students    = Etudiant::with(['utilisateur', 'filiere'])->get();
+        $entreprises = Entreprise::with(['utilisateur', 'secteurs.filiere'])->orderBy('utilisateurs_id')->get();
+        $tutors      = Tuteur::with(['utilisateur', 'filiere', 'secteurs.filiere'])->orderBy('utilisateurs_id')->get();
         $count       = Utilisateur::count();
-        //$filieres = Filieres::all();
+
         return Inertia::render('Admin/admin.index.user', [
             'users'       => $users,
             'admins'      => $admins,
@@ -97,72 +98,86 @@ class AdminDashboardController extends Controller
     }
 
     public function edit_user(Request $request, $id)
-{
-    Utilisateur::where('id', $id)->update(
-        $request->only(['nom', 'prenom', 'email', 'role'])
-    );
+    {
+        $request->validate([
+            'nom'          => 'required|string|max:25',
+            'prenom'       => 'nullable|string|max:15',
+            'email'        => 'required|string|max:42|unique:utilisateurs,email,' . $id,
+            'role'         => 'required|string|in:A,T,E,S',
+            'filiere_id'   => 'nullable|integer|exists:filieres,id',
+            'niveau_etud'  => 'nullable|integer|min:1',
+            'secteurs_ids' => 'nullable|array',
+            'secteurs_ids.*' => 'integer|exists:secteurs,id',
+            'addresse'     => 'nullable|string',
+            'est_jury'     => 'nullable|boolean',
+        ]);
 
-    match ($request->role) {
-        'E' => Entreprise::where('utilisateurs_id', $id)->update(
-            [
-                'addresse'   => $request->addresse,
-                //'filiere_id' => $request->secteur_id, // CHANGÉ => il faut ajouter/supp dans la table entreprises_filieres///
-            ]
-        ),
+        Utilisateur::where('id', $id)->update(
+            $request->only(['nom', 'prenom', 'email', 'role'])
+        );
 
-        'T' => Tuteur::where('utilisateurs_id', $id)->update(
-            [
-                'filiere_id' => $request->filiere_id, // inchangé
-            ]
-        ),
+        $secteursIds = $request->secteurs_ids ?? [];
 
-        'S' => Etudiant::where('utilisateurs_id', $id)->update(
-            [
-                'filiere_id'  => $request->filiere_id,  // CHANGÉ
+        match ($request->role) {
+            'E' => (function () use ($request, $id, $secteursIds) {
+                $entreprise = Entreprise::where('utilisateurs_id', $id)->firstOrFail();
+                $entreprise->update(['addresse' => $request->addresse]);
+                $entreprise->secteurs()->sync($secteursIds);
+                $filiereIds = Secteur::whereIn('id', $secteursIds)->pluck('filiere_id')->unique()->toArray();
+                $entreprise->filieres()->sync($filiereIds);
+            })(),
+
+            'T' => (function () use ($request, $id, $secteursIds) {
+                $tuteur = Tuteur::where('utilisateurs_id', $id)->firstOrFail();
+                $tuteur->update(['filiere_id' => $request->filiere_id]);
+                $tuteur->secteurs()->sync($secteursIds);
+            })(),
+
+            'S' => Etudiant::where('utilisateurs_id', $id)->update([
+                'filiere_id'  => $request->filiere_id,
                 'niveau_etud' => $request->niveau_etud,
-            ]
-        ),
+            ]),
 
-        default => null,
-    };
+            default => null,
+        };
 
-    TraceLogger::log('edit_user', ['id' => $id]);
+        TraceLogger::log('edit_user', ['id' => $id]);
 
-    return redirect()->route('admin.index.user');
-}
+        return redirect()->route('admin.index.user');
+    }
 
 
     public function create_user()
     {
-        return Inertia::render('Admin/admin.create.user', [
-            'filieres' => \App\Models\Filiere::all(),
-        ]);
+        // Hiérarchie complète pour les selects du formulaire
+        $filieres = Filiere::with(['secteurs' => fn($q) => $q->orderBy('secteur')])->orderBy('filiere')->get();
+        $secteurs = Secteur::with('filiere')->orderBy('secteur')->get();
 
+        return Inertia::render('Admin/admin.create.user', [
+            'filieres' => $filieres,
+            'secteurs' => $secteurs,
+        ]);
     }
 
     public function store_user(Request $request)
     {
     
         $validated = $request->validate([
-            'nom'         => 'required|string|max:25',
-            'prenom'      => 'nullable|string|max:15',
-            'email'       => 'required|string|max:42|unique:utilisateurs',
-            'role'        => 'required|string|in:A,T,E,S',
-            'filiere_id' => [
-                'required_if:role,S',
-                'required_if:role,T',
-                'integer',
-                'nullable',
-                'exists:filieres,id'
-            ],
-            'filieres_ids' => 'required_if:role,E|array',
-            'filieres_ids.*' => 'integer|exists:filieres,id',
-                        
-            'niveau_etud' => 'required_if:role,S|nullable|integer|min:1',
-            'addresse'    => 'required_if:role,E|nullable|string',
-            //'secteur'     => 'required_if:role,E|nullable|string', > table entreprises_filieres
-            //'departement' => 'required_if:role,T|nullable|string',
-            'est_jury'    => 'nullable|boolean',
+            'nom'          => 'required|string|max:25',
+            'prenom'       => 'nullable|string|max:15',
+            'email'        => 'required|string|max:42|unique:utilisateurs',
+            'role'         => 'required|string|in:A,T,E,S',
+            // Étudiant : une seule filière
+            'filiere_id'   => 'required_if:role,S|nullable|integer|exists:filieres,id',
+            'niveau_etud'  => 'required_if:role,S|nullable|integer|min:1',
+            // Tuteur : secteurs multiples
+            'secteurs_ids' => 'required_if:role,T|array',
+            'secteurs_ids.*' => 'integer|exists:secteurs,id',
+            'filiere_id_tuteur' => 'nullable|integer|exists:filieres,id',
+            'est_jury'     => 'nullable|boolean',
+            // Entreprise : secteurs multiples
+            'addresse'     => 'required_if:role,E|nullable|string',
+            'secteurs_ids' => 'required_if:role,E|array',
         ]);
     
         $utilisateur = Utilisateur::create([
@@ -174,6 +189,9 @@ class AdminDashboardController extends Controller
             'est_active'           => true,
             'premier_mdp_changer'  => false,
         ]);
+
+        // Secteurs communs aux roles T et E
+        $secteursIds = $validated['secteurs_ids'] ?? [];
 
         switch ($validated['role']) {
             case 'A':
@@ -194,21 +212,18 @@ class AdminDashboardController extends Controller
                     'nom_entreprise'  => $validated['nom'],
                     'addresse'        => $validated['addresse'],
                 ]);
-                foreach ($validated['filieres_ids'] as $filiereId) {
-                    DB::table('entreprises_filieres')->insert([
-                        'entreprise_id' => $entreprise->id,
-                        'filiere_id'    => $filiereId,
-                        'created_at'    => now(),
-                        'updated_at'    => now(),
-                    ]);
-                }
+                // Sync secteurs + filieres déduites
+                $entreprise->secteurs()->sync($secteursIds);
+                $filiereIds = Secteur::whereIn('id', $secteursIds)->pluck('filiere_id')->unique()->toArray();
+                $entreprise->filieres()->sync($filiereIds);
                 break;
 
             case 'T':
-                Tuteur::create([
+                $tuteur = Tuteur::create([
                     'utilisateurs_id' => $utilisateur->id,
-                    'filiere_id'      => $validated['filiere_id'],
+                    'filiere_id'      => $validated['filiere_id_tuteur'] ?? null,
                 ]);
+                $tuteur->secteurs()->sync($secteursIds);
                 break;
         }
 
@@ -393,82 +408,6 @@ class AdminDashboardController extends Controller
             'count'   => $stages->count(),
             'filters' => $request->only(['search', 'convention']),
         ]);
-    }
-
-    // ─── Formations ──────────────────────────────────────────────────────────
-
-    public function index_formation(Request $request)
-    {
-        $query = DemandeFormation::with('etudiant', 'admin')
-            ->orderBy('created_at', 'desc');
-
-        if ($request->filled('statut') && $request->statut !== 'all') {
-            $query->where('statut', $request->statut);
-        }
-
-        $demandes = $query->get();
-
-        // Filières actuellement en base
-        $filieres = Filiere::orderBy('filiere')->get();
-
-
-        return Inertia::render('Admin/admin.index.formation', [
-            'demandes' => $demandes,
-            'filieres' => $filieres,
-            'count'    => $demandes->count(),
-            'filters'  => $request->only(['statut']),
-        ]);
-    }
-
-    public function valider_formation(Request $request, $id)
-    {
-        $request->validate([
-            'commentaire_admin' => 'nullable|string|max:500',
-            'filiere_finale'    => 'required|integer|exists:filieres,id',
-        ]);
-
-
-        $demande = DemandeFormation::findOrFail($id);
-        $demande->update([
-            'statut'            => 'approuve',
-            'admin_id'          => auth()->id(),
-            'commentaire_admin' => $request->commentaire_admin,
-        ]);
-
-        // Notifier l'étudiant
-        Notification::create([
-            'proprietaire_id' => $demande->etudiant_id,
-            'message'         => "Votre demande d'ajout de filière « {$demande->formation_demandee} » a été approuvée.",
-        ]);
-
-        // Ajouter la filière à la liste (on peut mettre à jour l'étudiant directement)
-        Etudiant::where('utilisateurs_id', $demande->etudiant_id)
-            ->update(['filiere_id' => $request->filiere_finale]);
-
-        TraceLogger::log('valider_formation', ['demande_id' => $id, 'formation' => $demande->formation_demandee]);
-
-        return back()->with('success', 'Formation validée.');
-    }
-
-    public function refuser_formation(Request $request, $id)
-    {
-        $request->validate(['commentaire_admin' => 'nullable|string|max:500']);
-
-        $demande = DemandeFormation::findOrFail($id);
-        $demande->update([
-            'statut'            => 'refuse',
-            'admin_id'          => auth()->id(),
-            'commentaire_admin' => $request->commentaire_admin,
-        ]);
-
-        Notification::create([
-            'proprietaire_id' => $demande->etudiant_id,
-            'message'         => "Votre demande d'ajout de filière « {$demande->formation_demandee} » a été refusée.",
-        ]);
-
-        TraceLogger::log('refuser_formation', ['demande_id' => $id]);
-
-        return back()->with('success', 'Formation refusée.');
     }
 
     // ─── Trace ───────────────────────────────────────────────────────────────
