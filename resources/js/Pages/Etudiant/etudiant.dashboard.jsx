@@ -1,5 +1,5 @@
 import EtudiantLayout from '@/Layouts/EtudiantLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function EtudiantDashboard({
     etudiant,
@@ -9,6 +9,20 @@ export default function EtudiantDashboard({
     notifications = [],
     stats = {},
 }) {
+    const { etudiant_flags } = usePage().props;
+    const hasStage           = etudiant_flags?.has_stage           ?? false;
+    const conventionComplete = etudiant_flags?.convention_complete ?? false;
+    const dossierValide      = etudiant_flags?.dossier_valide      ?? false;
+
+    // Accès rapides conditionnels
+    const quickLinks = [
+        { label: 'Parcourir les offres',  href: 'etudiant.offres',           icon: '🔍', show: true },
+        { label: 'Mes candidatures',      href: 'etudiant.candidatures',      icon: '📨', show: true },
+        { label: 'Demander une filière',  href: 'etudiant.demande.formation', icon: '🔖', show: true },
+        { label: 'Mon dossier complet',   href: 'etudiant.dossier',           icon: '📁', show: hasStage },
+        { label: 'Cahier de stage',       href: 'etudiant.cahier',            icon: '📓', show: conventionComplete && dossierValide },
+    ].filter(item => item.show);
+
     return (
         <EtudiantLayout title="Tableau de bord">
             <Head title="Dashboard — Étudiant" />
@@ -27,7 +41,7 @@ export default function EtudiantDashboard({
                         {' · '}Niveau {etudiant?.niveau_etud ?? '—'}
                     </div>
                 </div>
-                {stats.dossier_valide && (
+                {dossierValide && (
                     <span className="ml-auto px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">
                         ✓ Dossier validé
                     </span>
@@ -37,17 +51,19 @@ export default function EtudiantDashboard({
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 {[
-                    { label: 'Candidatures',  value: stats.candidatures ?? 0, icon: '📨', href: 'etudiant.candidatures', color: 'blue' },
-                    { label: 'Documents',     value: stats.documents ?? 0,    icon: '📄', href: 'etudiant.dossier',      color: 'indigo' },
-                    { label: 'Entrées cahier',value: stats.cahier ?? 0,       icon: '📓', href: 'etudiant.cahier',       color: 'violet' },
-                    { label: 'Dossier',       value: stats.dossier_valide ? 'Validé' : 'En attente', icon: '📁', href: 'etudiant.dossier', color: stats.dossier_valide ? 'green' : 'amber' },
-                ].map(s => (
-                    <Link key={s.label} href={route(s.href)} className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 hover:border-blue-200 hover:shadow-md transition">
-                        <div className="text-2xl mb-1">{s.icon}</div>
-                        <div className="text-xl font-black text-slate-900">{s.value}</div>
-                        <div className="text-xs text-slate-500 mt-0.5">{s.label}</div>
-                    </Link>
-                ))}
+                    { label: 'Candidatures',   value: stats.candidatures ?? 0,                             icon: '📨', href: 'etudiant.candidatures', color: 'blue' },
+                    { label: 'Documents',      value: stats.documents ?? 0,                                icon: '📄', href: 'etudiant.dossier',      color: 'indigo', show: hasStage },
+                    { label: 'Entrées cahier', value: stats.cahier ?? 0,                                   icon: '📓', href: 'etudiant.cahier',       color: 'violet', show: conventionComplete && dossierValide },
+                    { label: 'Dossier',        value: dossierValide ? 'Validé' : 'En attente',             icon: '📁', href: 'etudiant.dossier',      color: dossierValide ? 'green' : 'amber', show: hasStage },
+                ]
+                    .filter(s => s.show !== false)
+                    .map(s => (
+                        <Link key={s.label} href={route(s.href)} className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 hover:border-blue-200 hover:shadow-md transition">
+                            <div className="text-2xl mb-1">{s.icon}</div>
+                            <div className="text-xl font-black text-slate-900">{s.value}</div>
+                            <div className="text-xs text-slate-500 mt-0.5">{s.label}</div>
+                        </Link>
+                    ))}
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -73,7 +89,6 @@ export default function EtudiantDashboard({
                                 </div>
                             </div>
 
-                            {/* Avancement convention */}
                             {convention_status && (
                                 <div>
                                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Convention</p>
@@ -125,25 +140,20 @@ export default function EtudiantDashboard({
             </div>
 
             {/* Accès rapides */}
-            <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-3">
-                {[
-                    { label: 'Parcourir les offres',   href: 'etudiant.offres',            icon: '🔍' },
-                    { label: 'Déposer un document',    href: 'etudiant.dossier',            icon: '📤' },
-                    { label: 'Cahier de stage',        href: 'etudiant.cahier',             icon: '📓' },
-                    { label: 'Mes candidatures',       href: 'etudiant.candidatures',       icon: '📨' },
-                    { label: 'Demander une filière',   href: 'etudiant.demande.formation',  icon: '🔖' },
-                    { label: 'Mon dossier complet',    href: 'etudiant.dossier',            icon: '📁' },
-                ].map(item => (
-                    <Link
-                        key={item.href + item.label}
-                        href={route(item.href)}
-                        className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-blue-200 hover:shadow-md transition text-sm font-medium text-slate-700"
-                    >
-                        <span className="text-xl">{item.icon}</span>
-                        {item.label}
-                    </Link>
-                ))}
-            </div>
+            {quickLinks.length > 0 && (
+                <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {quickLinks.map(item => (
+                        <Link
+                            key={item.href + item.label}
+                            href={route(item.href)}
+                            className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-blue-200 hover:shadow-md transition text-sm font-medium text-slate-700"
+                        >
+                            <span className="text-xl">{item.icon}</span>
+                            {item.label}
+                        </Link>
+                    ))}
+                </div>
+            )}
         </EtudiantLayout>
     );
 }

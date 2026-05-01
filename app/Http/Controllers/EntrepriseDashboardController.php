@@ -99,6 +99,7 @@ class EntrepriseDashboardController extends Controller
             'description'    => 'required|string',
             'duree_semaines' => 'required|integer|min:1',
             'filiere_cible'  => 'nullable|string|max:100',
+            'dateDebut'      => 'required|date',           // ← AJOUTER
         ]);
  
         $entreprise = $this->entreprise();
@@ -108,15 +109,17 @@ class EntrepriseDashboardController extends Controller
             'description'    => $request->description,
             'duree_semaines' => $request->duree_semaines,
             'filiere_cible'  => $request->filiere_cible,
+            'dateDebut'      => $request->dateDebut,       // ← AJOUTER
             'entreprise_id'  => $entreprise->id,
             'est_active'     => false,
         ]);
-
+ 
         TraceLogger::log('store_offre', ['entreprise_id' => $entreprise->id]);
-
+ 
         return redirect()->route('entreprise.index.offre')
             ->with('success', 'Offre soumise, en attente de validation.');
     }
+
 
     // ─── Candidatures ────────────────────────────────────────────────────────
 

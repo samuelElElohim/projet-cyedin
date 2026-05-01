@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Offre extends Model
 {
-   protected $fillable = [
-    'titre', 'description', 'entreprise_id', 'duree_semaines', 'filiere_cible'
-];
+    protected $fillable = [
+    'titre', 'description', 'entreprise_id', 'duree_semaines', 'filiere_cible', 'dateDebut'
+    ];
 
    public function entreprise(){
       return $this->belongsTo(Entreprise::class, 'entreprise_id');

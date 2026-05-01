@@ -27,6 +27,11 @@ class Etudiant extends Model
         return $this->hasMany(Stage::class, 'etudiants_id', 'utilisateurs_id');
     }
 
+    public function hasStage(): bool
+    {
+        return $this->stages()->exists();
+    }
+
     public function dossier()
     {
         return $this->hasOne(Dossier_stage::class, 'etudiants_id', 'utilisateurs_id');

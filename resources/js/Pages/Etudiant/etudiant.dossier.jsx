@@ -6,18 +6,16 @@ export default function EtudiantDossier({ dossier, documents = [], stage, remarq
     const fileInputRef = useRef();
     const [showUpload, setShowUpload] = useState(false);
 
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, processing, errors, reset } = useForm({
         fichier: null,
-        nom: '',
-        type: '',
     });
 
     function handleUpload(e) {
         e.preventDefault();
         const formData = new FormData();
         formData.append('fichier', data.fichier);
-        if (data.nom) formData.append('nom', data.nom);
-        if (data.type) formData.append('type', data.type);
+        formData.append('nom', 'Convention de stage');
+        formData.append('type', 'convention');
 
         router.post(route('documents.store'), formData, {
             forceFormData: true,
@@ -30,14 +28,16 @@ export default function EtudiantDossier({ dossier, documents = [], stage, remarq
         router.delete(route('documents.destroy', id));
     }
 
-    // Étapes de validation
+    const conventionSignee = stage?.convention
+        ? stage.convention.signer_par_entreprise
+            && stage.convention.signer_par_tuteur
+            && stage.convention.signer_par_etudiant
+        : false;
+
     const etapes = [
-        { label: 'Dossier créé',           done: !!dossier },
-        { label: 'Documents déposés',       done: documents.length > 0 },
-        { label: 'Convention signée',       done: stage?.convention
-            ? stage.convention.signer_par_entreprise && stage.convention.signer_par_tuteur && stage.convention.signer_par_etudiant
-            : false },
-        { label: 'Dossier validé',          done: dossier?.est_valide ?? false },
+        { label: 'Dossier créé',      done: !!dossier },
+        { label: 'Convention signée', done: conventionSignee },
+        { label: 'Dossier validé',    done: dossier?.est_valide ?? false },
     ];
 
     return (
@@ -79,7 +79,7 @@ export default function EtudiantDossier({ dossier, documents = [], stage, remarq
                 )}
             </div>
 
-            {/* Convention */}
+            {/* Convention — statut des signatures */}
             {stage?.convention && (
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
                     <h2 className="text-sm font-semibold text-slate-700 mb-3">Convention de stage</h2>
@@ -100,68 +100,88 @@ export default function EtudiantDossier({ dossier, documents = [], stage, remarq
                 </div>
             )}
 
-            {/* Documents */}
+            {/* Déposer ma convention de stage */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-sm font-semibold text-slate-700">
-                        Documents déposés
-                        <span className="ml-2 px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-full">{documents.length}</span>
-                    </h2>
+                    <div>
+                        <h2 className="text-sm font-semibold text-slate-700">Convention de stage</h2>
+                        <p className="text-xs text-slate-400 mt-0.5">Déposez le PDF signé de votre convention</p>
+                    </div>
                     <button
                         onClick={() => setShowUpload(p => !p)}
                         className="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-xl hover:bg-blue-700 transition"
                     >
-                        {showUpload ? 'Annuler' : '+ Déposer'}
+                        {showUpload ? 'Annuler' : '+ Déposer ma convention'}
                     </button>
                 </div>
 
-                {/* Formulaire upload */}
                 {showUpload && (
-                    <form onSubmit={handleUpload} className="mb-4 p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
+                    <form onSubmit={handleUpload} className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
                         <div>
-                            <label className="block text-xs font-medium text-slate-700 mb-1">Fichier * (PDF, DOC, DOCX, JPG, PNG — max 10 Mo)</label>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                                Fichier PDF * (max 10 Mo)
+                            </label>
                             <input
                                 type="file"
                                 ref={fileInputRef}
-                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                accept=".pdf"
                                 onChange={e => setData('fichier', e.target.files[0])}
                                 required
                                 className="w-full text-sm text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                             />
                             {errors.fichier && <p className="mt-1 text-xs text-red-600">{errors.fichier}</p>}
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Nom du document</label>
-                                <input type="text" value={data.nom} onChange={e => setData('nom', e.target.value)}
-                                    placeholder="ex: Rapport de stage"
-                                    className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Type</label>
-                                <select value={data.type} onChange={e => setData('type', e.target.value)}
-                                    className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100">
-                                    <option value="">— Choisir —</option>
-                                    <option value="rapport">Rapport de stage</option>
-                                    <option value="resume">Résumé</option>
-                                    <option value="evaluation">Fiche d'évaluation</option>
-                                    <option value="cv">CV</option>
-                                    <option value="autre">Autre</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" disabled={processing}
-                            className="w-full py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition disabled:opacity-60">
-                            {processing ? 'Envoi…' : 'Déposer le document'}
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="w-full py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition disabled:opacity-60"
+                        >
+                            {processing ? 'Envoi…' : 'Déposer la convention'}
                         </button>
                     </form>
                 )}
 
-                {documents.length === 0 ? (
-                    <p className="text-sm text-slate-400 text-center py-4">Aucun document déposé.</p>
-                ) : (
+                {/* Conventions déjà déposées */}
+                {documents.filter(d => d.type === 'convention').length > 0 && (
+                    <div className="mt-4 space-y-2">
+                        {documents.filter(d => d.type === 'convention').map(doc => (
+                            <div key={doc.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xl">📄</span>
+                                    <div>
+                                        <div className="text-sm font-medium text-slate-800">{doc.nom}</div>
+                                        <div className="text-xs text-slate-400">
+                                            Déposé le {new Date(doc.date_depot ?? doc.created_at).toLocaleDateString('fr-FR')}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <a href={route('documents.download', doc.id)}
+                                        className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-lg hover:bg-blue-100 font-semibold transition">
+                                        ↓
+                                    </a>
+                                    <button onClick={() => deleteDoc(doc.id)}
+                                        className="px-2 py-1 bg-red-50 text-red-600 text-xs rounded-lg hover:bg-red-100 font-semibold transition">
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Autres documents */}
+            {documents.filter(d => d.type !== 'convention').length > 0 && (
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
+                    <h2 className="text-sm font-semibold text-slate-700 mb-4">
+                        Autres documents
+                        <span className="ml-2 px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-full">
+                            {documents.filter(d => d.type !== 'convention').length}
+                        </span>
+                    </h2>
                     <div className="space-y-2">
-                        {documents.map(doc => (
+                        {documents.filter(d => d.type !== 'convention').map(doc => (
                             <div key={doc.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
                                 <div className="flex items-center gap-3">
                                     <span className="text-xl">{iconDoc(doc.type)}</span>
@@ -186,8 +206,8 @@ export default function EtudiantDossier({ dossier, documents = [], stage, remarq
                             </div>
                         ))}
                     </div>
-                )}
-            </div>
+                </div>
+            )}
 
             {/* Remarques */}
             {remarques.length > 0 && (

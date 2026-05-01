@@ -10,7 +10,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use App\Models\Etudiant;
 use Illuminate\Support\Facades\Storage;
 
 class CandidatureController extends Controller
@@ -22,100 +21,93 @@ class CandidatureController extends Controller
         $candidatures = Candidature::with(['offre.entreprise'])
             ->where('etudiant_id', auth()->id())
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(fn ($c) => array_merge($c->toArray(), [
+                'jours_restants' => $c->joursRestants(),
+            ]));
 
         return Inertia::render('Etudiant/etudiant.candidatures', [
             'candidatures' => $candidatures,
         ]);
     }
 
-
-
     public function download(Candidature $candidature, string $type)
     {
-        // Vérification de sécurité (Entreprise propriétaire de l'offre)
         abort_unless(
             $candidature->offre->entreprise->utilisateurs_id === auth()->id(),
             403
         );
 
-        // Extraction des infos selon le type (cv ou lettre)
         [$path, $friendlyName] = match($type) {
             'cv'     => [$candidature->chemin_cv, $candidature->nom_cv_original ?? 'cv.pdf'],
             'lettre' => [$candidature->chemin_lettre, $candidature->nom_lettre_original ?? 'lettre.pdf'],
             default  => abort(404),
         };
 
-        // Vérification de l'existence sur le disque
         if (!$path || !Storage::disk('local')->exists($path)) {
             abort(404, "Le fichier est introuvable sur le serveur.");
         }
 
-        // Téléchargement avec le nom d'origine
         return Storage::disk('local')->download($path, $friendlyName);
     }
 
-
     public function store(Request $request): RedirectResponse
     {
-    $request->validate([
-        'offre_id'          => 'required|integer|exists:offres,id',
-        'lettre_motivation' => 'nullable|string|max:2000',
-        'cv'                => 'required|file|max:5120|mimes:pdf,doc,docx,jpg,jpeg,png',
-        'lettre_fichier'    => 'nullable|file|max:5120|mimes:pdf,doc,docx',
-    ]);
-
-    $etudiantId = auth()->id();
-
-    $etudiant = Etudiant::where('utilisateur_id', $etudiantId)->firstOrFail();
-    abort_unless($etudiant->hasTuteur(), 422, 'Vous devez avoir un tuteur assigné pour postuler.');
-
-    $offre = Offre::findOrFail($request->offre_id);
-    abort_unless($offre->est_active, 422, 'Cette offre n\'est plus disponible.');
-
-    $existe = Candidature::where('etudiant_id', $etudiantId)
-        ->where('offre_id', $request->offre_id)
-        ->exists();
-    abort_if($existe, 422, 'Vous avez déjà postulé à cette offre.');
-
-    // Traitement du CV
-    $cvFile = $request->file('cv');
-    $cvPath = $cvFile->store('candidatures/cvs', 'local');
-    $cvName = $cvFile->getClientOriginalName();
-
-    // Traitement de la Lettre (optionnel)
-    $lettrePath = null;
-    $lettreName = null;
-    if ($request->hasFile('lettre_fichier')) {
-        $lettreFile = $request->file('lettre_fichier');
-        $lettrePath = $lettreFile->store('candidatures/lettres', 'local');
-        $lettreName = $lettreFile->getClientOriginalName();
-    }
-
-    Candidature::create([
-        'etudiant_id'       => auth()->id(),
-        'offre_id'          => $request->offre_id,
-        'lettre_motivation' => $request->lettre_motivation,
-        'chemin_cv'         => $cvPath,
-        'nom_cv_original'   => $cvName, // On stocke le nom propre
-        'chemin_lettre'     => $lettrePath,
-        'nom_lettre_original' => $lettreName, // On stocke le nom propre
-    ]);
-
-    // Notifier l'entreprise
-    if ($offre->entreprise?->utilisateurs_id) {
-        Notification::create([
-            'proprietaire_id' => $offre->entreprise->utilisateurs_id,
-            'message'         => 'Nouvelle candidature reçue pour l\'offre « ' . $offre->titre . ' ».',
+        $request->validate([
+            'offre_id'          => 'required|integer|exists:offres,id',
+            'lettre_motivation' => 'nullable|string|max:2000',
+            'cv'                => 'required|file|max:5120|mimes:pdf,doc,docx,jpg,jpeg,png',
+            'lettre_fichier'    => 'nullable|file|max:5120|mimes:pdf,doc,docx',
         ]);
-    }
 
-    TraceLogger::log('store_candidature', [
-        'etudiant_id' => $etudiantId,
-        'offre_id'    => $request->offre_id,
-    ]);
+        $etudiantId = auth()->id();
 
-    return back()->with('success', 'Candidature envoyée.');
+        $etudiant = \App\Models\Etudiant::where('utilisateur_id', $etudiantId)->firstOrFail();
+        abort_unless($etudiant->hasTuteur(), 422, 'Vous devez avoir un tuteur assigné pour postuler.');
+
+        $offre = Offre::findOrFail($request->offre_id);
+        abort_unless($offre->est_active, 422, 'Cette offre n\'est plus disponible.');
+
+        $existe = Candidature::where('etudiant_id', $etudiantId)
+            ->where('offre_id', $request->offre_id)
+            ->exists();
+        abort_if($existe, 422, 'Vous avez déjà postulé à cette offre.');
+
+        $cvFile = $request->file('cv');
+        $cvPath = $cvFile->store('candidatures/cvs', 'local');
+        $cvName = $cvFile->getClientOriginalName();
+
+        $lettrePath = null;
+        $lettreName = null;
+        if ($request->hasFile('lettre_fichier')) {
+            $lettreFile = $request->file('lettre_fichier');
+            $lettrePath = $lettreFile->store('candidatures/lettres', 'local');
+            $lettreName = $lettreFile->getClientOriginalName();
+        }
+
+        Candidature::create([
+            'etudiant_id'         => $etudiantId,
+            'offre_id'            => $request->offre_id,
+            'lettre_motivation'   => $request->lettre_motivation,
+            'chemin_cv'           => $cvPath,
+            'nom_cv_original'     => $cvName,
+            'chemin_lettre'       => $lettrePath,
+            'nom_lettre_original' => $lettreName,
+        ]);
+
+        if ($offre->entreprise?->utilisateurs_id) {
+            Notification::create([
+                'proprietaire_id' => $offre->entreprise->utilisateurs_id,
+                'message'         => 'Nouvelle candidature reçue pour l\'offre « ' . $offre->titre . ' ».',
+            ]);
+        }
+
+        TraceLogger::log('store_candidature', [
+            'etudiant_id' => $etudiantId,
+            'offre_id'    => $request->offre_id,
+        ]);
+
+        return back()->with('success', 'Candidature envoyée.');
     }
 
     public function destroy(Candidature $candidature): RedirectResponse
@@ -126,6 +118,81 @@ class CandidatureController extends Controller
         $candidature->delete();
 
         return back()->with('success', 'Candidature retirée.');
+    }
+
+    // ─── Étudiant : confirmer / décliner une offre acceptée ─────────────────
+
+    public function confirmer(Candidature $candidature): RedirectResponse
+    {
+        abort_unless($candidature->etudiant_id === auth()->id(), 403);
+        abort_unless($candidature->statut === 'accepted_pending_choice', 422, 'Cette candidature ne peut plus être confirmée.');
+        abort_if($candidature->isExpired(), 422, 'Le délai de 7 jours est dépassé.');
+
+        // Créer le stage
+        // Récupérer le tuteur de l'étudiant (si déjà assigné)
+        $tuteurId = \App\Models\Etudiant::where('utilisateurs_id', auth()->id())
+            ->first()
+            ?->tuteur()
+            ->first()
+            ?->utilisateurs_id;
+
+        $stage = \App\Models\Stage::create([
+            'etudiants_id'     => auth()->id(),
+            'entreprises_id'   => $candidature->offre->entreprise_id,
+            'tuteurs_id'       => $tuteurId,
+            'sujet'            => $candidature->offre->titre,
+            'duree_en_semaine' => $candidature->offre->duree_semaines,
+            'dateDebut'        => $candidature->offre->dateDebut ?? now()->toDateString(),
+        ]);
+
+        // Créer le dossier de stage
+        \App\Models\Dossier_stage::create([
+            'etudiants_id' => auth()->id(),
+            'stage_id'     => $stage->id,
+        ]);
+
+        // Valider cette candidature
+        $candidature->update(['statut' => 'acceptee']);
+
+        // Annuler toutes les autres candidatures actives de l'étudiant
+        Candidature::where('etudiant_id', auth()->id())
+            ->where('id', '!=', $candidature->id)
+            ->whereIn('statut', ['en_attente', 'accepted_pending_choice'])
+            ->update(['statut' => 'annulee']);
+
+        // Notifier l'entreprise
+        if ($candidature->offre->entreprise?->utilisateurs_id) {
+            Notification::create([
+                'proprietaire_id' => $candidature->offre->entreprise->utilisateurs_id,
+                'message'         => 'L\'étudiant a confirmé sa candidature pour « ' . $candidature->offre->titre . ' ».',
+            ]);
+        }
+
+        TraceLogger::log('confirmer_candidature', [
+            'candidature_id' => $candidature->id,
+            'stage_id'       => $stage->id,
+        ]);
+
+        return back()->with('success', 'Stage confirmé ! Votre dossier a été créé.');
+    }
+
+    public function refuserParEtudiant(Candidature $candidature): RedirectResponse
+    {
+        abort_unless($candidature->etudiant_id === auth()->id(), 403);
+        abort_unless($candidature->statut === 'accepted_pending_choice', 422, 'Cette candidature ne peut plus être modifiée.');
+
+        $candidature->update(['statut' => 'refusee']);
+
+        if ($candidature->offre->entreprise?->utilisateurs_id) {
+            Notification::create([
+                'proprietaire_id' => $candidature->offre->entreprise->utilisateurs_id,
+                'message'         => 'L\'étudiant a décliné votre offre « ' . $candidature->offre->titre . ' ».',
+            ]);
+        }
+
+        TraceLogger::log('refuser_par_etudiant', ['candidature_id' => $candidature->id]);
+
+        return back()->with('success', 'Offre déclinée. Vos autres candidatures restent actives.');
     }
 
     // ─── Entreprise ──────────────────────────────────────────────────────────
@@ -149,16 +216,19 @@ class CandidatureController extends Controller
     {
         $this->verifierAppartientEntreprise($candidature);
 
-        $candidature->update(['statut' => 'acceptee']);
+        $candidature->update([
+            'statut'         => 'accepted_pending_choice',
+            'deadline_choix' => now()->addDays(7),
+        ]);
 
         Notification::create([
             'proprietaire_id' => $candidature->etudiant_id,
-            'message'         => 'Votre candidature pour l\'offre « ' . $candidature->offre->titre . ' » a été acceptée !',
+            'message'         => 'Votre candidature pour « ' . $candidature->offre->titre . ' » a été acceptée ! Vous avez 7 jours pour confirmer votre choix.',
         ]);
 
         TraceLogger::log('accepter_candidature', ['candidature_id' => $candidature->id]);
 
-        return back()->with('success', 'Candidature acceptée.');
+        return back()->with('success', 'Candidature acceptée — l\'étudiant a 7 jours pour confirmer.');
     }
 
     public function refuser(Candidature $candidature): RedirectResponse

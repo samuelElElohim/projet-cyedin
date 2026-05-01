@@ -202,6 +202,12 @@ Route::middleware(['auth', 'role:S'])->prefix('etudiant')->name('etudiant.')->gr
     Route::post('/formations', [EtudiantDashboardController::class, 'store_demande_formation'])->name('demande.formation.store');
     Route::get('/entreprises', [EtudiantDashboardController::class, 'entreprises'])->name('entreprises');
     Route::post('/notify-tuteur', [EtudiantDashboardController::class, 'notify_tuteur'])->name('notify.tuteur');
+
+    Route::get('/candidatures',                          [EtudiantDashboardController::class, 'candidatures'])->name('candidatures');
+    Route::post('/candidatures',                         [CandidatureController::class, 'store'])->name('candidatures.store');
+    Route::delete('/candidatures/{candidature}',         [CandidatureController::class, 'destroy'])->name('candidatures.destroy');
+    Route::post('/candidatures/{candidature}/confirmer', [CandidatureController::class, 'confirmer'])->name('candidatures.confirmer');
+    Route::post('/candidatures/{candidature}/decliner',  [CandidatureController::class, 'refuserParEtudiant'])->name('candidatures.decliner');
 });
 
 /*

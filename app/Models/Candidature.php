@@ -6,17 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class Candidature extends Model
 {
-
     protected $fillable = [
-        'etudiant_id',
-        'offre_id',
-        'statut',
-        'lettre_motivation',
-        'chemin_cv',
-        'nom_cv_original',
-        'chemin_lettre',
-        'nom_lettre_original',
-        'commentaire_entreprise',
+    'etudiant_id',
+    'offre_id',
+    'statut',
+    'lettre_motivation',
+    'chemin_cv',
+    'nom_cv_original',
+    'chemin_lettre',
+    'nom_lettre_original',
+    'commentaire_entreprise',
+];
+
+    protected $casts = [
+        'deadline_choix' => 'datetime',
     ];
 
     // ─── Relations ───────────────────────────────────────────────────────────
@@ -29,6 +32,19 @@ class Candidature extends Model
     public function offre()
     {
         return $this->belongsTo(Offre::class, 'offre_id');
+    }
+
+    // ─── Helpers ─────────────────────────────────────────────────────────────
+
+    public function isExpired(): bool
+    {
+        return $this->deadline_choix && now()->isAfter($this->deadline_choix);
+    }
+
+    public function joursRestants(): int
+    {
+        if (!$this->deadline_choix) return 0;
+        return max(0, (int) now()->diffInDays($this->deadline_choix, false));
     }
 
     // ─── Scopes ──────────────────────────────────────────────────────────────

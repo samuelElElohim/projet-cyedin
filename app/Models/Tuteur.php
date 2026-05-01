@@ -28,6 +28,9 @@ class Tuteur extends Model
         return $this->hasMany(Stage::class, 'tuteurs_id', 'utilisateurs_id');
     }
 
+    /**
+     * Étudiants suivis par ce tuteur (table pivot tuteur_etudiant).
+     */
     public function etudiants()
     {
         return $this->belongsToMany(

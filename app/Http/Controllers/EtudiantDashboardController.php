@@ -276,8 +276,11 @@ class EtudiantDashboardController extends Controller
         $candidatures = Candidature::with(['offre.entreprise'])
             ->where('etudiant_id', auth()->id())
             ->orderBy('created_at', 'desc')
-            ->get();
-
+            ->get()
+            ->map(fn ($c) => array_merge($c->toArray(), [
+                'jours_restants' => $c->joursRestants(),
+            ]));
+ 
         return Inertia::render('Etudiant/etudiant.candidatures', [
             'candidatures' => $candidatures,
         ]);
