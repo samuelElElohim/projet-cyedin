@@ -12,12 +12,17 @@ use App\Models\Offre;
 use App\Models\Notification;
 use App\Models\Stage;
 use App\Models\Dossier_stage;
+
 use App\Services\TraceLogger;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+
 use Inertia\Inertia;
+
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminDashboardController extends Controller
@@ -163,6 +168,15 @@ class AdminDashboardController extends Controller
         return redirect()->route('admin.index.user')->with('success', 'Utilisateur ajouté !');
     }
 
+    public function destroy_user(int $id): \Illuminate\Http\RedirectResponse
+    {
+    $user = Utilisateur::findOrFail($id);
+    $user->delete(); // cascade supprimera le profil lié si configuré en DB
+
+    TraceLogger::log('destroy_user', ['utilisateur_id' => $id]);
+
+    return back()->with('success', 'Utilisateur supprimé.');
+    }   
     // ─── Offres ──────────────────────────────────────────────────────────────
 
     public function index_offre(Request $request)

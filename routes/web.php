@@ -96,7 +96,8 @@ Route::middleware(['auth', 'role:A'])->prefix('admin')->name('admin.')->group(fu
     Route::get('/dashboard/user', function () {
         return Inertia::render('Admin/admin.main.user');
     })->name('main.user');
-
+    Route::delete('/admin/utilisateurs/{id}', [AdminDashboardController::class, 'destroy_user'])
+    ->name('admin.user.destroy');
     // Gestion Offres
     Route::get('/dashboard/offres/show',        [AdminDashboardController::class, 'index_offre'])->name('index.offre');
     Route::post('/dashboard/offre/toggle/{id}', [AdminDashboardController::class, 'toggle_offre'])->name('toggle.offre');

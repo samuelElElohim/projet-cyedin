@@ -2,6 +2,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
+
 const ROLE_TABS = [
     { value: 'users',      label: 'Tous',        icon: '👥' },
     { value: 'admins',     label: 'Admins',       icon: '🔑' },
@@ -126,15 +127,29 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                                 </Td>
                                 <Td><StatusBadge active={user.est_active} /></Td>
                                 <Td>
-                                    <ActionButtons
-                                        isEditing={editingId === user.id}
-                                        onEdit={() => startEditUser(user)}
-                                        onSave={save}
-                                        onCancel={() => setEditingId(null)}
-                                        onToggle={() => toggleActive(user.id)}
-                                        active={user.est_active}
-                                    />
-                                </Td>
+                                {user.role !== 'A' && (
+                                    <div className="flex items-center gap-2">
+                                        <ActionButtons
+                                            isEditing={editingId === user.id}
+                                            onEdit={() => startEditUser(user)}
+                                            onSave={save}
+                                            onCancel={() => setEditingId(null)}
+                                            onToggle={() => toggleActive(user.id)}
+                                            active={user.est_active}
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                if (confirm('Supprimer cet utilisateur définitivement ?')) {
+                                                    router.delete(route('admin.admin.user.destroy', { id: user.id }));
+                                                }
+                                            }}
+                                            className="text-red-500 hover:text-red-700 text-sm"
+                                        >
+                                            Supprimer
+                                        </button>
+                                    </div>
+                                )}
+                            </Td>
                             </tr>
                         )}
                     />
@@ -188,6 +203,17 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                                         onToggle={() => toggleActive(stu.utilisateur?.id)}
                                         active={stu.utilisateur?.est_active}
                                     />
+                                    <button
+                                        onClick={() => {
+                                            console.log(stu);
+                                            if (confirm('Supprimer cet utilisateur définitivement ?')) {
+                                                router.delete(route('admin.admin.user.destroy', {id: stu.id}));
+                                            }
+                                        }}
+                                        className="text-red-500 hover:text-red-700 text-sm ml-2"
+                                    >
+                                    Supprimer
+                                    </button>
                                 </Td>
                             </tr>
                         )}
@@ -216,6 +242,17 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                                         onToggle={() => toggleActive(ent.utilisateur.id)}
                                         active={ent.utilisateur?.est_active}
                                     />
+                                    <button
+                                        onClick={() => {
+                                            if (confirm('Supprimer cet utilisateur définitivement ?')) {
+                                                router.delete(route('admin.admin.user.destroy', {id: ent.id}));
+
+                                            }
+                                        }}
+                                        className="text-red-500 hover:text-red-700 text-sm ml-2"
+                                    >
+                                    Supprimer
+                                    </button>
                                 </Td>
                             </tr>
                         )}
@@ -242,7 +279,18 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                                         onCancel={() => setEditingId(null)}
                                         onToggle={() => toggleActive(tut.utilisateur.id)}
                                         active={tut.utilisateur?.est_active}
+                                        
                                     />
+                                    <button
+                                        onClick={() => {
+                                            if (confirm('Supprimer cet utilisateur définitivement ?')) {
+                                                router.delete(route('admin.admin.user.destroy', {id : tut.id}));
+                                            }
+                                        }}
+                                        className="text-red-500 hover:text-red-700 text-sm ml-2"
+                                    >
+                                    Supprimer
+                                    </button>
                                 </Td>
                             </tr>
                         )}
