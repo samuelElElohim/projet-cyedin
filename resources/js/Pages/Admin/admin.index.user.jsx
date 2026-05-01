@@ -144,21 +144,21 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                 {activeTab === 'admins' && (
                     <Table
                         heads={['ID', 'Nom', 'Prénom', 'Email', '']}
-                        rows={filterRows(admins, a => `${a.utilisateur.nom} ${a.utilisateur.email}`)}
+                        rows={filterRows(admins, a => `${a.utilisateur?.nom} ${a.utilisateur?.email}`)}
                         renderRow={admin => (
-                            <tr key={admin.utilisateurs_id} className="border-t border-gray-50 hover:bg-gray-50">
-                                <Td>{admin.utilisateur.id}</Td>
-                                <Td>{field('nom', 'Nom', editingId === admin.utilisateur.id, admin.utilisateur.nom)}</Td>
-                                <Td>{field('prenom', 'Prénom', editingId === admin.utilisateur.id, admin.utilisateur.prenom)}</Td>
-                                <Td>{field('email', 'Email', editingId === admin.utilisateur.id, admin.utilisateur.email)}</Td>
+                            <tr key={admin.utilisateur_id} className="border-t border-gray-50 hover:bg-gray-50">
+                                <Td>{admin.utilisateur?.id}</Td>
+                                <Td>{field('nom', 'Nom', editingId === admin.utilisateur?.id, admin.utilisateur?.nom)}</Td>
+                                <Td>{field('prenom', 'Prénom', editingId === admin.utilisateur?.id, admin.utilisateur?.prenom)}</Td>
+                                <Td>{field('email', 'Email', editingId === admin.utilisateur?.id, admin.utilisateur?.email)}</Td>
                                 <Td>
                                     <ActionButtons
-                                        isEditing={editingId === admin.utilisateur.id}
+                                        isEditing={editingId === admin.utilisateur?.id}
                                         onEdit={() => startEdit(admin)}
                                         onSave={save}
                                         onCancel={() => setEditingId(null)}
-                                        onToggle={() => toggleActive(admin.utilisateur.id)}
-                                        active={admin.utilisateur.est_active}
+                                        onToggle={() => toggleActive(admin.utilisateur?.id)}
+                                        active={admin.utilisateur?.est_active}
                                     />
                                 </Td>
                             </tr>
@@ -170,23 +170,23 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                 {activeTab === 'students' && (
                     <Table
                         heads={['ID', 'Nom', 'Email', 'Filière', 'Niveau', 'Statut', '']}
-                        rows={filterRows(students, s => `${s.utilisateur.nom} ${s.utilisateur.email} ${s.filiere}`)}
+                        rows={filterRows(students, s => `${s.utilisateur?.nom} ${s.utilisateur?.email} ${s.filiere}`)}
                         renderRow={stu => (
-                            <tr key={stu.utilisateurs_id} className="border-t border-gray-50 hover:bg-gray-50">
-                                <Td>{stu.utilisateur.id}</Td>
-                                <Td>{stu.utilisateur.nom} {stu.utilisateur.prenom}</Td>
-                                <Td>{stu.utilisateur.email}</Td>
-                                <Td>{field('filiere', 'Filière', editingId === stu.utilisateur.id, stu.filiere)}</Td>
-                                <Td>{field('niveau_etud', 'Niveau', editingId === stu.utilisateur.id, stu.niveau_etud)}</Td>
-                                <Td><StatusBadge active={stu.utilisateur.est_active} /></Td>
+                            <tr key={stu.utilisateur_id} className="border-t border-gray-50 hover:bg-gray-50">
+                                <Td>{stu.utilisateur?.id}</Td>
+                                <Td>{stu.utilisateur?.nom} {stu.utilisateur?.prenom}</Td>
+                                <Td>{stu.utilisateur?.email}</Td>
+                                <Td>{field('filiere', 'Filière', editingId === stu.utilisateur?.id, stu.filiere)}</Td>
+                                <Td>{field('niveau_etud', 'Niveau', editingId === stu.utilisateur?.id, stu.niveau_etud)}</Td>
+                                <Td><StatusBadge active={stu.utilisateur?.est_active} /></Td>
                                 <Td>
                                     <ActionButtons
-                                        isEditing={editingId === stu.utilisateur.id}
+                                        isEditing={editingId === stu.utilisateur?.id}
                                         onEdit={() => startEdit(stu, ['filiere', 'niveau_etud'])}
                                         onSave={save}
                                         onCancel={() => setEditingId(null)}
-                                        onToggle={() => toggleActive(stu.utilisateur.id)}
-                                        active={stu.utilisateur.est_active}
+                                        onToggle={() => toggleActive(stu.utilisateur?.id)}
+                                        active={stu.utilisateur?.est_active}
                                     />
                                 </Td>
                             </tr>
@@ -198,15 +198,15 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                 {activeTab === 'entreprises' && (
                     <Table
                         heads={['ID', 'Nom entreprise', 'Email', 'Secteur', 'Adresse', 'Statut', '']}
-                        rows={filterRows(entreprises, e => `${e.nom_entreprise} ${e.utilisateur.email} ${e.secteur}`)}
+                        rows={filterRows(entreprises, e => `${e.nom_entreprise} ${e.utilisateur?.email} ${e.secteur}`)}
                         renderRow={ent => (
-                            <tr key={ent.utilisateurs_id} className="border-t border-gray-50 hover:bg-gray-50">
-                                <Td>{ent.utilisateur.id}</Td>
-                                <Td className="font-medium">{field('nom', 'Nom', editingId === ent.utilisateur.id, ent.utilisateur.nom)}</Td>
-                                <Td>{ent.utilisateur.email}</Td>
+                            <tr key={ent.utilisateur_id} className="border-t border-gray-50 hover:bg-gray-50">
+                                <Td>{ent.utilisateur?.id}</Td>
+                                <Td className="font-medium">{field('nom', 'Nom', editingId === ent.utilisateur.id, ent.utilisateur?.nom)}</Td>
+                                <Td>{ent.utilisateur?.email}</Td>
                                 <Td>{field('secteur', 'Secteur', editingId === ent.utilisateur.id, ent.secteur)}</Td>
                                 <Td>{field('addresse', 'Adresse', editingId === ent.utilisateur.id, ent.addresse)}</Td>
-                                <Td><StatusBadge active={ent.utilisateur.est_active} /></Td>
+                                <Td><StatusBadge active={ent.utilisateur?.est_active} /></Td>
                                 <Td>
                                     <ActionButtons
                                         isEditing={editingId === ent.utilisateur.id}
@@ -214,7 +214,7 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                                         onSave={save}
                                         onCancel={() => setEditingId(null)}
                                         onToggle={() => toggleActive(ent.utilisateur.id)}
-                                        active={ent.utilisateur.est_active}
+                                        active={ent.utilisateur?.est_active}
                                     />
                                 </Td>
                             </tr>
@@ -226,14 +226,14 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                 {activeTab === 'tutors' && (
                     <Table
                         heads={['ID', 'Nom', 'Email', 'Département', 'Statut', '']}
-                        rows={filterRows(tutors ?? [], t => `${t.utilisateur.nom} ${t.utilisateur.email} ${t.departement}`)}
+                        rows={filterRows(tutors ?? [], t => `${t.utilisateur?.nom} ${t.utilisateur?.email} ${t.departement}`)}
                         renderRow={tut => (
-                            <tr key={tut.utilisateurs_id} className="border-t border-gray-50 hover:bg-gray-50">
-                                <Td>{tut.utilisateur.id}</Td>
-                                <Td>{tut.utilisateur.nom} {tut.utilisateur.prenom}</Td>
-                                <Td>{tut.utilisateur.email}</Td>
+                            <tr key={tut.utilisateur_id} className="border-t border-gray-50 hover:bg-gray-50">
+                                <Td>{tut.utilisateur?.id}</Td>
+                                <Td>{tut.utilisateur?.nom} {tut.utilisateur?.prenom}</Td>
+                                <Td>{tut.utilisateur?.email}</Td>
                                 <Td>{field('departement', 'Département', editingId === tut.utilisateur.id, tut.departement)}</Td>
-                                <Td><StatusBadge active={tut.utilisateur.est_active} /></Td>
+                                <Td><StatusBadge active={tut.utilisateur?.est_active} /></Td>
                                 <Td>
                                     <ActionButtons
                                         isEditing={editingId === tut.utilisateur.id}
@@ -241,7 +241,7 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                                         onSave={save}
                                         onCancel={() => setEditingId(null)}
                                         onToggle={() => toggleActive(tut.utilisateur.id)}
-                                        active={tut.utilisateur.est_active}
+                                        active={tut.utilisateur?.est_active}
                                     />
                                 </Td>
                             </tr>

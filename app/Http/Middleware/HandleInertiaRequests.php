@@ -24,7 +24,7 @@ class HandleInertiaRequests extends Middleware
             ],
             // Notifications partagées globalement — disponibles dans tous les layouts
             'notifications' => fn () => $request->user()
-                ? Notification::where('proprietaire_id', $request->user()->id)
+                ? Notification::where('utilisateur_id', $request->user()->id)
                     ->orderBy('date_envoi', 'desc')
                     ->take(20)
                     ->get()

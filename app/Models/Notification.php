@@ -9,8 +9,8 @@ class Notification extends Model
    
     protected $table = 'notifications';
 
-    protected $fillable = ['id','utilisateur_id','offre_id','message','est_lu'];
-   
+    protected $fillable = ['id','utilisateur_id','offre_id', 'date_envoi','message','est_lu'];
+    public $timestamps = false; 
 
     public function proprietaire(): BelongsTo
     {

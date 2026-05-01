@@ -22,9 +22,8 @@ return new class extends Migration
             //chaque notif est envoye a un utilisateur
             //donc pas d'utilisateur, pas de notif
             $table->string('message');
-            $table->timestamps();
             $table->boolean('est_lu')->default(false); 
-
+            $table->timestamp('date_envoi');      
 
         });
     }

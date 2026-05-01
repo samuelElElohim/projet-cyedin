@@ -38,7 +38,7 @@ class EtudiantDashboardController extends Controller
                 ->first()
             : null;
 
-        $notifications = Notification::where('proprietaire_id', $user->id)
+        $notifications = Notification::where('utilisateur_id', $user->id)
             ->where('est_lu', false)
             ->orderBy('date_envoi', 'desc')
             ->take(5)
@@ -101,7 +101,7 @@ class EtudiantDashboardController extends Controller
 
         // Notification au tuteur
         Notification::create([
-            'proprietaire_id' => $stage->tuteurs_id,
+            'utilisateur_id' => $stage->tuteurs_id,
             'message'         => "📢 Message d'avancement de {$user->prenom} {$user->nom} : {$request->message}",
         ]);
 

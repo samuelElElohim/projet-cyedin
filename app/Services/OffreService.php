@@ -23,6 +23,7 @@ public function notifierEtudiants(Offre $offre, array $tagIds): int
             'offre_id' => $offre->id,
             'message' => "Nouvelle offre : {$offre->titre}",
             'est_lu' => false,
+            'date_envoi' => now(),
         ]);
 
         if ($created) {

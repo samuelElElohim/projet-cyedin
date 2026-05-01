@@ -32,8 +32,8 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Dashboard
                                 </NavLink>
                                 <NavLink
-                                    href={route("etu.main.feed")}
-                                    active={route().current('etu.main.feed')}
+                                        href={route("etudiant.offres")}
+                                        active={route().current('etudiant.offres')}
                                 >
                                     OFfre de stage feed
                                 </NavLink>

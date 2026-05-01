@@ -40,7 +40,7 @@ class AdminDashboardController extends Controller
                 'dossiers_pending'    => Dossier_stage::where('est_valide', false)->count(),
                 'formations_pending'  => DemandeFormation::enAttente()->count(),
             ],
-            'notifications' => Notification::where('proprietaire_id', auth()->id())
+            'notifications' => Notification::where('utilisateur_id', auth()->id()) 
                                 ->where('est_lu', false)
                                 ->latest('date_envoi')
                                 ->take(10)
@@ -57,10 +57,10 @@ class AdminDashboardController extends Controller
     public function index_user()
     {
         $users       = Utilisateur::orderBy('id', 'asc')->get();
-        $admins      = Administrateur::with('utilisateur')->orderBy('utilisateurs_id')->get();
-        $students    = Etudiant::with('utilisateur')->orderBy('utilisateurs_id')->get();
-        $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateurs_id')->get();
-        $tutors      = Tuteur::with('utilisateur')->orderBy('utilisateurs_id')->get();
+        $admins      = Administrateur::with('utilisateur')->orderBy('utilisateur_id')->get();
+        $students    = Etudiant::with('utilisateur')->orderBy('utilisateur_id')->get();
+        $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateur_id')->get();
+        $tutors      = Tuteur::with('utilisateur')->orderBy('utilisateur_id')->get();
         $count       = Utilisateur::count();
 
         return Inertia::render('Admin/admin.index.user', [
@@ -91,13 +91,13 @@ class AdminDashboardController extends Controller
         );
 
         match ($request->role) {
-            'E' => Entreprise::where('utilisateurs_id', $id)->update(
+            'E' => Entreprise::where('utilisateur_id', $id)->update(
                         $request->only(['addresse', 'secteur'])
                     ),
-            'T' => Tuteur::where('utilisateurs_id', $id)->update(
+            'T' => Tuteur::where('utilisateur_id', $id)->update(
                         $request->only(['departement'])
                     ),
-            'S' => Etudiant::where('utilisateurs_id', $id)->update(
+            'S' => Etudiant::where('utilisateur_id', $id)->update(
                         $request->only(['filiere', 'niveau_etud'])
                     ),
             default => null,
@@ -139,20 +139,20 @@ class AdminDashboardController extends Controller
         ]);
 
         match ($validated['role']) {
-            'A' => Administrateur::create(['utilisateurs_id' => $utilisateur->id]),
+            'A' => Administrateur::create(['utilisateur_id' => $utilisateur->id]),
             'S' => Etudiant::create([
-                        'utilisateurs_id' => $utilisateur->id,
+                        'utilisateur_id' => $utilisateur->id,
                         'filiere'         => $validated['filiere'],
                         'niveau_etud'     => $validated['niveau_etud'],
                     ]),
             'E' => Entreprise::create([
-                        'utilisateurs_id' => $utilisateur->id,
+                        'utilisateur_id' => $utilisateur->id,
                         'nom_entreprise'  => $validated['nom'],
                         'addresse'        => $validated['addresse'],
                         'secteur'         => $validated['secteur'],
                     ]),
             'T' => Tuteur::create([
-                        'utilisateurs_id' => $utilisateur->id,
+                        'utilisateur_id' => $utilisateur->id,
                         'departement'     => $validated['departement'],
                     ]),
             default => null,
@@ -208,7 +208,7 @@ class AdminDashboardController extends Controller
 
     public function index_entreprise()
     {
-        $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateurs_id')->get();
+        $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateur_id')->get();
 
         return Inertia::render('Admin/admin.index.entreprise', [
             'entreprise' => $entreprises,
@@ -243,7 +243,7 @@ class AdminDashboardController extends Controller
             'nom_entreprise'  => 'required|string|max:255',
             'addresse'        => 'required|string|max:255',
             'secteur'         => 'required|string|max:255',
-            'utilisateurs_id' => 'required|integer',
+            'utilisateur_id' => 'required|integer',
         ]);
 
         Entreprise::create($validated);
@@ -381,12 +381,12 @@ class AdminDashboardController extends Controller
 
         // Notifier l'étudiant
         Notification::create([
-            'proprietaire_id' => $demande->etudiant_id,
+            'utilisateur_id' => $demande->etudiant_id,
             'message'         => "Votre demande d'ajout de filière « {$demande->formation_demandee} » a été approuvée.",
         ]);
 
         // Ajouter la filière à la liste (on peut mettre à jour l'étudiant directement)
-        Etudiant::where('utilisateurs_id', $demande->etudiant_id)
+        Etudiant::where('utilisateur_id', $demande->etudiant_id)
             ->update(['filiere' => $request->filiere_finale]);
 
         TraceLogger::log('valider_formation', ['demande_id' => $id, 'formation' => $demande->formation_demandee]);
@@ -406,7 +406,7 @@ class AdminDashboardController extends Controller
         ]);
 
         Notification::create([
-            'proprietaire_id' => $demande->etudiant_id,
+            'utilisateur_id' => $demande->etudiant_id,
             'message'         => "Votre demande d'ajout de filière « {$demande->formation_demandee} » a été refusée.",
         ]);
 
@@ -460,7 +460,7 @@ class AdminDashboardController extends Controller
         TraceLogger::log('archiver_annee', ['annee' => $annee, 'fichier' => $filename]);
 
         Notification::create([
-            'proprietaire_id' => auth()->id(),
+            'utilisateur_id' => auth()->id(),
             'message'         => "Archivage de l'année {$annee} effectué → {$filename}",
         ]);
 
@@ -501,10 +501,10 @@ class AdminDashboardController extends Controller
         \DB::table('offres')->update(['est_active' => false]);
  
         // 4. Notifier tous les admins
-        $adminIds = Administrateur::pluck('utilisateurs_id');
+        $adminIds = Administrateur::pluck('utilisateur_id');
         foreach ($adminIds as $adminId) {
             Notification::create([
-                'proprietaire_id' => $adminId,
+                'utilisateur_id' => $adminId,
                 'message'         => "✅ Réinitialisation annuelle {$annee} effectuée. Archive créée : {$filename}. Les stages, dossiers, conventions et candidatures ont été remis à zéro.",
             ]);
         }

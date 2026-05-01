@@ -1,26 +1,7 @@
-<<<<<<< HEAD
-import { Link} from '@inertiajs/react'
-import { useState } from 'react'
-import { router } from '@inertiajs/react';
-=======
 import { Link, Head } from '@inertiajs/react';
 
->>>>>>> origin/franck
 export default function Home() {
     return (
-<<<<<<< HEAD
-        <div>
-            <h1>Laravel + Inertia + React fonctionne !</h1>
-            <h2>{count}</h2>
-            <button
-                onClick={() => router.get(route('login'))}
-                className="px-4 py-2 bg-red-600 text-white rounded"
-            >
-                Login
-            </button>
-            <button onClick={() => setCount(count + 1)}>+1</button>
-            <Link href={`/oeoeoe?count=${count}`}>OEOEOE</Link>
-=======
         <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-emerald-100 selection:text-emerald-900">
             <Head title="CYedin - Portail des Stages CY Tech" />
 
@@ -174,7 +155,6 @@ export default function Home() {
                     </div>
                 </div>
             </footer>
->>>>>>> origin/franck
         </div>
     );
 }

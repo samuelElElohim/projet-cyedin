@@ -119,25 +119,6 @@ export default function Login({ status, canResetPassword }) {
                         </div>
                     )}
 
-<<<<<<< HEAD
-                    
-                    {/* Section Première connexion */}
-                    <div className="mt-6 text-center text-sm text-gray-600">
-                        <p>
-                            Première connexion ?{' '}
-                            <Link
-                                href={route('register')}
-                                className="underline text-gray-700 hover:text-gray-900"
-                            >
-                                Créer un compte
-                            </Link>
-                        </p>
-                    </div>
-
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Log in
-                    </PrimaryButton>
-=======
                     <form onSubmit={submit} className="space-y-5">
 
                         {/* Email */}
@@ -244,7 +225,6 @@ export default function Login({ status, canResetPassword }) {
                     <div className="mt-16 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">
                         CYedin © 2026 — CY Tech Développement Web
                     </div>
->>>>>>> origin/franck
                 </div>
             </div>
         </div>

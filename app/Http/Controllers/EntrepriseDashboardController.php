@@ -187,12 +187,12 @@ class EntrepriseDashboardController extends Controller
         $convention->save();
 
         Notification::create([
-            'proprietaire_id' => $stage->etudiants_id,
+            'utilisateur_id' => $stage->etudiants_id,
             'message'         => "L'entreprise {$entreprise->nom_entreprise} a signé votre convention de stage.",
         ]);
         if ($stage->tuteurs_id) {
             Notification::create([
-                'proprietaire_id' => $stage->tuteurs_id,
+                'utilisateur_id' => $stage->tuteurs_id,
                 'message'         => "L'entreprise {$entreprise->nom_entreprise} a signé la convention du stage de l'étudiant #{$stage->etudiants_id}.",
             ]);
         }
@@ -256,7 +256,7 @@ class EntrepriseDashboardController extends Controller
         ]);
 
         Notification::create([
-            'proprietaire_id' => $stage->etudiants_id,
+            'utilisateur_id' => $stage->etudiants_id,
             'message'         => "L'entreprise {$entreprise->nom_entreprise} vous a attribué une nouvelle mission.",
         ]);
 

@@ -44,8 +44,6 @@ class Etudiant extends Model
             'tuteur_etudiant',
             'etudiant_id',
             'tuteur_id',
-            'utilisateurs_id',
-            'utilisateurs_id'
         )->withTimestamps();
     }
 
