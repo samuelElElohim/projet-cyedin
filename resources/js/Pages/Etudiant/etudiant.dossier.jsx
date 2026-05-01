@@ -5,6 +5,7 @@ import { useRef, useState } from 'react';
 export default function EtudiantDossier({ dossier, documents = [], stage, remarques = [] }) {
     const fileInputRef = useRef();
     const [showUpload, setShowUpload] = useState(false);
+    const [signing, setSigning] = useState(false);
 
     const { data, setData, processing, errors, reset } = useForm({
         fichier: null,
@@ -26,6 +27,20 @@ export default function EtudiantDossier({ dossier, documents = [], stage, remarq
     function deleteDoc(id) {
         if (!confirm('Supprimer ce document ?')) return;
         router.delete(route('documents.destroy', id));
+    }
+
+    // AJOUT : fonction pour signer la convention
+    function handleSignConvention() {
+        if (!stage || !stage.id) {
+            alert('Aucun stage associé à ce dossier.');
+            return;
+        }
+        if (!confirm('Voulez-vous signer électroniquement cette convention ? Cette action est définitive.')) return;
+        setSigning(true);
+        router.post(route('etudiant.convention.signer', { stageId: stage.id }), {}, {
+            onFinish: () => setSigning(false),
+            onError: (err) => console.error(err),
+        });
     }
 
     const conventionSignee = stage?.convention
@@ -97,10 +112,26 @@ export default function EtudiantDossier({ dossier, documents = [], stage, remarq
                             </div>
                         ))}
                     </div>
+
+                    {/* AJOUT : Bouton pour que l'étudiant signe */}
+                    {stage.convention && !stage.convention.signer_par_etudiant && (
+                        <div className="mt-4 text-center">
+                            <button
+                                onClick={handleSignConvention}
+                                disabled={signing}
+                                className="px-5 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition disabled:opacity-60"
+                            >
+                                {signing ? 'Signature en cours...' : '✍️ Signer la convention'}
+                            </button>
+                            <p className="text-xs text-slate-400 mt-2">
+                                En cliquant, vous apposez votre signature électronique.
+                            </p>
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* Déposer ma convention de stage */}
+            {/* Déposer ma convention de stage (PDF) */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
                 <div className="flex items-center justify-between mb-4">
                     <div>

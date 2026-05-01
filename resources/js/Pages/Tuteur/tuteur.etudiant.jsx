@@ -65,7 +65,46 @@ export default function TuteurEtudiant({ stage, documents = [], remarques = [] }
                     📓 Cahier de stage
                 </Link>
             </div>
-
+            {stage?.convention && (
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
+                    <h2 className="text-sm font-semibold text-slate-700 mb-3">Convention de stage</h2>
+                    <div className="grid grid-cols-3 gap-3 mb-4">
+                        {[
+                            { label: 'Étudiant',   signed: stage.convention.signer_par_etudiant },
+                            { label: 'Tuteur',     signed: stage.convention.signer_par_tuteur },
+                            { label: 'Entreprise', signed: stage.convention.signer_par_entreprise },
+                        ].map(p => (
+                            <div key={p.label} className={`p-3 rounded-xl text-center text-sm font-semibold ${
+                                p.signed ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-500'
+                            }`}>
+                                <div className="text-xl mb-1">{p.signed ? '✅' : '⏳'}</div>
+                                {p.label}
+                            </div>
+                        ))}
+                    </div>
+                    {!stage.convention.signer_par_tuteur && (
+                        <div className="text-center">
+                            <button
+                                onClick={() => {
+                                    if (!confirm('Voulez-vous signer électroniquement cette convention ?')) return;
+                                    router.post(route('tuteur.signer.convention', { stageId: stage.id }));
+                                }}
+                                className="px-5 py-2 bg-teal-600 text-white text-sm font-semibold rounded-xl hover:bg-teal-700 transition"
+                            >
+                                ✍️ Signer la convention (tuteur)
+                            </button>
+                            <p className="text-xs text-slate-400 mt-2">
+                                En signant, vous validez la convention de stage.
+                            </p>
+                        </div>
+                    )}
+                    {stage.convention.signer_par_tuteur && stage.convention.signer_par_entreprise && stage.convention.signer_par_etudiant && (
+                        <div className="mt-3 px-4 py-2 bg-green-50 border border-green-200 rounded-xl text-sm text-green-800 font-medium text-center">
+                            ✓ Convention entièrement signée
+                        </div>
+                    )}
+                </div>
+            )}
             <div className="grid md:grid-cols-2 gap-6">
 
                 {/* ── Documents de l'étudiant ── */}
