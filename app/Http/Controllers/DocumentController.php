@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Document;
 use App\Models\Dossier_stage;
+use App\Models\Etudiant;
 use App\Services\TraceLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,9 +15,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DocumentController extends Controller
 {
-    // ─── Constantes ──────────────────────────────────────────────────────────
-
-    // Types autorisés et leur extension normalisée
     private const TYPES_AUTORISES = [
         'application/pdf'                                                          => 'pdf',
         'application/msword'                                                       => 'doc',
@@ -25,73 +23,128 @@ class DocumentController extends Controller
         'image/png'                                                                => 'png',
     ];
 
-    private const MAX_TAILLE_MB = 10;
+    private const MAX_TAILLE_MB  = 10;
+    // Limite du stash (hors conventions)
+    private const MAX_STASH_DOCS = 4;
 
-    // ─── Affichage ───────────────────────────────────────────────────────────
+    // ─── Porte-document étudiant ──────────────────────────────────────────────
+
+    public function porte_document(): Response
+    {
+        $user     = auth()->user();
+        $etudiant = $user->etudiant;
+
+        $stash = Document::where('utilisateurs_id', $user->id)
+            ->where('categorie', '!=', 'convention')
+            ->orderBy('date_depot', 'desc')
+            ->get();
+
+        return Inertia::render('Etudiant/etudiant.porte.document', [
+            'etudiant'  => $etudiant,
+            'stash'     => $stash,
+            'max_docs'  => self::MAX_STASH_DOCS,
+        ]);
+    }
+
+    // ─── Index générique ──────────────────────────────────────────────────────
 
     public function index(): Response
     {
         $user = auth()->user();
-
         $documents = Document::where('utilisateurs_id', $user->id)
             ->orderBy('date_depot', 'desc')
             ->get();
-
-        return Inertia::render('Document/document.index', [
-            'documents' => $documents,
-        ]);
+        return Inertia::render('Document/document.index', ['documents' => $documents]);
     }
 
-    // ─── Upload ──────────────────────────────────────────────────────────────
+    // ─── Upload stash ─────────────────────────────────────────────────────────
 
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'fichier' => [
-                'required',
-                'file',
-                'max:' . (self::MAX_TAILLE_MB * 1024),
-                'mimes:pdf,doc,docx,jpeg,jpg,png',
-            ],
-            'nom'  => 'nullable|string|max:255',
-            'type' => 'nullable|string|max:50',
+            'fichier'   => ['required', 'file', 'max:' . (self::MAX_TAILLE_MB * 1024), 'mimes:pdf,doc,docx,jpeg,jpg,png'],
+            'nom'       => 'nullable|string|max:255',
+            'type'      => 'nullable|string|max:50',
+            'categorie' => 'nullable|in:cv,lettre,convention,autre',
         ]);
 
-        $fichier   = $request->file('fichier');
         $user      = auth()->user();
+        $categorie = $request->categorie ?? 'autre';
 
-        // Chemin : documents/{userId}/{timestamp}_{nom_original}
+        // Vérifier la limite stash pour les étudiants
+        if ($user->role === 'S' && $categorie !== 'convention') {
+            $count = Document::where('utilisateurs_id', $user->id)
+                ->where('categorie', '!=', 'convention')
+                ->count();
+            abort_if($count >= self::MAX_STASH_DOCS, 422,
+                'Limite de ' . self::MAX_STASH_DOCS . ' documents atteinte. Supprimez-en un pour continuer.');
+        }
+
+        $fichier    = $request->file('fichier');
         $nomFichier = time() . '_' . $fichier->getClientOriginalName();
-        $chemin     = $fichier->storeAs(
-            "documents/{$user->id}",
-            $nomFichier,
-            'local'     // disk = storage/app/private
-        );
+        $chemin     = $fichier->storeAs("documents/{$user->id}", $nomFichier, 'local');
 
         $document = Document::create([
             'utilisateurs_id' => $user->id,
             'nom'             => $request->nom ?: $fichier->getClientOriginalName(),
-            'type'            => $request->type ?: $fichier->getClientMimeType(),
+            'type'            => $fichier->getClientMimeType(),
+            'categorie'       => $categorie,
             'chemin_fichier'  => $chemin,
         ]);
 
-        // Rattacher automatiquement au dossier de stage si l'utilisateur est étudiant
-        if ($user->role === 'S') {
+        // Rattacher au dossier de stage si convention
+        if ($user->role === 'S' && $categorie === 'convention') {
             $dossier = Dossier_stage::firstOrCreate(
                 ['etudiants_id' => $user->id],
                 ['est_valide' => false]
             );
-            // Évite les doublons dans la table pivot
             $dossier->documents()->syncWithoutDetaching([$document->id]);
         }
 
-        TraceLogger::log('upload_document', [
-            'user_id'  => $user->id,
-            'document' => $document->nom,
-            'type'     => $document->type,
+        TraceLogger::log('upload_document', ['user_id' => $user->id, 'doc' => $document->nom, 'categorie' => $categorie]);
+
+        return back()->with('success', 'Document ajouté.');
+    }
+
+    // ─── Définir comme CV principal ───────────────────────────────────────────
+
+    public function set_main_cv(Document $document): RedirectResponse
+    {
+        $user = auth()->user();
+        abort_unless($document->utilisateurs_id === $user->id, 403);
+        abort_unless($user->role === 'S', 403);
+
+        Etudiant::where('utilisateurs_id', $user->id)->update([
+            'chemin_cv' => $document->chemin_fichier,
+            'nom_cv'    => $document->nom,
         ]);
 
-        return back()->with('success', 'Document déposé avec succès.');
+        return back()->with('success', '« ' . $document->nom . ' » défini comme CV principal.');
+    }
+
+    // ─── Upload CV principal direct ───────────────────────────────────────────
+
+    public function store_main_cv(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'fichier' => ['required', 'file', 'max:' . (self::MAX_TAILLE_MB * 1024), 'mimes:pdf,doc,docx'],
+        ]);
+
+        $user       = auth()->user();
+        abort_unless($user->role === 'S', 403);
+
+        $fichier    = $request->file('fichier');
+        $nomFichier = time() . '_' . $fichier->getClientOriginalName();
+        $chemin     = $fichier->storeAs("documents/{$user->id}/cv", $nomFichier, 'local');
+
+        Etudiant::where('utilisateurs_id', $user->id)->update([
+            'chemin_cv' => $chemin,
+            'nom_cv'    => $fichier->getClientOriginalName(),
+        ]);
+
+        TraceLogger::log('upload_main_cv', ['user_id' => $user->id]);
+
+        return back()->with('success', 'CV principal mis à jour.');
     }
 
     // ─── Téléchargement ──────────────────────────────────────────────────────
@@ -99,79 +152,45 @@ class DocumentController extends Controller
     public function download(Document $document): StreamedResponse
     {
         $this->autoriserAcces($document);
-
-        abort_unless(
-            Storage::disk('local')->exists($document->chemin_fichier),
-            404,
-            'Fichier introuvable sur le serveur.'
-        );
-
-        return Storage::disk('local')->download(
-            $document->chemin_fichier,
-            $document->nom
-        );
+        abort_unless(Storage::disk('local')->exists($document->chemin_fichier), 404, 'Fichier introuvable.');
+        return Storage::disk('local')->download($document->chemin_fichier, $document->nom);
     }
 
     // ─── Suppression ─────────────────────────────────────────────────────────
 
     public function destroy(Document $document): RedirectResponse
     {
-        // Seul le propriétaire ou un admin peut supprimer
         $user = auth()->user();
-        if ($document->utilisateurs_id !== $user->id && $user->role !== 'A') {
-            abort(403);
-        }
+        abort_unless($document->utilisateurs_id === $user->id || $user->role === 'A', 403);
 
-        // Supprimer le fichier physique
         if (Storage::disk('local')->exists($document->chemin_fichier)) {
             Storage::disk('local')->delete($document->chemin_fichier);
         }
 
-        TraceLogger::log('delete_document', [
-            'document_id' => $document->id,
-            'nom'         => $document->nom,
-            'deleted_by'  => $user->id,
-        ]);
-
+        TraceLogger::log('delete_document', ['id' => $document->id, 'nom' => $document->nom]);
         $document->delete();
 
         return back()->with('success', 'Document supprimé.');
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────
+    // ─── Contrôle d'accès ─────────────────────────────────────────────────────
 
-    /**
-     * Vérifie que l'utilisateur connecté a le droit de télécharger ce document.
-     *
-     * Règles :
-     *  - Le propriétaire du document : toujours
-     *  - Admin (A)  : toujours
-     *  - Tuteur (T) : si l'étudiant lui est assigné
-     *  - Jury  (J)  : toujours (pour évaluation)
-     *  - Entreprise (E) : uniquement les documents de ses propres candidats
-     */
     private function autoriserAcces(Document $document): void
     {
         $user = auth()->user();
-
         if ($document->utilisateurs_id === $user->id) return;
         if (in_array($user->role, ['A', 'J'])) return;
 
         if ($user->role === 'T') {
             $tuteur = $user->tuteur;
-            $ok = $tuteur && $tuteur->stages()
-                ->where('etudiants_id', $document->utilisateurs_id)
-                ->exists();
-            abort_unless($ok, 403);
+            abort_unless($tuteur && $tuteur->stages()->where('etudiants_id', $document->utilisateurs_id)->exists(), 403);
             return;
         }
 
         if ($user->role === 'E') {
-            // L'entreprise peut voir les docs des étudiants qui ont postulé à ses offres
             $entreprise = $user->entreprise;
-            $ok = $entreprise && \App\Models\Candidature::whereHas('offre', function ($q) use ($entreprise) {
-                $q->where('entreprise_id', $entreprise->id);
-            })->where('etudiant_id', $document->utilisateurs_id)->exists();
+            $ok = $entreprise && \App\Models\Candidature::whereHas('offre', fn($q) => $q->where('entreprise_id', $entreprise->id))
+                ->where('etudiant_id', $document->utilisateurs_id)->exists();
             abort_unless($ok, 403);
             return;
         }

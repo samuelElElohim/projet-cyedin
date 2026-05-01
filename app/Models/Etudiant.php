@@ -13,6 +13,8 @@ class Etudiant extends Model
         'utilisateurs_id',
         'filiere_id',
         'niveau_etud',
+        'chemin_cv',
+        'nom_cv',
     ];
 
 

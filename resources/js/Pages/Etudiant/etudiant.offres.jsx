@@ -3,7 +3,7 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { useRef } from 'react';
 
-export default function EtudiantOffres({ offres = [], deja_candidature = {}, secteurs = [], filieres = [], tags = [], filters = {} }) {
+export default function EtudiantOffres({ offres = [], deja_candidature = {}, secteurs = [], filieres = [], tags = [], filters = {}, etudiant = null, stash = [] }) {
     const [search, setSearch]       = useState(filters.search ?? '');
     const [dureeMin, setDureeMin]   = useState(filters.duree_min ?? '');
     const [dureeMax, setDureeMax]   = useState(filters.duree_max ?? '');
@@ -167,45 +167,58 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
             </div>
 
             {modalOffre && (
-                <CandidatureModal offre={modalOffre} onClose={() => setModalOffre(null)} />
+                <CandidatureModal
+                    offre={modalOffre}
+                    etudiant={etudiant}
+                    stash={stash}
+                    onClose={() => setModalOffre(null)}
+                />
             )}
         </EtudiantLayout>
     );
 }
 
 
-function CandidatureModal({ offre, onClose }) {
-    const cvRef      = useRef(null);
-    const lettreRef  = useRef(null);
+// Mode CV : 'main' | 'stash' | 'nouveau'
+// Mode lettre : 'aucune' | 'stash' | 'texte'
+function CandidatureModal({ offre, etudiant, stash = [], onClose }) {
+    const cvFileRef = useRef(null);
+    const [cvMode, setCvMode]         = useState(etudiant?.chemin_cv ? 'main' : 'nouveau');
+    const [cvDocId, setCvDocId]       = useState('');
+    const [cvFile, setCvFile]         = useState(null);
+    const [lettreMode, setLettreMode] = useState('aucune');
+    const [lettreDocId, setLettreDocId] = useState('');
 
     const { data, setData, post, processing, errors, reset } = useForm({
         offre_id:          offre.id,
         lettre_motivation: '',
-        cv:                null,
-        lettre_fichier:    null,
     });
 
-    function handleFile(field, ref, e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        setData(field, file);
-    }
+    const cvDocs     = stash.filter(d => d.categorie === 'cv');
+    const lettreDocs = stash.filter(d => d.categorie === 'lettre');
 
-    function removeFile(field, ref) {
-        setData(field, null);
-        if (ref.current) ref.current.value = '';
-    }
+    const canSubmit = cvMode === 'main'
+        || (cvMode === 'stash' && cvDocId)
+        || (cvMode === 'nouveau' && cvFile);
 
     function submit(e) {
         e.preventDefault();
+        const fd = new FormData();
+        fd.append('offre_id', offre.id);
+        fd.append('lettre_motivation', data.lettre_motivation);
+
+        if (cvMode === 'main')    { fd.append('use_main_cv', '1'); }
+        else if (cvMode === 'stash')   { fd.append('cv_document_id', cvDocId); }
+        else if (cvMode === 'nouveau' && cvFile) { fd.append('cv', cvFile); }
+
+        if (lettreMode === 'stash' && lettreDocId) { fd.append('lettre_document_id', lettreDocId); }
+
         post(route('etudiant.candidatures.store'), {
+            data: fd,
             forceFormData: true,
             onSuccess: () => { reset(); onClose(); },
         });
     }
-
-    const ACCEPTED_CV     = '.pdf,.doc,.docx,.jpg,.jpeg,.png';
-    const ACCEPTED_LETTRE = '.pdf,.doc,.docx';
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -219,53 +232,120 @@ function CandidatureModal({ offre, onClose }) {
 
                 <form onSubmit={submit} className="space-y-5">
 
-                    {/* CV — obligatoire */}
-                    <FileUploadBox
-                        label="CV"
-                        required
-                        accept={ACCEPTED_CV}
-                        hint="PDF, Word, JPG, PNG · 5 Mo max"
-                        file={data.cv}
-                        inputRef={cvRef}
-                        error={errors.cv}
-                        onChange={e => handleFile('cv', cvRef, e)}
-                        onRemove={() => removeFile('cv', cvRef)}
-                    />
-
-                    {/* Lettre fichier — optionnel */}
-                    <FileUploadBox
-                        label="Lettre de motivation"
-                        optional
-                        accept={ACCEPTED_LETTRE}
-                        hint="PDF ou Word · 5 Mo max"
-                        file={data.lettre_fichier}
-                        inputRef={lettreRef}
-                        error={errors.lettre_fichier}
-                        onChange={e => handleFile('lettre_fichier', lettreRef, e)}
-                        onRemove={() => removeFile('lettre_fichier', lettreRef)}
-                    />
-
-                    {/* Lettre écrite — optionnel */}
+                    {/* ── CV (obligatoire) ─────────────────────────────────── */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">
-                            Lettre de motivation{' '}
-                            <span className="text-slate-400 font-normal text-xs">(texte libre, optionnel)</span>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">CV *</label>
+                        <div className="space-y-2">
+                            {/* Option : CV principal */}
+                            {etudiant?.chemin_cv && (
+                                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${
+                                    cvMode === 'main' ? 'border-blue-400 bg-blue-50' : 'border-slate-200 hover:border-slate-300'
+                                }`}>
+                                    <input type="radio" checked={cvMode === 'main'} onChange={() => setCvMode('main')} className="shrink-0" />
+                                    <div>
+                                        <p className="text-sm font-medium text-slate-800">CV principal</p>
+                                        <p className="text-xs text-slate-400">{etudiant.nom_cv}</p>
+                                    </div>
+                                </label>
+                            )}
+
+                            {/* Option : depuis le stash */}
+                            {cvDocs.length > 0 && (
+                                <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${
+                                    cvMode === 'stash' ? 'border-blue-400 bg-blue-50' : 'border-slate-200 hover:border-slate-300'
+                                }`}>
+                                    <input type="radio" checked={cvMode === 'stash'} onChange={() => setCvMode('stash')} className="shrink-0 mt-0.5" />
+                                    <div className="flex-1">
+                                        <p className="text-sm font-medium text-slate-800 mb-1.5">Documents récents</p>
+                                        {cvMode === 'stash' && (
+                                            <select value={cvDocId} onChange={e => setCvDocId(e.target.value)}
+                                                className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
+                                                <option value="">— Choisir un CV —</option>
+                                                {cvDocs.map(d => (
+                                                    <option key={d.id} value={d.id}>{d.nom}</option>
+                                                ))}
+                                            </select>
+                                        )}
+                                    </div>
+                                </label>
+                            )}
+
+                            {/* Option : nouveau fichier */}
+                            <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${
+                                cvMode === 'nouveau' ? 'border-blue-400 bg-blue-50' : 'border-slate-200 hover:border-slate-300'
+                            }`}>
+                                <input type="radio" checked={cvMode === 'nouveau'} onChange={() => setCvMode('nouveau')} className="shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-slate-800 mb-1.5">Nouveau fichier</p>
+                                    {cvMode === 'nouveau' && (
+                                        cvFile ? (
+                                            <div className="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg">
+                                                <span className="text-xs text-slate-700 flex-1 truncate">{cvFile.name}</span>
+                                                <button type="button" onClick={() => { setCvFile(null); cvFileRef.current.value = ''; }}
+                                                    className="text-slate-400 hover:text-red-500 text-lg leading-none">×</button>
+                                            </div>
+                                        ) : (
+                                            <label className="flex flex-col items-center justify-center h-16 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-white transition">
+                                                <span className="text-xs text-slate-400">PDF, Word, JPG · 5 Mo max</span>
+                                                <input ref={cvFileRef} type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" className="hidden"
+                                                    onChange={e => setCvFile(e.target.files[0])} />
+                                            </label>
+                                        )
+                                    )}
+                                </div>
+                            </label>
+                        </div>
+                        {errors.cv && <p className="mt-1 text-xs text-red-600">{errors.cv}</p>}
+                    </div>
+
+                    {/* ── Lettre (optionnel) ────────────────────────────────── */}
+                    <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                            Lettre de motivation <span className="font-normal text-slate-400">(optionnel)</span>
                         </label>
-                        <textarea
-                            rows={5}
-                            value={data.lettre_motivation}
-                            onChange={e => setData('lettre_motivation', e.target.value)}
-                            placeholder="Présentez votre motivation pour ce stage…"
-                            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 resize-none"
-                        />
-                        <div className="flex justify-between mt-1">
-                            {errors.lettre_motivation
-                                ? <p className="text-xs text-red-600">{errors.lettre_motivation}</p>
-                                : <span />
-                            }
-                            <span className="text-xs text-slate-300">
-                                {data.lettre_motivation.length} / 2000
-                            </span>
+                        <div className="space-y-2">
+                            <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${
+                                lettreMode === 'aucune' ? 'border-blue-400 bg-blue-50' : 'border-slate-200 hover:border-slate-300'
+                            }`}>
+                                <input type="radio" checked={lettreMode === 'aucune'} onChange={() => setLettreMode('aucune')} />
+                                <span className="text-sm text-slate-700">Aucune</span>
+                            </label>
+
+                            {lettreDocs.length > 0 && (
+                                <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${
+                                    lettreMode === 'stash' ? 'border-blue-400 bg-blue-50' : 'border-slate-200 hover:border-slate-300'
+                                }`}>
+                                    <input type="radio" checked={lettreMode === 'stash'} onChange={() => setLettreMode('stash')} className="shrink-0 mt-0.5" />
+                                    <div className="flex-1">
+                                        <p className="text-sm font-medium text-slate-800 mb-1.5">Depuis mes documents</p>
+                                        {lettreMode === 'stash' && (
+                                            <select value={lettreDocId} onChange={e => setLettreDocId(e.target.value)}
+                                                className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
+                                                <option value="">— Choisir —</option>
+                                                {lettreDocs.map(d => <option key={d.id} value={d.id}>{d.nom}</option>)}
+                                            </select>
+                                        )}
+                                    </div>
+                                </label>
+                            )}
+
+                            <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${
+                                lettreMode === 'texte' ? 'border-blue-400 bg-blue-50' : 'border-slate-200 hover:border-slate-300'
+                            }`}>
+                                <input type="radio" checked={lettreMode === 'texte'} onChange={() => setLettreMode('texte')} className="shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-slate-800 mb-1.5">Écrire un message</p>
+                                    {lettreMode === 'texte' && (
+                                        <>
+                                            <textarea rows={4} value={data.lettre_motivation}
+                                                onChange={e => setData('lettre_motivation', e.target.value)}
+                                                placeholder="Présentez votre motivation…"
+                                                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none bg-white" />
+                                            <p className="text-right text-xs text-slate-300 mt-0.5">{data.lettre_motivation.length}/2000</p>
+                                        </>
+                                    )}
+                                </div>
+                            </label>
                         </div>
                     </div>
 
@@ -275,11 +355,8 @@ function CandidatureModal({ offre, onClose }) {
                             className="px-4 py-2 bg-slate-100 text-slate-700 text-sm rounded-xl hover:bg-slate-200 transition">
                             Annuler
                         </button>
-                        <button
-                            type="submit"
-                            disabled={processing || !data.cv}
-                            className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
+                        <button type="submit" disabled={processing || !canSubmit}
+                            className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
                             {processing ? 'Envoi…' : 'Envoyer ma candidature'}
                         </button>
                     </div>
@@ -289,48 +366,3 @@ function CandidatureModal({ offre, onClose }) {
     );
 }
 
-/* ── Composant réutilisable upload ── */
-function FileUploadBox({ label, required, optional, accept, hint, file, inputRef, error, onChange, onRemove }) {
-    return (
-        <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-                {label}{' '}
-                {required && <span className="text-red-500">*</span>}
-                {optional && <span className="text-slate-400 font-normal text-xs">(optionnel)</span>}
-            </label>
-
-            {!file ? (
-                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition group">
-                    <svg className="w-6 h-6 text-slate-300 group-hover:text-blue-400 transition mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 16v-8m0 0-3 3m3-3 3 3M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1" />
-                    </svg>
-                    <span className="text-sm text-slate-400 group-hover:text-blue-500 transition">
-                        Glisser ou <span className="font-semibold underline">parcourir</span>
-                    </span>
-                    <span className="text-xs text-slate-300 mt-0.5">{hint}</span>
-                    <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={onChange} />
-                </label>
-            ) : (
-                <div className="flex items-center justify-between px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl">
-                    <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-                            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z" />
-                            </svg>
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-sm font-medium text-blue-800 truncate">{file.name}</p>
-                            <p className="text-xs text-blue-500">{(file.size / 1024).toFixed(0)} Ko</p>
-                        </div>
-                    </div>
-                    <button type="button" onClick={onRemove}
-                        className="ml-3 shrink-0 text-blue-400 hover:text-red-500 transition text-xl leading-none">
-                        ×
-                    </button>
-                </div>
-            )}
-
-            {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-        </div>
-    );
-}

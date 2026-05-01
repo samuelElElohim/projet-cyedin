@@ -13,6 +13,7 @@ class Document extends Model
         'utilisateurs_id',
         'nom',
         'type',
+        'categorie',
         'chemin_fichier',
     ];
 

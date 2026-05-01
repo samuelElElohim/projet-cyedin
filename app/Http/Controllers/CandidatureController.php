@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Candidature;
+use App\Models\Document;
+use App\Models\Etudiant;
 use App\Models\Notification;
 use App\Models\Offre;
 use App\Services\TraceLogger;
@@ -56,13 +58,17 @@ class CandidatureController extends Controller
         $request->validate([
             'offre_id'          => 'required|integer|exists:offres,id',
             'lettre_motivation' => 'nullable|string|max:2000',
-            'cv'                => 'required|file|max:5120|mimes:pdf,doc,docx,jpg,jpeg,png',
-            'lettre_fichier'    => 'nullable|file|max:5120|mimes:pdf,doc,docx',
+            // CV : l'un des trois modes doit être fourni
+            'use_main_cv'       => 'nullable|boolean',
+            'cv_document_id'    => 'nullable|integer|exists:documents,id',
+            'cv'                => 'nullable|file|max:5120|mimes:pdf,doc,docx,jpg,jpeg,png',
+            // Lettre : document existant ou nouveau fichier
+            'lettre_document_id' => 'nullable|integer|exists:documents,id',
+            'lettre_fichier'     => 'nullable|file|max:5120|mimes:pdf,doc,docx',
         ]);
 
         $etudiantId = auth()->id();
-
-        $offre = Offre::findOrFail($request->offre_id);
+        $offre      = Offre::findOrFail($request->offre_id);
         abort_unless($offre->est_active, 422, 'Cette offre n\'est plus disponible.');
 
         $existe = Candidature::where('etudiant_id', $etudiantId)
@@ -70,16 +76,43 @@ class CandidatureController extends Controller
             ->exists();
         abort_if($existe, 422, 'Vous avez déjà postulé à cette offre.');
 
-        $cvFile = $request->file('cv');
-        $cvPath = $cvFile->store('candidatures/cvs', 'local');
-        $cvName = $cvFile->getClientOriginalName();
+        // ── Résoudre le CV ────────────────────────────────────────────────────
+        $cvPath = null;
+        $cvName = null;
 
+        if ($request->boolean('use_main_cv')) {
+            $etudiant = Etudiant::where('utilisateurs_id', $etudiantId)->first();
+            abort_unless($etudiant?->chemin_cv, 422, 'Aucun CV principal défini. Ajoutez-en un dans votre porte-document.');
+            $cvPath = $etudiant->chemin_cv;
+            $cvName = $etudiant->nom_cv;
+        } elseif ($request->filled('cv_document_id')) {
+            $doc = Document::where('id', $request->cv_document_id)
+                ->where('utilisateurs_id', $etudiantId)
+                ->firstOrFail();
+            $cvPath = $doc->chemin_fichier;
+            $cvName = $doc->nom;
+        } elseif ($request->hasFile('cv')) {
+            $file   = $request->file('cv');
+            $cvPath = $file->store('candidatures/cvs', 'local');
+            $cvName = $file->getClientOriginalName();
+        } else {
+            abort(422, 'Vous devez fournir un CV (principal, depuis le stash, ou nouveau fichier).');
+        }
+
+        // ── Résoudre la lettre ────────────────────────────────────────────────
         $lettrePath = null;
         $lettreName = null;
-        if ($request->hasFile('lettre_fichier')) {
-            $lettreFile = $request->file('lettre_fichier');
-            $lettrePath = $lettreFile->store('candidatures/lettres', 'local');
-            $lettreName = $lettreFile->getClientOriginalName();
+
+        if ($request->filled('lettre_document_id')) {
+            $doc = Document::where('id', $request->lettre_document_id)
+                ->where('utilisateurs_id', $etudiantId)
+                ->firstOrFail();
+            $lettrePath = $doc->chemin_fichier;
+            $lettreName = $doc->nom;
+        } elseif ($request->hasFile('lettre_fichier')) {
+            $file       = $request->file('lettre_fichier');
+            $lettrePath = $file->store('candidatures/lettres', 'local');
+            $lettreName = $file->getClientOriginalName();
         }
 
         Candidature::create([
@@ -99,10 +132,7 @@ class CandidatureController extends Controller
             ]);
         }
 
-        TraceLogger::log('store_candidature', [
-            'etudiant_id' => $etudiantId,
-            'offre_id'    => $request->offre_id,
-        ]);
+        TraceLogger::log('store_candidature', ['etudiant_id' => $etudiantId, 'offre_id' => $request->offre_id]);
 
         return back()->with('success', 'Candidature envoyée.');
     }

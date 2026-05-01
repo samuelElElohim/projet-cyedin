@@ -6,6 +6,7 @@ const ALL_NAV_ITEMS = [
     { label: 'Tableau de bord',  href: 'etudiant.dashboard',         icon: '▦',  always: true },
     { label: 'Offres de stage',  href: 'etudiant.offres',            icon: '🔍', always: true },
     { label: 'Mes candidatures', href: 'etudiant.candidatures',      icon: '📨', always: true },
+    { label: 'Porte-document',   href: 'etudiant.porte.document',    icon: '🗂️', always: true },
     { label: 'Mon dossier',      href: 'etudiant.dossier',           icon: '📁', needsStage: true },
     { label: 'Cahier de stage',  href: 'etudiant.cahier',            icon: '📓', needsCahier: true },
     { label: 'Suggérer',         href: 'demande.hierarchie',         icon: '💡', always: true },

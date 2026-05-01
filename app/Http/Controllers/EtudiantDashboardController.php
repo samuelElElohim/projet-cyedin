@@ -167,6 +167,13 @@ class EtudiantDashboardController extends Controller
         $dejaCandidature = Candidature::where('etudiant_id', $user->id)
             ->pluck('statut', 'offre_id');
 
+        // Stash de docs pour le modal de candidature
+        $etudiant = \App\Models\Etudiant::where('utilisateurs_id', $user->id)->first();
+        $stash    = \App\Models\Document::where('utilisateurs_id', $user->id)
+            ->whereIn('categorie', ['cv', 'lettre'])
+            ->orderBy('date_depot', 'desc')
+            ->get(['id', 'nom', 'categorie', 'date_depot']);
+
         return Inertia::render('Etudiant/etudiant.offres', [
             'offres'           => $offres,
             'deja_candidature' => $dejaCandidature,
@@ -174,6 +181,8 @@ class EtudiantDashboardController extends Controller
             'filieres'         => \App\Models\Filiere::orderBy('filiere')->get(),
             'tags'             => \App\Models\Tag::with('secteur')->orderBy('tag')->get(),
             'filters'          => $request->only(['search', 'duree_min', 'duree_max', 'secteur_id', 'filiere_id', 'tag_id']),
+            'etudiant'         => $etudiant ? ['chemin_cv' => $etudiant->chemin_cv, 'nom_cv' => $etudiant->nom_cv] : null,
+            'stash'            => $stash,
         ]);
     }
 

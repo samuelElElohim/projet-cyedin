@@ -54,11 +54,16 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile',  [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Gestion des documents (Upload / Download / Delete)
-    Route::get('/documents',                       [DocumentController::class, 'index'])->name('documents.index');
-    Route::post('/documents',                      [DocumentController::class, 'store'])->name('documents.store');
-    Route::get('/documents/{document}/download',   [DocumentController::class, 'download'])->name('documents.download');
-    Route::delete('/documents/{document}',         [DocumentController::class, 'destroy'])->name('documents.destroy');
+    // Documents
+    Route::get('/documents',                          [DocumentController::class, 'index'])->name('documents.index');
+    Route::post('/documents',                         [DocumentController::class, 'store'])->name('documents.store');
+    Route::get('/documents/{document}/download',      [DocumentController::class, 'download'])->name('documents.download');
+    Route::delete('/documents/{document}',            [DocumentController::class, 'destroy'])->name('documents.destroy');
+    Route::post('/documents/{document}/set-main-cv',  [DocumentController::class, 'set_main_cv'])->name('documents.set-main-cv');
+    Route::post('/documents/main-cv',                 [DocumentController::class, 'store_main_cv'])->name('documents.store-main-cv');
+
+    // Porte-document étudiant
+    Route::get('/porte-document', [DocumentController::class, 'porte_document'])->name('etudiant.porte.document');
 
     // Remarques générales
     Route::post('/remarques',              [RemarqueController::class, 'store'])->name('remarques.store');
