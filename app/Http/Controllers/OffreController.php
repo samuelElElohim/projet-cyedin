@@ -50,10 +50,11 @@ class OffreController extends Controller
             'duree_semaines' => $validated['duree_semaines']
         ]);
 
+        /*
         if(!empty($validated['tags'])) {
             $offre->tags()->sync($validated['tags']);
             $this->notifierEtudiants($offre, $validated['tags']);
-        }
+        }*/
 
         return redirect()->route('offres.index')
                          ->with('success', 'Offre ajoutée avec succès!');

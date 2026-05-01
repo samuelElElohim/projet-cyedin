@@ -22,8 +22,8 @@ return new class extends Migration
                   ->constrained('etudiants')
                   ->onDelete('cascade');
  
-            $table->boolean('est_accepte')
-                  ->default(false);
+            $table->enum('statut', ['en_attente', 'acceptee', 'refusee'])
+                ->default('en_attente');
 
  
             $table->timestamps();

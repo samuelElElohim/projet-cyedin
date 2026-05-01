@@ -34,7 +34,7 @@ class EtudiantDashboardController extends Controller
 
         $dossier = $etudiant
             ? Dossier_stage::with('documents')
-                ->where('etudiants_id', $user->id)
+                ->where('etudiant_id', $user->id)
                 ->first()
             : null;
 
@@ -45,7 +45,7 @@ class EtudiantDashboardController extends Controller
             ->get();
 
         $nbCandidatures = Candidature::where('etudiant_id', $user->id)->count();
-        $nbDocuments    = Document::where('utilisateurs_id', $user->id)->count();
+        $nbDocuments    = Document::where('utilisateur_id', $user->id)->count();
         $nbCahier       = CahierStage::where('etudiant_id', $user->id)->count();
 
         $conventionStatus = null;
@@ -172,7 +172,7 @@ class EtudiantDashboardController extends Controller
             'offres'            => $offres,
             'deja_candidature'  => $dejaCandidature,
             'secteurs'          => $secteurs,
-            'filieres' => \App\Models\Etudiant::select('filiere')->distinct()->orderBy('filiere')->pluck('filiere'),
+            'filieres' => Etudiant::select('filiere')->distinct()->orderBy('filiere')->pluck('filiere'),
             'filters'  => $request->only(['search', 'duree_min', 'duree_max', 'secteur', 'filiere']),
         ]);
     }
@@ -184,10 +184,10 @@ class EtudiantDashboardController extends Controller
         $user = auth()->user();
 
         $dossier = Dossier_stage::with('documents')
-            ->where('etudiants_id', $user->id)
+            ->where('etudiant_id', $user->id)
             ->first();
 
-        $documents = Document::where('utilisateurs_id', $user->id)
+        $documents = Document::where('utilisateur_id', $user->id)
             ->orderBy('date_depot', 'desc')
             ->get();
 
