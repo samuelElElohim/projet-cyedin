@@ -36,7 +36,7 @@ class EtudiantDashboardController extends Controller
 
         $dossier = $etudiant
             ? Dossier_stage::with('documents')
-                ->where('etudiants_id', $user->id)
+                ->where('etudiant_id', $user->id)
                 ->first()
             : null;
 
@@ -47,7 +47,7 @@ class EtudiantDashboardController extends Controller
             ->get();
 
         $nbCandidatures = Candidature::where('etudiant_id', $user->id)->count();
-        $nbDocuments    = Document::where('utilisateurs_id', $user->id)->count();
+        $nbDocuments    = Document::where('utilisateur_id', $user->id)->count();
         $nbCahier       = CahierStage::where('etudiant_id', $user->id)->count();
 
         $conventionStatus = null;
@@ -73,7 +73,7 @@ class EtudiantDashboardController extends Controller
                 'cahier'       => $nbCahier,
                 'dossier_valide' => $dossier?->est_valide ?? false,
             ],
-            'has_tuteur'        => $stageEnCours && $stageEnCours->tuteurs_id !== null,
+            'has_tuteur'        => $stageEnCours && $stageEnCours->tuteur_id !== null,
         ]);
     }
 
@@ -91,11 +91,11 @@ class EtudiantDashboardController extends Controller
 
         $stage = $etudiant->stages()
             ->with('tuteur.utilisateur')
-            ->whereNotNull('tuteurs_id')
+            ->whereNotNull('tuteur_id')
             ->latest('id')
             ->first();
 
-        abort_unless($stage && $stage->tuteurs_id, 422, 'Aucun tuteur assigné à votre stage.');
+        abort_unless($stage && $stage->tuteur_id, 422, 'Aucun tuteur assigné à votre stage.');
 
         Notification::create([
             'proprietaire_id' => $stage->tuteurs_id,
@@ -162,8 +162,8 @@ class EtudiantDashboardController extends Controller
             ->pluck('statut', 'offre_id');
 
         // Stash de docs pour le modal de candidature
-        $etudiant = \App\Models\Etudiant::where('utilisateurs_id', $user->id)->first();
-        $stash    = \App\Models\Document::where('utilisateurs_id', $user->id)
+        $etudiant = \App\Models\Etudiant::where('utilisateur_id', $user->id)->first();
+        $stash    = \App\Models\Document::where('utilisateur_id', $user->id)
             ->whereIn('categorie', ['cv', 'lettre'])
             ->orderBy('date_depot', 'desc')
             ->get(['id', 'nom', 'categorie', 'date_depot']);
@@ -187,10 +187,10 @@ class EtudiantDashboardController extends Controller
         $user = auth()->user();
 
         $dossier = Dossier_stage::with('documents')
-            ->where('etudiants_id', $user->id)
+            ->where('etudiant_id', $user->id)
             ->first();
 
-        $documents = Document::where('utilisateurs_id', $user->id)
+        $documents = Document::where('utilisateur_id', $user->id)
             ->orderBy('date_depot', 'desc')
             ->get();
 

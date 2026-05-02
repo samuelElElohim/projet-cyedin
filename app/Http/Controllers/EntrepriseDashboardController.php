@@ -37,7 +37,7 @@ class EntrepriseDashboardController extends Controller
 
         $offres     = $entreprise->offres()->withCount('candidatures')->get();
         $stages     = Stage::with(['etudiant.utilisateur', 'convention'])
-            ->where('entreprises_id', $entreprise->id)
+            ->where('entreprise_id', $entreprise->id)
             ->get()
             ->map(function ($stage) {
                 $stage->convention_status = \App\Services\ConventionService::status($stage->convention);
@@ -149,7 +149,7 @@ class EntrepriseDashboardController extends Controller
                 $arr = $c->toArray();
 
                 // Documents du candidat
-                $arr['documents_etudiant'] = Document::where('utilisateurs_id', $c->etudiant_id)
+                $arr['documents_etudiant'] = Document::where('utilisateur_id', $c->etudiant_id)
                     ->orderBy('date_depot', 'desc')
                     ->get(['id', 'nom', 'type', 'date_depot'])
                     ->toArray();
@@ -159,8 +159,8 @@ class EntrepriseDashboardController extends Controller
                 $arr['convention_status'] = null;
 
                 $stage = Stage::with('convention')
-                    ->where('etudiants_id', $c->etudiant_id)
-                    ->where('entreprises_id', $entreprise->id)
+                    ->where('etudiant_id', $c->etudiant_id)
+                    ->where('entreprise_id', $entreprise->id)
                     ->latest('id')
                     ->first();
 
@@ -189,7 +189,7 @@ class EntrepriseDashboardController extends Controller
         $entreprise = $this->entreprise();
 
         $stage = Stage::where('id', $stageId)
-            ->where('entreprises_id', $entreprise->id)
+            ->where('entreprise_id', $entreprise->id)
             ->firstOrFail();
 
         $result = app(\App\Services\ConventionService::class)->sign($stage, 'entreprise', auth()->id());
@@ -210,7 +210,7 @@ class EntrepriseDashboardController extends Controller
             'tuteur.utilisateur',
             'convention',
         ])
-            ->where('entreprises_id', $entreprise->id)
+            ->where('entreprise_id', $entreprise->id)
             ->get()
             ->map(function ($stage) {
                 $stage->convention_status = \App\Services\ConventionService::status($stage->convention);
@@ -227,7 +227,7 @@ class EntrepriseDashboardController extends Controller
         $entreprise = $this->entreprise();
 
         $stage = Stage::where('id', $stageId)
-            ->where('entreprises_id', $entreprise->id)
+            ->where('entreprise_id', $entreprise->id)
             ->firstOrFail();
 
         $request->validate([
@@ -266,7 +266,7 @@ class EntrepriseDashboardController extends Controller
             'convention',
         ])
             ->where('id', $stageId)
-            ->where('entreprises_id', $entreprise->id)
+            ->where('entreprise_id', $entreprise->id)
             ->firstOrFail();
 
         $missions = Remarque::pour('stage', $stage->id)

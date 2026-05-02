@@ -44,7 +44,7 @@ class UtilisateurSeeder extends Seeder
             ]
         );
         Etudiant::updateOrCreate(
-            ['utilisateurs_id' => $etuUser->id],
+            ['utilisateur_id' => $etuUser->id],
             ['filiere_id' => 2, 'niveau_etud' => 1] // INFO
         );
 
@@ -62,7 +62,7 @@ class UtilisateurSeeder extends Seeder
             ]
         );
         $entr = Entreprise::updateOrCreate(
-            ['utilisateurs_id' => $entUser->id],
+            ['utilisateur_id' => $entUser->id],
             ['nom_entreprise' => 'Entreprise Test', 'addresse' => '42 rue test']
         );
 
@@ -84,7 +84,7 @@ class UtilisateurSeeder extends Seeder
             ]
         );
         $tuteur = Tuteur::updateOrCreate(
-            ['utilisateurs_id' => $tuteurUser->id],
+            ['utilisateur_id' => $tuteurUser->id],
             ['filiere_id' => 2] // filière principale INFO
         );
         $tuteur->secteurs()->syncWithoutDetaching([1, 2]); // DevWeb + IA

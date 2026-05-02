@@ -9,22 +9,20 @@ class Tuteur extends Model
 {
     use HasUtilisateur;
 
-    protected $primaryKey = 'utilisateurs_id';
-    public $incrementing  = false;
 
     protected $fillable = [
-        'utilisateurs_id',
+        'utilisateur_id',
         'filiere_id',
     ];
 
     public function utilisateur()
     {
-        return $this->belongsTo(Utilisateur::class, 'utilisateurs_id');
+        return $this->belongsTo(Utilisateur::class, 'utilisateur_id');
     }
 
     public function stages()
     {
-        return $this->hasMany(Stage::class, 'tuteurs_id', 'utilisateurs_id');
+        return $this->hasMany(Stage::class, 'tuteur_id', 'utilisateur_id');
     }
 
     public function etudiants()
@@ -53,7 +51,7 @@ class Tuteur extends Model
             'tuteur_secteurs',
             'tuteur_id',
             'secteur_id',
-            'utilisateurs_id'
+            'utilisateur_id'
         )->withTimestamps();
     }
 

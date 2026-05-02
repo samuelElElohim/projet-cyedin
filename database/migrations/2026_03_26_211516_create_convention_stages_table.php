@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('convention_stages', function (Blueprint $table) {
-            $table->foreignId('stages_id')->constrained('stages')->onDelete('cascade'); // une convention de stage n'existe que si un stage est mit en place
+            $table->foreignId('stage_id')->constrained('stages')->onDelete('cascade'); // une convention de stage n'existe que si un stage est mit en place
             $table->timestamp('date_creation')->default(DB::raw('CURRENT_DATE')); //si une convention n'a pas une date specifique, la date de sa creation est la date de creation de la convention
             // une convention est false par default, mais il faut la signature des 3 parties pour la changer donc pas besoin de stocker son status
 

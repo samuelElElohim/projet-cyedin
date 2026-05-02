@@ -11,9 +11,9 @@ class Stage extends Model
 
     protected $fillable = [
         'sujet',
-        'etudiants_id',
-        'entreprises_id',
-        'tuteurs_id',
+        'etudiant_id',
+        'entreprise_id',
+        'tuteur_id',
         'duree_en_semaine',
         'dateDebut',
         'etat',
@@ -23,33 +23,33 @@ class Stage extends Model
 
     public function etudiant()
     {
-        return $this->belongsTo(Etudiant::class, 'etudiants_id', 'utilisateurs_id');
+        return $this->belongsTo(Etudiant::class, 'etudiant_id', 'utilisateur_id');
     }
 
     public function entreprise()
     {
-        return $this->belongsTo(Entreprise::class, 'entreprises_id');
+        return $this->belongsTo(Entreprise::class, 'entreprise_id');
     }
 
     public function tuteur()
     {
-        return $this->belongsTo(Tuteur::class, 'tuteurs_id', 'utilisateurs_id');
+        return $this->belongsTo(Tuteur::class, 'tuteur_id', 'utilisateur_id');
     }
 
     public function convention()
     {
-        return $this->hasOne(Convention_stage::class, 'stages_id');
+        return $this->hasOne(Convention_stage::class, 'stage_id');
     }
 
     // Scopes
     public function scopeParTuteur($query, int $tuteurId)
     {
-        return $query->where('tuteurs_id', $tuteurId);
+        return $query->where('tuteur_id', $tuteurId);
     }
 
     public function scopeParEntreprise($query, int $entrepriseId)
     {
-        return $query->where('entreprises_id', $entrepriseId);
+        return $query->where('entreprise_id', $entrepriseId);
     }
 
     public function scopeConventionComplete($query)
@@ -66,3 +66,4 @@ class Stage extends Model
         return $this->morphMany(Remarque::class, 'cible');
     }
 }
+

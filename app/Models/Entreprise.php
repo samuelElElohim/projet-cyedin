@@ -10,14 +10,14 @@ class Entreprise extends Model
     use HasUtilisateur;
 
     protected $fillable = [
-        'utilisateurs_id',
+        'utilisateur_id',
         'nom_entreprise',
         'addresse',
     ];
 
     public function utilisateur()
     {
-        return $this->belongsTo(Utilisateur::class, 'utilisateurs_id');
+        return $this->belongsTo(Utilisateur::class, 'utilisateur_id');
     }
 
     public function offres()
@@ -27,7 +27,7 @@ class Entreprise extends Model
 
     public function stages()
     {
-        return $this->hasMany(Stage::class, 'entreprises_id');
+        return $this->hasMany(Stage::class, 'entreprise_id');
     }
 
     // filiere→secteur→tag : niveau macro

@@ -10,7 +10,7 @@ class Document extends Model
 
     protected $fillable = [
         'id',
-        'utilisateurs_id',
+        'utilisateur_id',
         'nom',
         'type',
         'categorie',
@@ -21,7 +21,7 @@ class Document extends Model
 
     public function utilisateur()
     {
-        return $this->belongsTo(\App\Models\Utilisateur::class, 'utilisateurs_id');
+        return $this->belongsTo(\App\Models\Utilisateur::class, 'utilisateur_id');
     }
 
     public function dossiers()

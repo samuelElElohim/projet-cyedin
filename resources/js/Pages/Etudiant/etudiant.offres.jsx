@@ -1,9 +1,10 @@
 import EtudiantLayout from '@/Layouts/EtudiantLayout';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { useRef } from 'react';
 
 export default function EtudiantOffres({ offres = [], deja_candidature = {}, secteurs = [], filieres = [], tags = [], filters = {}, etudiant = null, stash = [] }) {
+    
     const [search, setSearch]       = useState(filters.search ?? '');
     const [dureeMin, setDureeMin]   = useState(filters.duree_min ?? '');
     const [dureeMax, setDureeMax]   = useState(filters.duree_max ?? '');
@@ -12,10 +13,14 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
     const [tagId, setTagId]         = useState(filters.tag_id ?? '');
     const [modalOffre, setModalOffre] = useState(null);
 
+    const hasStage = usePage().props.etudiant_flags?.has_stage ?? false;
+
     // Tags filtrés selon le secteur sélectionné
     const tagsVisible = secteurId
         ? tags.filter(t => String(t.secteur_id) === String(secteurId))
         : tags;
+
+  
 
     function applyFilters(overrides = {}) {
         router.get(route('etudiant.offres'), {
@@ -32,6 +37,14 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
         <EtudiantLayout title="Offres de stage">
             <Head title="Offres — Étudiant" />
 
+
+
+            {hasStage && (
+                <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-2xl mb-5 text-sm">
+                    Vous avez déjà un stage en cours — les nouvelles candidatures sont désactivées.
+                </div>
+            )}
+ 
             {/* Filtres */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-6">
                 <div className="flex flex-wrap gap-3">
@@ -155,6 +168,11 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
                                 <span className="w-full py-2 bg-red-50 text-red-600 text-xs font-bold rounded-xl text-center">✗ Candidature refusée</span>
                             ) : statut === 'en_attente' ? (
                                 <span className="w-full py-2 bg-amber-50 text-amber-700 text-xs font-bold rounded-xl text-center">⏳ Candidature en attente</span>
+                            ) : hasStage ? (
+                                // ✅ Ajout : cas où l'étudiant a déjà un stage
+                                <span className="w-full py-2 bg-slate-100 text-slate-400 text-xs font-bold rounded-xl text-center block cursor-not-allowed">
+                                    Candidature désactivée
+                                </span>
                             ) : (
                                 <button
                                     onClick={() => setModalOffre(offre)}

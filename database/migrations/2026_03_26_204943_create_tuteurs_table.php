@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tuteurs', function (Blueprint $table) {
-            //$table->id();
-            $table->foreignId('utilisateurs_id')->constrained('utilisateurs')->onDelete('cascade');// permet de limiter l'existance d'un admin que si un utilisateur de meme id existe deja
+            $table->id();
+            $table->foreignId('utilisateur_id')->constrained('utilisateurs')->onDelete('cascade');// permet de limiter l'existance d'un admin que si un utilisateur de meme id existe deja
             
             // Filière (MATHS, INFO)
             $table->unsignedTinyInteger('filiere_id')->nullable();

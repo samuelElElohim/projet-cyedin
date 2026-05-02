@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('documents', function (Blueprint $table) {
     
             $table->id();
-            $table->foreignId('utilisateurs_id')->constrained('utilisateurs')->onDelete('cascade');
+            $table->foreignId('utilisateur_id')->constrained('utilisateurs')->onDelete('cascade');
             // chaque document est unique, mais un ensemble de docs appartient a un seul etudiant
             //  donc la cle primaire est l'id du doc+id de l'etudiant
             $table->string('nom');

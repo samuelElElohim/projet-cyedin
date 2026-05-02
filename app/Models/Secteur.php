@@ -39,7 +39,7 @@ class Secteur extends Model
             'secteur_id',
             'tuteur_id',
             'id',
-            'utilisateurs_id'
+            'utilisateur_id'
         )->withTimestamps();
     }
 

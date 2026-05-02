@@ -9,10 +9,10 @@ class Convention_stage extends Model
 {
     public $timestamps   = false;
     public $incrementing = false;
-    protected $primaryKey = 'stages_id';
+    protected $primaryKey = 'stage_id';
 
     protected $fillable = [
-        'stages_id',
+        'stage_id',
         'date_creation',
         'signer_par_entreprise',
         'signer_par_tuteur',
@@ -21,7 +21,7 @@ class Convention_stage extends Model
 
     public function stage()
     {
-        return $this->belongsTo(Stage::class, 'stages_id');
+        return $this->belongsTo(Stage::class, 'stage_id');
     }
 
     public function estComplete(): bool

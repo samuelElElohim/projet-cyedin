@@ -9,14 +9,14 @@ class Administrateur extends Model
 {
   use HasUtilisateur;
   protected $fillable = [
-    'utilisateurs_id',
+    'utilisateur_id',
     'derniere_action_log'  
   ];
 
 
   public function utilisateur()
     {
-        return $this->belongsTo(Utilisateur::class, 'utilisateurs_id');
+        return $this->belongsTo(Utilisateur::class, 'utilisateur_id');
     }
 
   // scopes

@@ -34,7 +34,7 @@ class DocumentController extends Controller
         $user     = auth()->user();
         $etudiant = $user->etudiant;
 
-        $stash = Document::where('utilisateurs_id', $user->id)
+        $stash = Document::where('utilisateur_id', $user->id)
             ->where('categorie', '!=', 'convention')
             ->orderBy('date_depot', 'desc')
             ->get();
@@ -51,7 +51,7 @@ class DocumentController extends Controller
     public function index(): Response
     {
         $user = auth()->user();
-        $documents = Document::where('utilisateurs_id', $user->id)
+        $documents = Document::where('utilisateur_id', $user->id)
             ->orderBy('date_depot', 'desc')
             ->get();
         return Inertia::render('Document/document.index', ['documents' => $documents]);
@@ -73,7 +73,7 @@ class DocumentController extends Controller
 
         // Vérifier la limite stash pour les étudiants
         if ($user->role === 'S' && $categorie !== 'convention') {
-            $count = Document::where('utilisateurs_id', $user->id)
+            $count = Document::where('utilisateur_id', $user->id)
                 ->where('categorie', '!=', 'convention')
                 ->count();
             abort_if($count >= self::MAX_STASH_DOCS, 422,
@@ -114,7 +114,7 @@ class DocumentController extends Controller
     public function set_main_cv(Document $document): RedirectResponse
     {
         $user = auth()->user();
-        abort_unless($document->utilisateurs_id === $user->id, 403);
+        abort_unless($document->utilisateur_id === $user->id, 403);
         abort_unless($user->role === 'S', 403);
 
         Etudiant::where('utilisateurs_id', $user->id)->update([
@@ -140,7 +140,7 @@ class DocumentController extends Controller
         $nomFichier = time() . '_' . $fichier->getClientOriginalName();
         $chemin     = $fichier->storeAs("documents/{$user->id}/cv", $nomFichier, 'local');
 
-        Etudiant::where('utilisateurs_id', $user->id)->update([
+        Etudiant::where('utilisateur_id', $user->id)->update([
             'chemin_cv' => $chemin,
             'nom_cv'    => $fichier->getClientOriginalName(),
         ]);
@@ -164,7 +164,7 @@ class DocumentController extends Controller
     public function destroy(Document $document): RedirectResponse
     {
         $user = auth()->user();
-        abort_unless($document->utilisateurs_id === $user->id || $user->role === 'A', 403);
+        abort_unless($document->utilisateur_id === $user->id || $user->role === 'A', 403);
 
         if (Storage::disk('local')->exists($document->chemin_fichier)) {
             Storage::disk('local')->delete($document->chemin_fichier);
@@ -181,19 +181,19 @@ class DocumentController extends Controller
     private function autoriserAcces(Document $document): void
     {
         $user = auth()->user();
-        if ($document->utilisateurs_id === $user->id) return;
+        if ($document->utilisateur_id === $user->id) return;
         if (in_array($user->role, ['A', 'J'])) return;
 
         if ($user->role === 'T') {
             $tuteur = $user->tuteur;
-            abort_unless($tuteur && $tuteur->stages()->where('etudiants_id', $document->utilisateurs_id)->exists(), 403);
+            abort_unless($tuteur && $tuteur->stages()->where('etudiants_id', $document->utilisateur_id)->exists(), 403);
             return;
         }
 
         if ($user->role === 'E') {
             $entreprise = $user->entreprise;
             $ok = $entreprise && \App\Models\Candidature::whereHas('offre', fn($q) => $q->where('entreprise_id', $entreprise->id))
-                ->where('etudiant_id', $document->utilisateurs_id)->exists();
+                ->where('etudiant_id', $document->utilisateur_id)->exists();
             abort_unless($ok, 403);
             return;
         }

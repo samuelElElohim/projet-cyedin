@@ -37,7 +37,7 @@ class CandidatureController extends Controller
     public function download(Candidature $candidature, string $type)
     {
         abort_unless(
-            $candidature->offre->entreprise->utilisateurs_id === auth()->id(),
+            $candidature->offre->entreprise->utilisateur_id === auth()->id(),
             403
         );
 
@@ -56,6 +56,14 @@ class CandidatureController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $etudiant = auth()->user()->etudiant;
+        abort_unless($etudiant, 403);
+
+        if ($etudiant->hasStage()) {
+            return back()->with('error', 'Vous avez déjà un stage en cours et ne pouvez plus postuler.');
+        }
+
+
         $request->validate([
             'offre_id'          => 'required|integer|exists:offres,id',
             'lettre_motivation' => 'nullable|string|max:2000',
@@ -82,13 +90,13 @@ class CandidatureController extends Controller
         $cvName = null;
 
         if ($request->boolean('use_main_cv')) {
-            $etudiant = Etudiant::where('utilisateurs_id', $etudiantId)->first();
+            $etudiant = Etudiant::where('utilisateur_id', $etudiantId)->first();
             abort_unless($etudiant?->chemin_cv, 422, 'Aucun CV principal défini. Ajoutez-en un dans votre porte-document.');
             $cvPath = $etudiant->chemin_cv;
             $cvName = $etudiant->nom_cv;
         } elseif ($request->filled('cv_document_id')) {
             $doc = Document::where('id', $request->cv_document_id)
-                ->where('utilisateurs_id', $etudiantId)
+                ->where('utilisateur_id', $etudiantId)
                 ->firstOrFail();
             $cvPath = $doc->chemin_fichier;
             $cvName = $doc->nom;
@@ -126,9 +134,9 @@ class CandidatureController extends Controller
             'nom_lettre_original' => $lettreName,
         ]);
 
-        if ($offre->entreprise?->utilisateurs_id) {
+        if ($offre->entreprise?->utilisateur_id) {
             Notification::create([
-                'proprietaire_id' => $offre->entreprise->utilisateurs_id,
+                'proprietaire_id' => $offre->entreprise->utilisateur_id,
                 'message'         => 'Nouvelle candidature reçue pour l\'offre « ' . $offre->titre . ' ».',
             ]);
         }
@@ -157,17 +165,17 @@ class CandidatureController extends Controller
         abort_if($candidature->isExpired(), 422, 'Le délai de 7 jours est dépassé.');
 
         // Créer le stage, convention, dossier et mettre à jour les candidatures dans une transaction
-        $tuteurId = \App\Models\Etudiant::where('utilisateurs_id', auth()->id())
+        $tuteurId = \App\Models\Etudiant::where('utilisateur_id', auth()->id())
             ->first()
             ?->tuteur()
             ->first()
-            ?->utilisateurs_id;
+            ?->utilisateur_id;
 
         $stage = DB::transaction(function () use ($candidature, $tuteurId) {
             $stage = \App\Models\Stage::create([
-                'etudiants_id'     => auth()->id(),
-                'entreprises_id'   => $candidature->offre->entreprise_id,
-                'tuteurs_id'       => $tuteurId,
+                'etudiant_id'     => auth()->id(),
+                'entreprise_id'   => $candidature->offre->entreprise_id,
+                'tuteur_id'       => $tuteurId,
                 'sujet'            => $candidature->offre->titre,
                 'duree_en_semaine' => $candidature->offre->duree_semaines,
                 'dateDebut'        => $candidature->offre->dateDebut ?? now()->toDateString(),
@@ -176,7 +184,7 @@ class CandidatureController extends Controller
 
             // Créer la convention de stage (en attente des 3 signatures)
             \App\Models\Convention_stage::create([
-                'stages_id'             => $stage->id,
+                'stage_id'             => $stage->id,
                 'date_creation'         => now()->toDateString(),
                 'signer_par_entreprise' => false,
                 'signer_par_tuteur'     => false,
@@ -185,7 +193,7 @@ class CandidatureController extends Controller
 
             // Créer le dossier de stage
             \App\Models\Dossier_stage::create([
-                'etudiants_id' => auth()->id(),
+                'etudiant_id' => auth()->user()->etudiant->id,
                 'stage_id'     => $stage->id,
             ]);
 
@@ -224,9 +232,9 @@ class CandidatureController extends Controller
 
         $candidature->update(['statut' => 'refusee']);
 
-        if ($candidature->offre->entreprise?->utilisateurs_id) {
+        if ($candidature->offre->entreprise?->utilisateur_id) {
             Notification::create([
-                'proprietaire_id' => $candidature->offre->entreprise->utilisateurs_id,
+                'proprietaire_id' => $candidature->offre->entreprise->utilisateur_id,
                 'message'         => 'L\'étudiant a décliné votre offre « ' . $candidature->offre->titre . ' ».',
             ]);
         }

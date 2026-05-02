@@ -7,10 +7,10 @@ use App\Traits\HasUtilisateur;
 class Etudiant extends Model
 {
     use HasUtilisateur;
-    protected $primaryKey = 'utilisateurs_id';
-    public $incrementing = false;
+
+    
     protected $fillable = [
-        'utilisateurs_id',
+        'utilisateur_id',
         'filiere_id',
         'niveau_etud',
         'chemin_cv',
@@ -21,12 +21,12 @@ class Etudiant extends Model
 
      public function utilisateur()
     {
-        return $this->belongsTo(Utilisateur::class, 'utilisateurs_id');
+        return $this->belongsTo(Utilisateur::class, 'utilisateur_id');
     }
 
      public function stages()
     {
-        return $this->hasMany(Stage::class, 'etudiants_id', 'utilisateurs_id');
+        return $this->hasMany(Stage::class, 'etudiant_id', 'utilisateur_id');
     }
 
     public function hasStage(): bool
@@ -36,7 +36,7 @@ class Etudiant extends Model
 
     public function dossier()
     {
-        return $this->hasOne(Dossier_stage::class, 'etudiants_id', 'utilisateurs_id');
+        return $this->hasOne(Dossier_stage::class, 'etudiant_id', 'utilisateur_id');
     }
 
     public function filiere()
@@ -51,10 +51,10 @@ class Etudiant extends Model
             'tuteur_etudiant',
             'etudiant_id',
             'tuteur_id',
-            'utilisateurs_id',
-            'utilisateurs_id'
+            'utilisateur_id',
         )->withTimestamps();
     }
+
 
     // Utilitaire pour vérifier si l'étudiant a un tuteur assigné
     public function hasTuteur(): bool
