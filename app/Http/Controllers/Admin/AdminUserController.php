@@ -22,8 +22,8 @@ class AdminUserController extends Controller
         $users       = Utilisateur::orderBy('id', 'asc')->get();
         $admins      = Administrateur::with('utilisateur')->orderBy('utilisateurs_id')->get();
         $students    = Etudiant::with(['utilisateur', 'filiere'])->get();
-        $entreprises = Entreprise::with(['utilisateur', 'secteurs.filiere'])->orderBy('utilisateurs_id')->get();
-        $tutors      = Tuteur::with(['utilisateur', 'filiere', 'secteurs.filiere'])->orderBy('utilisateurs_id')->get();
+        $entreprises = Entreprise::with(['utilisateur', 'secteurs.filiere'])->orderBy('utilisateur_id')->get();
+        $tutors      = Tuteur::with(['utilisateur', 'filiere', 'secteurs.filiere'])->orderBy('utilisateur_id')->get();
 
         return Inertia::render('Admin/admin.index.user', [
             'users'       => $users,

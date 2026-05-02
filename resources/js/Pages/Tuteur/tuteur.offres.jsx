@@ -6,16 +6,16 @@ export default function TuteurOffres({ offres = [], secteurs = [], filieres = []
     const [search, setSearch]     = useState(filters.search ?? '');
     const [dureeMin, setDureeMin] = useState(filters.duree_min ?? '');
     const [dureeMax, setDureeMax] = useState(filters.duree_max ?? '');
-    const [secteur, setSecteur]   = useState(filters.secteur ?? '');
-    const [filiere, setFiliere]   = useState(filters.filiere ?? '');
+    const [secteur, setSecteur]   = useState(filters.secteur_id ?? '');
+    const [filiere, setFiliere]   = useState(filters.filiere_id ?? '');
 
     function applyFilters(overrides = {}) {
         router.get(route('tuteur.offres'), {
-            search:    overrides.search    ?? search,
-            duree_min: overrides.duree_min ?? dureeMin,
-            duree_max: overrides.duree_max ?? dureeMax,
-            secteur:   overrides.secteur   ?? secteur,
-            filiere:   overrides.filiere   ?? filiere,
+            search:     overrides.search     ?? search,
+            duree_min:  overrides.duree_min  ?? dureeMin,
+            duree_max:  overrides.duree_max  ?? dureeMax,
+            secteur_id: overrides.secteur_id ?? secteur,
+            filiere_id: overrides.filiere_id ?? filiere,
         }, { preserveState: true, replace: true });
     }
 
@@ -46,11 +46,11 @@ export default function TuteurOffres({ offres = [], secteurs = [], filieres = []
                     <div className="relative">
                         <select
                             value={filiere}
-                            onChange={e => { setFiliere(e.target.value); applyFilters({ filiere: e.target.value }); }}
+                            onChange={e => { setFiliere(e.target.value); applyFilters({ filiere_id: e.target.value }); }}
                             className="appearance-none border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-100 bg-white"
                         >
                             <option value="">Toutes les filières</option>
-                            {filieres.map(f => <option key={f} value={f}>{f}</option>)}
+                            {filieres.map(f => <option key={f.id} value={f.id}>{f.filiere}</option>)}
                         </select>
                         <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">▼</span>
                     </div>
@@ -59,11 +59,11 @@ export default function TuteurOffres({ offres = [], secteurs = [], filieres = []
                     <div className="relative">
                         <select
                             value={secteur}
-                            onChange={e => { setSecteur(e.target.value); applyFilters({ secteur: e.target.value }); }}
+                            onChange={e => { setSecteur(e.target.value); applyFilters({ secteur_id: e.target.value }); }}
                             className="appearance-none border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-100 bg-white"
                         >
                             <option value="">Tous les secteurs</option>
-                            {secteurs.map(s => <option key={s} value={s}>{s}</option>)}
+                            {secteurs.map(s => <option key={s.id} value={s.id}>{s.secteur}</option>)}
                         </select>
                         <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">▼</span>
                     </div>

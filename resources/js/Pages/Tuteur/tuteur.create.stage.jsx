@@ -33,7 +33,7 @@ export default function TuteurCreateStage({ etudiants = [], entreprises = [] }) 
                                 className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-100">
                                 <option value="">— Choisir un étudiant —</option>
                                 {etudiants.map(etu => (
-                                    <option key={etu.utilisateurs_id} value={etu.utilisateurs_id}>
+                                    <option key={etu.utilisateur_id} value={etu.utilisateur_id}>
                                         {etu.utilisateur?.prenom} {etu.utilisateur?.nom} ({etu.filiere} · Niv. {etu.niveau_etud})
                                     </option>
                                 ))}

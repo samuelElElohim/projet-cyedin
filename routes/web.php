@@ -128,6 +128,7 @@ Route::middleware(['auth', 'role:A'])->prefix('admin')->name('admin.')->group(fu
     Route::get('/dashboard/dossiers',              [AdminDossierController::class, 'index'])->name('index.dossier');
     Route::post('/dashboard/dossiers/toggle/{id}', [AdminDossierController::class, 'toggle'])->name('toggle.dossier');
     Route::get('/dashboard/stages',                [AdminStageController::class, 'index'])->name('index.stage');
+    Route::post('/dashboard/stages/{id}/terminer', [AdminStageController::class, 'terminer'])->name('stage.terminer');
     Route::get('/dashboard/candidatures',          [CandidatureController::class, 'indexAdmin'])->name('index.candidature');
 
     // Traces et Archives

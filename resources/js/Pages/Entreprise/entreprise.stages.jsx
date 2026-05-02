@@ -7,16 +7,18 @@ export default function EntrepriseStages({ stages = [] }) {
         router.post(route('entreprise.convention.signer', stageId));
     }
 
-    const complets  = stages.filter(s => s.convention_status?.complete).length;
-    const enCours   = stages.length - complets;
+    const termines  = stages.filter(s => s.etat === 'termine').length;
+    const complets  = stages.filter(s => s.convention_status?.complete && s.etat !== 'termine').length;
+    const enCours   = stages.length - termines - complets;
 
     return (
         <EntrepriseLayout title="Mes stages">
             <Head title="Stages — Entreprise" />
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-4 gap-4 mb-6">
                 <StatCard label="Total"              value={stages.length} color="blue" />
+                <StatCard label="Terminés"           value={termines}      color="gray" />
                 <StatCard label="Convention signée"  value={complets}      color="green" />
                 <StatCard label="En attente"         value={enCours}       color="amber" />
             </div>
@@ -30,14 +32,22 @@ export default function EntrepriseStages({ stages = [] }) {
             ) : (
                 <div className="space-y-4">
                     {stages.map(stage => {
-                        const cv = stage.convention_status;
+                        const cv       = stage.convention_status;
                         const etudiant = stage.etudiant?.utilisateur;
+                        const termine  = stage.etat === 'termine';
 
                         return (
-                            <div key={stage.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                            <div key={stage.id} className={`bg-white rounded-2xl border shadow-sm p-5 ${termine ? 'border-gray-200 opacity-80' : 'border-slate-100'}`}>
                                 <div className="flex items-start justify-between gap-4 mb-4">
                                     <div>
-                                        <div className="font-semibold text-slate-900">{stage.sujet}</div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-slate-900">{stage.sujet}</span>
+                                            {termine && (
+                                                <span className="px-2 py-0.5 bg-gray-200 text-gray-600 text-xs font-semibold rounded-full">
+                                                    🏁 Stage terminé
+                                                </span>
+                                            )}
+                                        </div>
                                         <div className="text-sm text-slate-500 mt-0.5">
                                             {etudiant ? `${etudiant.prenom} ${etudiant.nom}` : '—'}
                                             {stage.tuteur?.utilisateur && (
@@ -55,8 +65,8 @@ export default function EntrepriseStages({ stages = [] }) {
                                     </Link>
                                 </div>
 
-                                {/* Convention */}
-                                {cv ? (
+                                {/* Convention — masquée si terminé */}
+                                {!termine && cv ? (
                                     <div>
                                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Convention</p>
                                         <div className="flex gap-2 flex-wrap">
@@ -88,9 +98,9 @@ export default function EntrepriseStages({ stages = [] }) {
                                             )}
                                         </div>
                                     </div>
-                                ) : (
+                                ) : !termine ? (
                                     <p className="text-xs text-slate-400 italic">Pas encore de convention créée.</p>
-                                )}
+                                ) : null}
                             </div>
                         );
                     })}
@@ -105,6 +115,7 @@ function StatCard({ label, value, color }) {
         blue:  'bg-blue-50 text-blue-700',
         green: 'bg-green-50 text-green-700',
         amber: 'bg-amber-50 text-amber-700',
+        gray:  'bg-gray-100 text-gray-600',
     };
     return (
         <div className={`rounded-xl p-4 ${colors[color]}`}>

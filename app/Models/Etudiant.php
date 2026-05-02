@@ -9,6 +9,11 @@ class Etudiant extends Model
     use HasUtilisateur;
 
     
+    public function getRouteKeyName(): string
+    {
+        return 'utilisateur_id';
+    }
+
     protected $fillable = [
         'utilisateur_id',
         'filiere_id',
@@ -51,6 +56,7 @@ class Etudiant extends Model
             'tuteur_etudiant',
             'etudiant_id',
             'tuteur_id',
+            'utilisateur_id',
             'utilisateur_id',
         )->withTimestamps();
     }

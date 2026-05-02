@@ -192,13 +192,16 @@ class CandidatureController extends Controller
             ]);
 
             // Créer le dossier de stage
-            \App\Models\Dossier_stage::create([
-                'etudiant_id' => auth()->user()->etudiant->id,
-                'stage_id'     => $stage->id,
-            ]);
+            \App\Models\Dossier_stage::firstOrCreate(
+                ['etudiant_id' => auth()->id()],
+                ['est_valide' => false]
+            );
 
             // Valider cette candidature
             $candidature->update(['statut' => 'acceptee']);
+
+            // Désactiver l'offre pour les autres étudiants
+            $candidature->offre->update(['est_active' => false]);
 
             // Annuler toutes les autres candidatures actives de l'étudiant
             Candidature::where('etudiant_id', auth()->id())

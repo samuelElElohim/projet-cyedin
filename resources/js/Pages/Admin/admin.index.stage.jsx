@@ -3,9 +3,10 @@ import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 
 const STATUT = {
-    complet:    { label: '✅ Terminé',               cls: 'bg-green-100 text-green-800' },
-    actif:      { label: '🟢 Stage actif',            cls: 'bg-blue-100 text-blue-800' },
-    en_attente: { label: '⏳ En attente convention',  cls: 'bg-amber-100 text-amber-700' },
+    termine:       { label: '🏁 Stage terminé',          cls: 'bg-gray-200 text-gray-700' },
+    dossier_valide:{ label: '📋 Dossier validé',          cls: 'bg-teal-100 text-teal-800' },
+    actif:         { label: '🟢 Stage actif',             cls: 'bg-blue-100 text-blue-800' },
+    en_attente:    { label: '⏳ En attente convention',   cls: 'bg-amber-100 text-amber-700' },
 };
 
 export default function AdminIndexStage({ stages = [], count = 0, filters = {} }) {
@@ -24,20 +25,27 @@ export default function AdminIndexStage({ stages = [], count = 0, filters = {} }
         setOpenRows(prev => ({ ...prev, [id]: !prev[id] }));
     }
 
-    const complet    = stages.filter(s => s.statut_global === 'complet').length;
-    const actif      = stages.filter(s => s.statut_global === 'actif').length;
-    const enAttente  = stages.filter(s => s.statut_global === 'en_attente').length;
+    function forceTerminer(stageId) {
+        if (!confirm('Clôturer ce stage définitivement ?')) return;
+        router.post(route('admin.stage.terminer', stageId));
+    }
+
+    const termine      = stages.filter(s => s.statut_global === 'termine').length;
+    const dossierValide= stages.filter(s => s.statut_global === 'dossier_valide').length;
+    const actif        = stages.filter(s => s.statut_global === 'actif').length;
+    const enAttente    = stages.filter(s => s.statut_global === 'en_attente').length;
 
     return (
         <AdminLayout title="Suivi des stages">
             <Head title="Stages — Admin" />
 
             {/* Stats */}
-            <div className="grid grid-cols-4 gap-4 mb-6">
-                <StatCard label="Total"            value={count}     color="blue" />
-                <StatCard label="Terminés"         value={complet}   color="green" />
-                <StatCard label="Stage actif"      value={actif}     color="indigo" />
-                <StatCard label="En attente conv." value={enAttente} color="amber" />
+            <div className="grid grid-cols-5 gap-4 mb-6">
+                <StatCard label="Total"             value={count}        color="blue" />
+                <StatCard label="Terminés"          value={termine}      color="gray" />
+                <StatCard label="Dossier validé"    value={dossierValide}color="teal" />
+                <StatCard label="Stage actif"       value={actif}        color="indigo" />
+                <StatCard label="En attente conv."  value={enAttente}    color="amber" />
             </div>
 
             {/* Filtres */}
@@ -52,10 +60,11 @@ export default function AdminIndexStage({ stages = [], count = 0, filters = {} }
                 />
                 <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
                     {[
-                        { value: 'all',        label: 'Tous' },
-                        { value: 'complet',    label: 'Terminés' },
-                        { value: 'actif',      label: 'Actifs' },
-                        { value: 'en_attente', label: 'En attente' },
+                        { value: 'all',           label: 'Tous' },
+                        { value: 'termine',       label: 'Terminés' },
+                        { value: 'complet',       label: 'Dossier validé' },
+                        { value: 'actif',         label: 'Actifs' },
+                        { value: 'en_attente',    label: 'En attente' },
                     ].map(f => (
                         <button key={f.value}
                             onClick={() => { setStatut(f.value); applyFilters({ statut: f.value }); }}
@@ -187,9 +196,21 @@ export default function AdminIndexStage({ stages = [], count = 0, filters = {} }
                                             <span className={`text-sm font-semibold ${
                                                 stage.dossier_valide ? 'text-green-700' : 'text-amber-600'
                                             }`}>
-                                                {stage.dossier_valide ? '✅ Validé par l\'admin' : '⏳ En attente de validation'}
+                                                {stage.dossier_valide ? '✅ Validé par le jury' : '⏳ En attente de validation'}
                                             </span>
                                         </div>
+
+                                        {stage.statut_global !== 'termine' && (
+                                            <div className="bg-white rounded-lg border border-red-100 p-4">
+                                                <p className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-3">Actions admin</p>
+                                                <button
+                                                    onClick={() => forceTerminer(stage.id)}
+                                                    className="px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition"
+                                                >
+                                                    🏁 Force terminer le stage
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -226,6 +247,8 @@ function StatCard({ label, value, color }) {
         green:  'bg-green-50 text-green-700',
         amber:  'bg-amber-50 text-amber-700',
         indigo: 'bg-indigo-50 text-indigo-700',
+        teal:   'bg-teal-50 text-teal-700',
+        gray:   'bg-gray-100 text-gray-600',
     };
     return (
         <div className={`rounded-xl p-4 ${colors[color]}`}>

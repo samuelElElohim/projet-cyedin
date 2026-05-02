@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\Stage;
 use App\Services\ConventionService;
+use App\Services\TraceLogger;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -36,6 +39,7 @@ class AdminStageController extends Controller
 
         if ($request->filled('statut') && $request->statut !== 'all') {
             match ($request->statut) {
+                'termine'    => $query->where('etat', 'termine'),
                 'complet'    => $query->where('etat', 'actif')
                                       ->whereHas('etudiant.dossier', fn($q) => $q->where('est_valide', true)),
                 'actif'      => $query->where('etat', 'actif')
@@ -55,9 +59,10 @@ class AdminStageController extends Controller
             $stage->convention_status = ConventionService::status($stage->convention);
             $stage->dossier_valide    = $dossierValide;
             $stage->statut_global     = match(true) {
-                $conventionComplete && $dossierValide => 'complet',
-                $conventionComplete                   => 'actif',
-                default                               => 'en_attente',
+                $stage->etat === 'termine'                           => 'termine',
+                $conventionComplete && $dossierValide                => 'dossier_valide',
+                $conventionComplete                                  => 'actif',
+                default                                              => 'en_attente',
             };
 
             return $stage;
@@ -68,5 +73,25 @@ class AdminStageController extends Controller
             'count'   => $stages->count(),
             'filters' => $request->only(['search', 'statut']),
         ]);
+    }
+
+    public function terminer(int $id): RedirectResponse
+    {
+        $stage = Stage::with(['etudiant.utilisateur', 'convention'])->findOrFail($id);
+        abort_unless(in_array($stage->etat, ['en_attente_convention', 'actif']), 422, 'Stage déjà terminé.');
+
+        $stage->update(['etat' => 'termine']);
+
+        Notification::create([
+            'proprietaire_id' => $stage->etudiant_id,
+            'message'         => 'Votre stage « ' . $stage->sujet . ' » a été clôturé par un administrateur.',
+        ]);
+
+        TraceLogger::log('admin_force_terminer_stage', [
+            'stage_id' => $stage->id,
+            'admin_id' => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Stage clôturé.');
     }
 }

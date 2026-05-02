@@ -8,7 +8,7 @@ export default function AdminIndexEntreprise({ entreprise = [], count = 0 }) {
     const [search, setSearch]       = useState('');
 
     function startEdit(ent) {
-        setEditingId(ent.utilisateurs_id);
+        setEditingId(ent.utilisateur_id);
         setEditData({
             nom:            ent.utilisateur?.nom ?? ent.nom_entreprise,
             nom_entreprise: ent.nom_entreprise,
@@ -18,7 +18,7 @@ export default function AdminIndexEntreprise({ entreprise = [], count = 0 }) {
     }
 
     function save(ent) {
-        router.post(route('admin.edit.user', { id: ent.utilisateurs_id }), {
+        router.post(route('admin.edit.user', { id: ent.utilisateur_id }), {
             ...editData,
             role: 'E',
         }, { onSuccess: () => setEditingId(null) });
@@ -76,10 +76,10 @@ export default function AdminIndexEntreprise({ entreprise = [], count = 0 }) {
                                 </td>
                             </tr>
                         ) : filtered.map(ent => {
-                            const isEditing = editingId === ent.utilisateurs_id;
+                            const isEditing = editingId === ent.utilisateur_id;
                             return (
-                                <tr key={ent.utilisateurs_id} className="border-t border-gray-50 hover:bg-gray-50">
-                                    <td className="px-4 py-3 text-sm text-gray-500">{ent.utilisateurs_id}</td>
+                                <tr key={ent.utilisateur_id} className="border-t border-gray-50 hover:bg-gray-50">
+                                    <td className="px-4 py-3 text-sm text-gray-500">{ent.utilisateur_id}</td>
 
                                     <td className="px-4 py-3">
                                         {isEditing
@@ -136,7 +136,7 @@ export default function AdminIndexEntreprise({ entreprise = [], count = 0 }) {
                                                         Modifier
                                                     </button>
                                                     <button
-                                                        onClick={() => toggleActive(ent.utilisateurs_id)}
+                                                        onClick={() => toggleActive(ent.utilisateur_id)}
                                                         className={`px-2 py-1 text-xs rounded ${
                                                             ent.utilisateur?.est_active
                                                                 ? 'bg-red-50 text-red-700 hover:bg-red-100'

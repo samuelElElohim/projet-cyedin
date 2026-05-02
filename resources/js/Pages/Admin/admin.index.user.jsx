@@ -181,7 +181,7 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                         heads={['ID', 'Nom', 'Email', 'Filière', 'Niveau', 'Statut', '']}
                         rows={filterRows(students, s => `${s.utilisateur.nom} ${s.utilisateur.email} ${s.filiere}`)}
                         renderRow={stu => {console.log(stu); return(
-                            <tr key={stu.utilisateurs_id} className="border-t border-gray-50 hover:bg-gray-50">
+                            <tr key={stu.utilisateur_id} className="border-t border-gray-50 hover:bg-gray-50">
                                 <Td>{stu.utilisateur.id}</Td>
                                 <Td>{stu.utilisateur.nom} {stu.utilisateur.prenom}</Td>
                                 <Td>{stu.utilisateur.email}</Td>
@@ -213,7 +213,7 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                         heads={['ID', 'Nom entreprise', 'Email', 'Secteurs', 'Adresse', 'Statut', '']}
                         rows={filterRows(entreprises, e => `${e.nom_entreprise} ${e.utilisateur.email}`)}
                         renderRow={ent => (
-                            <tr key={ent.utilisateurs_id} className="border-t border-gray-50 hover:bg-gray-50">
+                            <tr key={ent.utilisateur_id} className="border-t border-gray-50 hover:bg-gray-50">
                                 <Td>{ent.utilisateur.id}</Td>
                                 <Td className="font-medium">{field('nom', 'Nom', editingId === ent.utilisateur.id, ent.utilisateur.nom)}</Td>
                                 <Td>{ent.utilisateur.email}</Td>
@@ -254,7 +254,7 @@ export default function AdminIndexUser({ users, admins, students, entreprises, t
                         heads={['ID', 'Nom', 'Email', 'Secteurs supervisés', 'Statut', '']}
                         rows={filterRows(tutors ?? [], t => `${t.utilisateur.nom} ${t.utilisateur.email}`)}
                         renderRow={tut => (
-                            <tr key={tut.utilisateurs_id} className="border-t border-gray-50 hover:bg-gray-50">
+                            <tr key={tut.utilisateur_id} className="border-t border-gray-50 hover:bg-gray-50">
                                 <Td>{tut.utilisateur.id}</Td>
                                 <Td>{tut.utilisateur.nom} {tut.utilisateur.prenom}</Td>
                                 <Td>{tut.utilisateur.email}</Td>
