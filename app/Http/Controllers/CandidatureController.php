@@ -63,6 +63,13 @@ class CandidatureController extends Controller
             return back()->with('error', 'Vous avez déjà un stage en cours et ne pouvez plus postuler.');
         }
 
+        if (!$etudiant->hasTuteur()) {
+            return back()->with(
+                'error',
+                "Vous n'avez pas de tuteur assigné, vous ne pouvez pas postuler à cette candidature."
+            );
+        }
+
 
         $request->validate([
             'offre_id'          => 'required|integer|exists:offres,id',

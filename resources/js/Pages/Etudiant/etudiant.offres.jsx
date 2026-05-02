@@ -13,6 +13,8 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
     const [tagId, setTagId]         = useState(filters.tag_id ?? '');
     const [modalOffre, setModalOffre] = useState(null);
 
+    const { flash } = usePage().props;
+
     const hasStage = usePage().props.etudiant_flags?.has_stage ?? false;
 
     // Tags filtrés selon le secteur sélectionné
@@ -35,6 +37,11 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
 
     return (
         <EtudiantLayout title="Offres de stage">
+            {flash?.error && (
+                <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+                    {flash.error}
+                </div>
+            )}
             <Head title="Offres — Étudiant" />
 
 
