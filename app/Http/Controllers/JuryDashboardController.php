@@ -11,6 +11,7 @@ use App\Models\Stage;
 use App\Services\TraceLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -115,10 +116,22 @@ class JuryDashboardController extends Controller
 
     public function valider_dossier(int $dossierId): RedirectResponse
     {
-        $dossier = Dossier_stage::findOrFail($dossierId);
+        $dossier = Dossier_stage::with(['etudiant.utilisateur', 'documents'])->findOrFail($dossierId);
         $dossier->est_valide      = true;
         $dossier->date_soumission = $dossier->date_soumission ?? now();
         $dossier->save();
+
+        // Terminer le stage et archiver
+        $stage = Stage::with(['convention', 'entreprise', 'tuteur.utilisateur'])
+            ->where('etudiants_id', $dossier->etudiants_id)
+            ->where('etat', 'actif')
+            ->latest('id')
+            ->first();
+
+        if ($stage) {
+            $stage->update(['etat' => 'termine']);
+            $this->archiverStage($stage, $dossier);
+        }
 
         Notification::create([
             'proprietaire_id' => $dossier->etudiants_id,
@@ -128,6 +141,23 @@ class JuryDashboardController extends Controller
         TraceLogger::log('jury_valider_dossier', ['dossier_id' => $dossierId, 'jury_id' => auth()->id()]);
 
         return back()->with('success', 'Dossier validé.');
+    }
+
+    private function archiverStage(Stage $stage, Dossier_stage $dossier): void
+    {
+        $snapshot = [
+            'archived_at' => now()->toIso8601String(),
+            'stage'       => $stage->toArray(),
+            'dossier'     => $dossier->toArray(),
+            'documents'   => $dossier->documents->toArray(),
+            'cahier'      => CahierStage::where('etudiant_id', $stage->etudiants_id)->get()->toArray(),
+            'remarques'   => Remarque::pour('stage', $stage->id)->with('auteur')->get()->toArray(),
+        ];
+
+        Storage::disk('local')->put(
+            "archives/stages/stage-{$stage->id}-" . now()->format('Ymd') . '.json',
+            json_encode($snapshot, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+        );
     }
 
     public function invalider_dossier(int $dossierId): RedirectResponse

@@ -8,7 +8,7 @@ const ALL_NAV_ITEMS = [
     { label: 'Mes candidatures', href: 'etudiant.candidatures',      icon: '📨', always: true },
     { label: 'Porte-document',   href: 'etudiant.porte.document',    icon: '🗂️', always: true },
     { label: 'Mon dossier',      href: 'etudiant.dossier',           icon: '📁', needsStage: true },
-    { label: 'Cahier de stage',  href: 'etudiant.cahier',            icon: '📓', needsCahier: true },
+    { label: 'Mon Stage',        href: 'etudiant.mon.stage',         icon: '🎓', needsStageActif: true },
     { label: 'Suggérer',         href: 'demande.hierarchie',         icon: '💡', always: true },
 ];
 
@@ -17,16 +17,13 @@ export default function EtudiantLayout({ children, title = 'Espace Étudiant' })
     const user = auth?.user;
     const [sidebarOpen, setSidebarOpen] = useState(true);
 
-    const hasStage           = etudiant_flags?.has_stage           ?? false;
-    const conventionComplete = etudiant_flags?.convention_complete ?? false;
-    const dossierValide      = etudiant_flags?.dossier_valide      ?? false;
+    const hasStage  = etudiant_flags?.has_stage   ?? false;
+    const stageActif = etudiant_flags?.stage_actif ?? false;
 
-    // "Mon dossier" → visible dès qu'un stage existe
-    // "Cahier de stage" → visible seulement quand convention complète ET dossier validé
     const visibleNavItems = ALL_NAV_ITEMS.filter(item => {
-        if (item.always)      return true;
-        if (item.needsStage)  return hasStage;
-        if (item.needsCahier) return conventionComplete && dossierValide;
+        if (item.always)           return true;
+        if (item.needsStage)       return hasStage;
+        if (item.needsStageActif)  return stageActif;
         return true;
     });
 

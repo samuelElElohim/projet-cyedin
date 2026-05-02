@@ -31,7 +31,7 @@ class Etudiant extends Model
 
     public function hasStage(): bool
     {
-        return $this->stages()->exists();
+        return $this->stages()->whereIn('etat', ['en_attente_convention', 'actif'])->exists();
     }
 
     public function dossier()

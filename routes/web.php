@@ -213,7 +213,10 @@ Route::middleware(['auth', 'role:S'])->prefix('etudiant')->name('etudiant.')->gr
     // AJOUT SIGNATURE CONVENTION
     Route::post('/convention/{stageId}/signer', [EtudiantDashboardController::class, 'signer_convention'])->name('convention.signer');
 
-    // Cahier de stage
+    // Mon Stage (accessible uniquement si stage actif)
+    Route::get('/stage',              [EtudiantDashboardController::class, 'mon_stage'])->name('mon.stage');
+
+    // Cahier de stage (toujours accessible via API, affiché dans Mon Stage)
     Route::get('/cahier',            [EtudiantDashboardController::class, 'cahier'])->name('cahier');
     Route::post('/cahier',           [EtudiantDashboardController::class, 'store_cahier'])->name('cahier.store');
     Route::delete('/cahier/{entree}', [EtudiantDashboardController::class, 'destroy_cahier'])->name('cahier.destroy');

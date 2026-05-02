@@ -41,19 +41,21 @@ private function getEtudiantFlags(Request $request): array
         if (!$user || $user->role !== 'S') {
             return [
                 'has_stage'           => false,
+                'stage_actif'         => false,
                 'convention_complete' => false,
                 'dossier_valide'      => false,
             ];
         }
 
         $stage = Stage::with('convention')
-            ->where('etudiant_id', $user->id)
+            ->where('etudiants_id', $user->id)
             ->latest('id')
             ->first();
 
         if (!$stage) {
             return [
                 'has_stage'           => false,
+                'stage_actif'         => false,
                 'convention_complete' => false,
                 'dossier_valide'      => false,
             ];
@@ -65,11 +67,12 @@ private function getEtudiantFlags(Request $request): array
             && $conv->signer_par_tuteur
             && $conv->signer_par_etudiant;
 
-        $dossier = Dossier_stage::where('etudiant_id', $user->id)->first();
+        $dossier = Dossier_stage::where('etudiants_id', $user->id)->first();
         $dossierValide = $dossier?->est_valide ?? false;
 
         return [
             'has_stage'           => true,
+            'stage_actif'         => $stage->etat === 'actif',
             'convention_complete' => $conventionComplete,
             'dossier_valide'      => $dossierValide,
         ];

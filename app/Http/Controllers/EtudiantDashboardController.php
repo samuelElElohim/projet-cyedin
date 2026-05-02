@@ -356,4 +356,39 @@ class EtudiantDashboardController extends Controller
             'filters'     => $request->only(['search', 'secteur']),
         ]);
     }
+
+    // ─── Mon Stage ───────────────────────────────────────────────────────────
+
+    public function mon_stage(): Response
+    {
+        $user = auth()->user();
+
+        $stage = $user->etudiant?->stages()
+            ->with(['entreprise', 'tuteur.utilisateur', 'convention'])
+            ->where('etat', 'actif')
+            ->latest('id')
+            ->first();
+
+        abort_unless($stage, 403, 'Aucun stage actif.');
+
+        $cahier = CahierStage::where('etudiant_id', $user->id)
+            ->orderBy('date_entree', 'desc')
+            ->get();
+
+        $missions = Remarque::pour('stage', $stage->id)
+            ->where('est_visible_etudiant', true)
+            ->with('auteur')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn($r) => array_merge($r->toArray(), [
+                'auteur_role' => $r->auteur?->role,
+                'auteur_nom'  => $r->auteur ? trim("{$r->auteur->prenom} {$r->auteur->nom}") : '—',
+            ]));
+
+        return Inertia::render('Etudiant/etudiant.mon.stage', [
+            'stage'    => $stage,
+            'cahier'   => $cahier,
+            'missions' => $missions,
+        ]);
+    }
 }
