@@ -73,16 +73,12 @@ class EtudiantDashboardController extends Controller
                 'cahier'       => $nbCahier,
                 'dossier_valide' => $dossier?->est_valide ?? false,
             ],
-            // Indique si l'étudiant a un tuteur (pour afficher le bouton de message)
             'has_tuteur'        => $stageEnCours && $stageEnCours->tuteurs_id !== null,
         ]);
     }
 
     // ─── Notifier le tuteur ──────────────────────────────────────────────────
 
-    /**
-     * Permet à l'étudiant d'envoyer un message d'avancement à son tuteur.
-     */
     public function notify_tuteur(Request $request): RedirectResponse
     {
         $user     = auth()->user();
@@ -101,13 +97,11 @@ class EtudiantDashboardController extends Controller
 
         abort_unless($stage && $stage->tuteurs_id, 422, 'Aucun tuteur assigné à votre stage.');
 
-        // Notification au tuteur
         Notification::create([
             'proprietaire_id' => $stage->tuteurs_id,
             'message'         => "📢 Message d'avancement de {$user->prenom} {$user->nom} : {$request->message}",
         ]);
 
-        // Aussi créer une remarque visible sur le stage pour traçabilité
         Remarque::create([
             'auteur_id'              => $user->id,
             'cible_type'             => 'stage',
@@ -219,6 +213,50 @@ class EtudiantDashboardController extends Controller
             'stage'     => $stage,
             'remarques' => $remarques,
         ]);
+    }
+
+    // ─── AJOUT SIGNATURE CONVENTION PAR L'ÉTUDIANT ───────────────────────────
+    public function signer_convention($stageId): RedirectResponse
+    {
+        $user = auth()->user();
+        $etudiant = $user->etudiant;
+        abort_unless($etudiant, 403, "Vous n'êtes pas un étudiant.");
+
+        $stage = $etudiant->stages()->where('stages.id', $stageId)->first();
+        abort_unless($stage, 404, "Stage non trouvé.");
+
+        $convention = $stage->convention;
+        abort_unless($convention, 404, "Aucune convention associée à ce stage.");
+
+        // Empêcher de signer plusieurs fois
+        if ($convention->signer_par_etudiant) {
+            return back()->with('error', 'Vous avez déjà signé cette convention.');
+        }
+
+        // Mettre à jour la signature
+        $convention->update(['signer_par_etudiant' => true]);
+
+        // Notifier le tuteur et l'entreprise
+        if ($stage->tuteurs_id) {
+            Notification::create([
+                'proprietaire_id' => $stage->tuteurs_id,
+                'message'         => "📄 L'étudiant {$user->prenom} {$user->nom} a signé la convention de stage.",
+            ]);
+        }
+        if ($stage->entreprises_id) {
+            Notification::create([
+                'proprietaire_id' => $stage->entreprises_id,
+                'message'         => "📄 L'étudiant {$user->prenom} {$user->nom} a signé la convention pour le stage \"{$stage->titre}\".",
+            ]);
+        }
+
+        TraceLogger::log('etudiant_signe_convention', [
+            'stage_id'        => $stage->id,
+            'etudiant_id'     => $user->id,
+            'convention_id'   => $convention->id,
+        ]);
+
+        return back()->with('success', 'Convention signée avec succès.');
     }
 
     // ─── Cahier de stage ─────────────────────────────────────────────────────

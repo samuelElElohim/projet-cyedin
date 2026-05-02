@@ -211,6 +211,9 @@ Route::middleware(['auth', 'role:S'])->prefix('etudiant')->name('etudiant.')->gr
     Route::get('/offres',       [EtudiantDashboardController::class, 'offres'])->name('offres');
     Route::get('/dossier',      [EtudiantDashboardController::class, 'dossier'])->name('dossier');
 
+    // AJOUT SIGNATURE CONVENTION
+    Route::post('/convention/{stageId}/signer', [EtudiantDashboardController::class, 'signer_convention'])->name('convention.signer');
+
     // Cahier de stage
     Route::get('/cahier',            [EtudiantDashboardController::class, 'cahier'])->name('cahier');
     Route::post('/cahier',           [EtudiantDashboardController::class, 'store_cahier'])->name('cahier.store');

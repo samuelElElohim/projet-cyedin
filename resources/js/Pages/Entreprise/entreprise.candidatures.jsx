@@ -6,6 +6,7 @@ const STATUT = {
     en_attente: { label: 'En attente', cls: 'bg-amber-100 text-amber-800' },
     acceptee:   { label: 'Acceptée',   cls: 'bg-green-100 text-green-800' },
     refusee:    { label: 'Refusée',    cls: 'bg-red-100 text-red-800' },
+    accepted_pending_choice: { label: 'En attente confirmation', cls: 'bg-blue-100 text-blue-800' },
 };
 
 const TYPE_ICONE = {
@@ -25,6 +26,11 @@ export default function EntrepriseCandidatures({ candidatures_par_offre = {}, of
 
     function accepter(id) { router.post(route('entreprise.candidatures.accepter', id)); }
     function refuser(id)  { router.post(route('entreprise.candidatures.refuser',  id)); }
+
+    function signerConvention(stageId) {
+        if (!confirm('Signer la convention de ce stage ?')) return;
+        router.post(route('entreprise.convention.signer', stageId));
+    }
 
     const offreIds = Object.keys(candidatures_par_offre);
 
@@ -70,6 +76,7 @@ export default function EntrepriseCandidatures({ candidatures_par_offre = {}, of
                                         const s = STATUT[c.statut] ?? STATUT.en_attente;
                                         const docs = c.documents_etudiant ?? [];
                                         const showDocs = openDocs[c.id];
+                                        const cv = c.convention_status;
 
                                         return (
                                             <div key={c.id} className="hover:bg-slate-50 transition">
@@ -152,6 +159,43 @@ export default function EntrepriseCandidatures({ candidatures_par_offre = {}, of
                                                         <p className="text-xs text-slate-500 italic line-clamp-2 pl-11">
                                                             "{c.lettre_motivation}"
                                                         </p>
+                                                    </div>
+                                                )}
+
+                                                {/* ── BLOC CONVENTION (si stage créé) ── */}
+                                                {cv && c.stage_id && (
+                                                    <div className="mx-4 mb-3 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                                                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-3">
+                                                            Convention de stage
+                                                        </p>
+                                                        <div className="flex gap-2 flex-wrap items-center">
+                                                            {[
+                                                                { label: 'Entreprise', signed: cv.entreprise },
+                                                                { label: 'Tuteur',     signed: cv.tuteur },
+                                                                { label: 'Étudiant',   signed: cv.etudiant },
+                                                            ].map(p => (
+                                                                <span key={p.label} className={`px-3 py-1.5 rounded-xl text-xs font-semibold ${
+                                                                    p.signed ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-500'
+                                                                }`}>
+                                                                    {p.signed ? '✓' : '○'} {p.label}
+                                                                </span>
+                                                            ))}
+
+                                                            {!cv.entreprise && (
+                                                                <button
+                                                                    onClick={() => signerConvention(c.stage_id)}
+                                                                    className="px-3 py-1.5 bg-amber-500 text-white text-xs font-semibold rounded-xl hover:bg-amber-600 transition"
+                                                                >
+                                                                    ✍ Signer la convention
+                                                                </button>
+                                                            )}
+
+                                                            {cv.complete && (
+                                                                <span className="px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-xl">
+                                                                    ✓ Convention complète
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 )}
 

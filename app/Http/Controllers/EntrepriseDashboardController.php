@@ -151,12 +151,41 @@ class EntrepriseDashboardController extends Controller
             ->whereHas('offre', fn($q) => $q->where('entreprise_id', $entreprise->id))
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($c) {
-                // Charger les documents du candidat
-                $c->documents_etudiant = Document::where('utilisateurs_id', $c->etudiant_id)
+            ->map(function ($c) use ($entreprise) {
+                $arr = $c->toArray();
+
+                // Documents du candidat
+                $arr['documents_etudiant'] = Document::where('utilisateurs_id', $c->etudiant_id)
                     ->orderBy('date_depot', 'desc')
-                    ->get(['id', 'nom', 'type', 'date_depot']);
-                return $c;
+                    ->get(['id', 'nom', 'type', 'date_depot'])
+                    ->toArray();
+
+                // Stage + convention
+                $arr['stage_id']          = null;
+                $arr['convention_status'] = null;
+
+                $stage = Stage::with('convention')
+                    ->where('etudiants_id', $c->etudiant_id)
+                    ->where('entreprises_id', $entreprise->id)
+                    ->latest('id')
+                    ->first();
+
+                if ($stage) {
+                    $arr['stage_id'] = $stage->id;
+                    $conv = $stage->convention;
+                    if ($conv) {
+                        $arr['convention_status'] = [
+                            'entreprise' => $conv->signer_par_entreprise,
+                            'tuteur'     => $conv->signer_par_tuteur,
+                            'etudiant'   => $conv->signer_par_etudiant,
+                            'complete'   => $conv->signer_par_entreprise
+                                         && $conv->signer_par_tuteur
+                                         && $conv->signer_par_etudiant,
+                        ];
+                    }
+                }
+
+                return $arr;
             })
             ->groupBy('offre_id');
 
@@ -167,6 +196,7 @@ class EntrepriseDashboardController extends Controller
             'offres'                 => $offres,
         ]);
     }
+
 
     // ─── Convention ──────────────────────────────────────────────────────────
 
