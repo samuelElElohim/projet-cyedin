@@ -81,43 +81,50 @@ class TuteurDashboardController extends Controller
 
     public function signer_convention($stageId): RedirectResponse
     {
-    $tuteur = auth()->user()->tuteur;
-    abort_unless($tuteur, 403);
+        $tuteur = auth()->user()->tuteur;
+        abort_unless($tuteur, 403);
 
-    $stage = Stage::findOrFail($stageId);
-    // Vérifier que ce tuteur est bien assigné à ce stage
-    abort_unless($stage->tuteurs_id === $tuteur->id, 403, "Vous n'êtes pas le tuteur de ce stage.");
+        $stage = Stage::findOrFail($stageId);
+        abort_unless((int) $stage->tuteurs_id === (int) $tuteur->utilisateurs_id, 403, "Vous n'êtes pas le tuteur de ce stage.");
 
-    $convention = $stage->convention;
-    abort_unless($convention, 404, "Aucune convention trouvée pour ce stage.");
+        $convention = $stage->convention;
+        abort_unless($convention, 404, "Aucune convention trouvée pour ce stage.");
 
-    if ($convention->signer_par_tuteur) {
-        return back()->with('error', 'Vous avez déjà signé cette convention.');
-    }
+        if ($convention->signer_par_tuteur) {
+            return back()->with('error', 'Vous avez déjà signé cette convention.');
+        }
 
-    $convention->update(['signer_par_tuteur' => true]);
+        $convention->update(['signer_par_tuteur' => true]);
+        $convention->refresh();
+        $convention->activerStageIfComplete();
 
-    // Notifier l'étudiant et l'entreprise
-    if ($stage->etudiants_id) {
-        Notification::create([
-            'proprietaire_id' => $stage->etudiants_id,
-            'message'         => "📄 Votre tuteur a signé la convention de stage.",
+        if ($stage->etudiants_id) {
+            Notification::create([
+                'proprietaire_id' => $stage->etudiants_id,
+                'message'         => "📄 Votre tuteur a signé la convention de stage.",
+            ]);
+        }
+        if ($stage->entreprises_id) {
+            Notification::create([
+                'proprietaire_id' => $stage->entreprises_id,
+                'message'         => "📄 Le tuteur a signé la convention pour le stage \"{$stage->sujet}\".",
+            ]);
+        }
+
+        if ($convention->estComplete()) {
+            Notification::create([
+                'proprietaire_id' => $stage->etudiants_id,
+                'message'         => "✅ Toutes les parties ont signé la convention. Votre stage est maintenant actif !",
+            ]);
+        }
+
+        TraceLogger::log('tuteur_signe_convention', [
+            'stage_id'      => $stage->id,
+            'tuteur_id'     => $tuteur->id,
+            'convention_id' => $convention->id,
         ]);
-    }
-    if ($stage->entreprises_id) {
-        Notification::create([
-            'proprietaire_id' => $stage->entreprises_id,
-            'message'         => "📄 Le tuteur a signé la convention pour le stage \"{$stage->sujet}\".",
-        ]);
-    }
 
-    TraceLogger::log('tuteur_signe_convention', [
-        'stage_id'      => $stage->id,
-        'tuteur_id'     => $tuteur->id,
-        'convention_id' => $convention->id,
-    ]);
-
-    return back()->with('success', 'Convention signée avec succès.');
+        return back()->with('success', 'Convention signée avec succès.');
     }
 
 

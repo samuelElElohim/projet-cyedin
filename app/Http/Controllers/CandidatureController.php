@@ -170,6 +170,16 @@ class CandidatureController extends Controller
             'sujet'            => $candidature->offre->titre,
             'duree_en_semaine' => $candidature->offre->duree_semaines,
             'dateDebut'        => $candidature->offre->dateDebut ?? now()->toDateString(),
+            'etat'             => 'en_attente_convention',
+        ]);
+
+        // Créer la convention de stage (en attente des 3 signatures)
+        \App\Models\Convention_stage::create([
+            'stages_id'             => $stage->id,
+            'date_creation'         => now()->toDateString(),
+            'signer_par_entreprise' => false,
+            'signer_par_tuteur'     => false,
+            'signer_par_etudiant'   => false,
         ]);
 
         // Créer le dossier de stage

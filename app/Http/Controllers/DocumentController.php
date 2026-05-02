@@ -99,6 +99,9 @@ class DocumentController extends Controller
                 ['est_valide' => false]
             );
             $dossier->documents()->syncWithoutDetaching([$document->id]);
+            if (!$dossier->date_soumission) {
+                $dossier->update(['date_soumission' => now()]);
+            }
         }
 
         TraceLogger::log('upload_document', ['user_id' => $user->id, 'doc' => $document->nom, 'categorie' => $categorie]);

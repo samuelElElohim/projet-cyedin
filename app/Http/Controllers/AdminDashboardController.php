@@ -326,7 +326,12 @@ class AdminDashboardController extends Controller
 
     public function index_dossier(Request $request)
     {
-        $query = Dossier_stage::with(['etudiant.utilisateur', 'documents'])
+        $query = Dossier_stage::with([
+                'etudiant.utilisateur',
+                'etudiant.filiere',
+                'etudiant.stages' => fn($q) => $q->with('convention')->latest('id'),
+                'documents',
+            ])
             ->orderBy('created_at', 'desc');
 
         if ($request->filled('statut')) {
@@ -366,6 +371,8 @@ class AdminDashboardController extends Controller
     {
         $query = Stage::with([
             'etudiant.utilisateur',
+            'etudiant.filiere',
+            'etudiant.dossier',
             'entreprise',
             'tuteur.utilisateur',
             'convention',
@@ -383,30 +390,49 @@ class AdminDashboardController extends Controller
             });
         }
 
-        if ($request->filled('convention')) {
-            $complet = $request->convention === 'complete';
-            $query->whereHas('convention', function ($q) use ($complet) {
-                $q->where('signer_par_entreprise', $complet)
-                  ->where('signer_par_tuteur', $complet)
-                  ->where('signer_par_etudiant', $complet);
-            });
+        if ($request->filled('statut') && $request->statut !== 'all') {
+            match ($request->statut) {
+                'complet'    => $query->where('etat', 'actif')
+                                      ->whereHas('etudiant.dossier', fn($q) => $q->where('est_valide', true)),
+                'actif'      => $query->where('etat', 'actif')
+                                      ->where(fn($q) => $q->whereDoesntHave('etudiant.dossier')
+                                          ->orWhereHas('etudiant.dossier', fn($dq) => $dq->where('est_valide', false))),
+                'en_attente' => $query->where('etat', 'en_attente_convention'),
+                default      => null,
+            };
         }
 
         $stages = $query->get()->map(function ($stage) {
             $conv = $stage->convention;
+            $conventionComplete = $conv
+                && $conv->signer_par_entreprise
+                && $conv->signer_par_tuteur
+                && $conv->signer_par_etudiant;
+
+            $dossierValide = $stage->etudiant?->dossier?->est_valide ?? false;
+
             $stage->convention_status = $conv ? [
                 'entreprise' => $conv->signer_par_entreprise,
                 'tuteur'     => $conv->signer_par_tuteur,
                 'etudiant'   => $conv->signer_par_etudiant,
-                'complete'   => $conv->signer_par_entreprise && $conv->signer_par_tuteur && $conv->signer_par_etudiant,
+                'complete'   => $conventionComplete,
             ] : null;
+
+            $stage->dossier_valide = $dossierValide;
+
+            $stage->statut_global = match(true) {
+                $conventionComplete && $dossierValide => 'complet',
+                $conventionComplete                   => 'actif',
+                default                               => 'en_attente',
+            };
+
             return $stage;
         });
 
         return Inertia::render('Admin/admin.index.stage', [
             'stages'  => $stages,
             'count'   => $stages->count(),
-            'filters' => $request->only(['search', 'convention']),
+            'filters' => $request->only(['search', 'statut']),
         ]);
     }
 

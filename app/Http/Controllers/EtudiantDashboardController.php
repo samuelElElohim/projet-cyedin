@@ -233,10 +233,10 @@ class EtudiantDashboardController extends Controller
             return back()->with('error', 'Vous avez déjà signé cette convention.');
         }
 
-        // Mettre à jour la signature
         $convention->update(['signer_par_etudiant' => true]);
+        $convention->refresh();
+        $convention->activerStageIfComplete();
 
-        // Notifier le tuteur et l'entreprise
         if ($stage->tuteurs_id) {
             Notification::create([
                 'proprietaire_id' => $stage->tuteurs_id,
@@ -246,7 +246,14 @@ class EtudiantDashboardController extends Controller
         if ($stage->entreprises_id) {
             Notification::create([
                 'proprietaire_id' => $stage->entreprises_id,
-                'message'         => "📄 L'étudiant {$user->prenom} {$user->nom} a signé la convention pour le stage \"{$stage->titre}\".",
+                'message'         => "📄 L'étudiant {$user->prenom} {$user->nom} a signé la convention pour le stage \"{$stage->sujet}\".",
+            ]);
+        }
+
+        if ($convention->estComplete()) {
+            Notification::create([
+                'proprietaire_id' => $user->id,
+                'message'         => "✅ Toutes les parties ont signé la convention. Votre stage est maintenant actif !",
             ]);
         }
 

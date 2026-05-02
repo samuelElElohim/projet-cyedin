@@ -16,7 +16,7 @@ export default function EtudiantDossier({ dossier, documents = [], stage, remarq
         const formData = new FormData();
         formData.append('fichier', data.fichier);
         formData.append('nom', 'Convention de stage');
-        formData.append('type', 'convention');
+        formData.append('categorie', 'convention');
 
         router.post(route('documents.store'), formData, {
             forceFormData: true,
@@ -113,8 +113,8 @@ export default function EtudiantDossier({ dossier, documents = [], stage, remarq
                         ))}
                     </div>
 
-                    {/* AJOUT : Bouton pour que l'étudiant signe */}
-                    {stage.convention && !stage.convention.signer_par_etudiant && (
+                    {stage.convention && !stage.convention.signer_par_etudiant
+                        && documents.some(d => d.categorie === 'convention') && (
                         <div className="mt-4 text-center">
                             <button
                                 onClick={handleSignConvention}
@@ -173,9 +173,9 @@ export default function EtudiantDossier({ dossier, documents = [], stage, remarq
                 )}
 
                 {/* Conventions déjà déposées */}
-                {documents.filter(d => d.type === 'convention').length > 0 && (
+                {documents.filter(d => d.categorie === 'convention').length > 0 && (
                     <div className="mt-4 space-y-2">
-                        {documents.filter(d => d.type === 'convention').map(doc => (
+                        {documents.filter(d => d.categorie === 'convention').map(doc => (
                             <div key={doc.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
                                 <div className="flex items-center gap-3">
                                     <span className="text-xl">📄</span>

@@ -15,6 +15,7 @@ class Stage extends Model
         'tuteurs_id',
         'duree_en_semaine',
         'dateDebut',
+        'etat',
     ];
 
     protected $guarded = ['id'];

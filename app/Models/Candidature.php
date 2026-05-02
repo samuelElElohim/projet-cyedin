@@ -16,6 +16,7 @@ class Candidature extends Model
     'chemin_lettre',
     'nom_lettre_original',
     'commentaire_entreprise',
+    'deadline_choix',
 ];
 
     protected $casts = [

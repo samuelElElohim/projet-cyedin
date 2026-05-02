@@ -2,33 +2,46 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 
+const STATUT = {
+    complet:    { label: '✅ Terminé',               cls: 'bg-green-100 text-green-800' },
+    actif:      { label: '🟢 Stage actif',            cls: 'bg-blue-100 text-blue-800' },
+    en_attente: { label: '⏳ En attente convention',  cls: 'bg-amber-100 text-amber-700' },
+};
+
 export default function AdminIndexStage({ stages = [], count = 0, filters = {} }) {
-    const [search, setSearch]       = useState(filters.search ?? '');
-    const [convention, setConvention] = useState(filters.convention ?? 'all');
+    const [search, setSearch]     = useState(filters.search ?? '');
+    const [statut, setStatut]     = useState(filters.statut ?? 'all');
+    const [openRows, setOpenRows] = useState({});
 
     function applyFilters(overrides = {}) {
         router.get(route('admin.index.stage'), {
-            search:     overrides.search     ?? search,
-            convention: overrides.convention ?? convention,
+            search: overrides.search ?? search,
+            statut: overrides.statut ?? statut,
         }, { preserveState: true, replace: true });
     }
 
-    const complete  = stages.filter(s => s.convention_status?.complete).length;
-    const enCours   = stages.filter(s => !s.convention_status?.complete).length;
+    function toggleRow(id) {
+        setOpenRows(prev => ({ ...prev, [id]: !prev[id] }));
+    }
+
+    const complet    = stages.filter(s => s.statut_global === 'complet').length;
+    const actif      = stages.filter(s => s.statut_global === 'actif').length;
+    const enAttente  = stages.filter(s => s.statut_global === 'en_attente').length;
 
     return (
         <AdminLayout title="Suivi des stages">
             <Head title="Stages — Admin" />
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-                <StatCard label="Total stages"          value={count}    color="blue" />
-                <StatCard label="Convention complète"   value={complete} color="green" />
-                <StatCard label="Convention incomplète" value={enCours}  color="amber" />
+            <div className="grid grid-cols-4 gap-4 mb-6">
+                <StatCard label="Total"            value={count}     color="blue" />
+                <StatCard label="Terminés"         value={complet}   color="green" />
+                <StatCard label="Stage actif"      value={actif}     color="indigo" />
+                <StatCard label="En attente conv." value={enAttente} color="amber" />
             </div>
 
             {/* Filtres */}
-            <div className="flex gap-3 mb-6">
+            <div className="flex gap-3 mb-6 flex-wrap">
                 <input
                     type="text"
                     placeholder="Étudiant, entreprise, sujet…"
@@ -39,90 +52,158 @@ export default function AdminIndexStage({ stages = [], count = 0, filters = {} }
                 />
                 <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
                     {[
-                        { value: 'all',      label: 'Tous' },
-                        { value: 'complete', label: 'Convention OK' },
-                        { value: 'pending',  label: 'En attente' },
+                        { value: 'all',        label: 'Tous' },
+                        { value: 'complet',    label: 'Terminés' },
+                        { value: 'actif',      label: 'Actifs' },
+                        { value: 'en_attente', label: 'En attente' },
                     ].map(f => (
-                        <button
-                            key={f.value}
-                            onClick={() => { setConvention(f.value); applyFilters({ convention: f.value }); }}
+                        <button key={f.value}
+                            onClick={() => { setStatut(f.value); applyFilters({ statut: f.value }); }}
                             className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
-                                convention === f.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'
-                            }`}
-                        >
+                                statut === f.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'
+                            }`}>
                             {f.label}
                         </button>
                     ))}
                 </div>
-                <button onClick={() => applyFilters()} className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition">
+                <button onClick={() => applyFilters()}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition">
                     Filtrer
                 </button>
             </div>
 
-            {/* Table */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                <table className="w-full text-left">
-                    <thead className="bg-gray-50 border-b border-gray-100">
-                        <tr>
-                            {['ID', 'Sujet', 'Étudiant', 'Entreprise', 'Tuteur', 'Durée', 'Convention', ''].map(h => (
-                                <th key={h} className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {stages.length === 0 ? (
-                            <tr>
-                                <td colSpan={8} className="px-4 py-10 text-center text-sm text-gray-400">Aucun stage trouvé.</td>
-                            </tr>
-                        ) : stages.map(stage => {
-                            const cv = stage.convention_status;
-                            return (
-                                <tr key={stage.id} className="border-t border-gray-50 hover:bg-gray-50">
-                                    <td className="px-4 py-3 text-sm text-gray-500">{stage.id}</td>
-                                    <td className="px-4 py-3 text-sm font-medium text-gray-900 max-w-[160px] truncate">{stage.sujet}</td>
-                                    <td className="px-4 py-3 text-sm text-gray-700">
-                                        {stage.etudiant?.utilisateur
-                                            ? `${stage.etudiant.utilisateur.nom} ${stage.etudiant.utilisateur.prenom ?? ''}`
-                                            : '—'}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-gray-700">{stage.entreprise?.nom_entreprise ?? '—'}</td>
-                                    <td className="px-4 py-3 text-sm text-gray-700">
-                                        {stage.tuteur?.utilisateur
-                                            ? `${stage.tuteur.utilisateur.nom} ${stage.tuteur.utilisateur.prenom ?? ''}`
-                                            : '—'}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-gray-600 text-center">{stage.duree_en_semaine} sem.</td>
-                                    <td className="px-4 py-3">
-                                        {cv ? (
-                                            <div className="flex gap-1">
-                                                <Sign label="E" signed={cv.entreprise} />
-                                                <Sign label="T" signed={cv.tuteur} />
-                                                <Sign label="É" signed={cv.etudiant} />
-                                            </div>
-                                        ) : (
-                                            <span className="text-xs text-gray-400">Pas de convention</span>
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        {cv?.complete ? (
-                                            <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-semibold">✓ Complète</span>
-                                        ) : (
-                                            <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-xs rounded-full font-semibold">En attente</span>
-                                        )}
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+            {/* Liste */}
+            <div className="space-y-3">
+                {stages.length === 0 ? (
+                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-10 text-center text-sm text-gray-400">
+                        Aucun stage trouvé.
+                    </div>
+                ) : stages.map(stage => {
+                    const u    = stage.etudiant?.utilisateur;
+                    const cv   = stage.convention_status;
+                    const open = openRows[stage.id] ?? false;
+                    const st   = STATUT[stage.statut_global] ?? STATUT.en_attente;
+
+                    return (
+                        <div key={stage.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                            {/* ── Ligne principale ── */}
+                            <div className="flex items-center gap-4 px-4 py-3 flex-wrap cursor-pointer hover:bg-slate-50 transition"
+                                onClick={() => toggleRow(stage.id)}>
+
+                                <span className="text-xs text-gray-400 w-6 shrink-0">#{stage.id}</span>
+
+                                {/* Étudiant */}
+                                <div className="flex-1 min-w-48">
+                                    <div className="text-sm font-semibold text-gray-900">
+                                        {u ? `${u.nom} ${u.prenom ?? ''}` : '—'}
+                                    </div>
+                                    <div className="text-xs text-gray-400 truncate max-w-xs">{stage.sujet}</div>
+                                </div>
+
+                                {/* Entreprise */}
+                                <span className="text-xs text-gray-600 bg-slate-50 px-2 py-1 rounded-lg shrink-0">
+                                    🏢 {stage.entreprise?.nom_entreprise ?? '—'}
+                                </span>
+
+                                {/* Durée */}
+                                <span className="text-xs text-gray-500 shrink-0">{stage.duree_en_semaine} sem.</span>
+
+                                {/* Convention mini-badges */}
+                                {cv ? (
+                                    <div className="flex gap-1 shrink-0">
+                                        <Sign label="E" signed={cv.entreprise} title="Entreprise" />
+                                        <Sign label="T" signed={cv.tuteur}     title="Tuteur" />
+                                        <Sign label="É" signed={cv.etudiant}   title="Étudiant" />
+                                    </div>
+                                ) : (
+                                    <span className="text-xs text-gray-300 shrink-0">—</span>
+                                )}
+
+                                {/* Dossier badge */}
+                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                                    stage.dossier_valide ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-500'
+                                }`}>
+                                    {stage.dossier_valide ? '📁 Dossier validé' : '📁 Dossier en attente'}
+                                </span>
+
+                                {/* Statut global */}
+                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg shrink-0 ${st.cls}`}>
+                                    {st.label}
+                                </span>
+
+                                <span className="text-slate-300 text-xs shrink-0">{open ? '▲' : '▼'}</span>
+                            </div>
+
+                            {/* ── Panneau dépliable ── */}
+                            {open && (
+                                <div className="border-t border-gray-50 bg-slate-50 px-4 py-4 grid md:grid-cols-2 gap-4">
+
+                                    {/* Infos stage */}
+                                    <div className="bg-white rounded-lg border border-slate-100 p-4">
+                                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Stage</p>
+                                        <dl className="space-y-1.5 text-sm">
+                                            <Row label="Sujet"     value={stage.sujet} />
+                                            <Row label="Étudiant"  value={u ? `${u.nom} ${u.prenom ?? ''}` : '—'} />
+                                            <Row label="Filière"   value={stage.etudiant?.filiere?.filiere ?? '—'} />
+                                            <Row label="Entreprise" value={stage.entreprise?.nom_entreprise ?? '—'} />
+                                            <Row label="Tuteur"    value={
+                                                stage.tuteur?.utilisateur
+                                                    ? `${stage.tuteur.utilisateur.nom} ${stage.tuteur.utilisateur.prenom ?? ''}`
+                                                    : '—'
+                                            } />
+                                            <Row label="Durée"     value={`${stage.duree_en_semaine} semaines`} />
+                                            <Row label="Début"     value={stage.dateDebut ?? '—'} />
+                                        </dl>
+                                    </div>
+
+                                    {/* Convention + dossier */}
+                                    <div className="space-y-3">
+                                        <div className="bg-white rounded-lg border border-slate-100 p-4">
+                                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Convention</p>
+                                            {cv ? (
+                                                <div className="space-y-2">
+                                                    {[
+                                                        { label: 'Entreprise', signed: cv.entreprise },
+                                                        { label: 'Tuteur',     signed: cv.tuteur },
+                                                        { label: 'Étudiant',   signed: cv.etudiant },
+                                                    ].map(p => (
+                                                        <div key={p.label} className="flex items-center justify-between">
+                                                            <span className="text-sm text-slate-600">{p.label}</span>
+                                                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                                                                p.signed ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-500'
+                                                            }`}>
+                                                                {p.signed ? '✓ Signé' : '○ En attente'}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="text-xs text-slate-400">Aucune convention enregistrée.</p>
+                                            )}
+                                        </div>
+
+                                        <div className="bg-white rounded-lg border border-slate-100 p-4">
+                                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Dossier</p>
+                                            <span className={`text-sm font-semibold ${
+                                                stage.dossier_valide ? 'text-green-700' : 'text-amber-600'
+                                            }`}>
+                                                {stage.dossier_valide ? '✅ Validé par l\'admin' : '⏳ En attente de validation'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
         </AdminLayout>
     );
 }
 
-function Sign({ label, signed }) {
+function Sign({ label, signed, title }) {
     return (
-        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${
+        <span title={title} className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${
             signed ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'
         }`}>
             {label}
@@ -130,8 +211,22 @@ function Sign({ label, signed }) {
     );
 }
 
+function Row({ label, value }) {
+    return (
+        <div className="flex gap-2">
+            <span className="text-slate-400 w-24 shrink-0">{label}</span>
+            <span className="text-slate-700 font-medium">{value}</span>
+        </div>
+    );
+}
+
 function StatCard({ label, value, color }) {
-    const colors = { blue: 'bg-blue-50 text-blue-700', green: 'bg-green-50 text-green-700', amber: 'bg-amber-50 text-amber-700' };
+    const colors = {
+        blue:   'bg-blue-50 text-blue-700',
+        green:  'bg-green-50 text-green-700',
+        amber:  'bg-amber-50 text-amber-700',
+        indigo: 'bg-indigo-50 text-indigo-700',
+    };
     return (
         <div className={`rounded-xl p-4 ${colors[color]}`}>
             <div className="text-2xl font-black">{value}</div>

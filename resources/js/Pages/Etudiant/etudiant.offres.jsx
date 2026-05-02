@@ -149,6 +149,8 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
 
                             {statut === 'acceptee' ? (
                                 <span className="w-full py-2 bg-green-100 text-green-800 text-xs font-bold rounded-xl text-center">✓ Candidature acceptée</span>
+                            ) : statut === 'accepted_pending_choice' ? (
+                                <span className="w-full py-2 bg-blue-100 text-blue-800 text-xs font-bold rounded-xl text-center">🎉 Acceptée — en attente de votre confirmation</span>
                             ) : statut === 'refusee' ? (
                                 <span className="w-full py-2 bg-red-50 text-red-600 text-xs font-bold rounded-xl text-center">✗ Candidature refusée</span>
                             ) : statut === 'en_attente' ? (
@@ -189,7 +191,7 @@ function CandidatureModal({ offre, etudiant, stash = [], onClose }) {
     const [lettreMode, setLettreMode] = useState('aucune');
     const [lettreDocId, setLettreDocId] = useState('');
 
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, processing, errors, reset } = useForm({
         offre_id:          offre.id,
         lettre_motivation: '',
     });
@@ -213,8 +215,7 @@ function CandidatureModal({ offre, etudiant, stash = [], onClose }) {
 
         if (lettreMode === 'stash' && lettreDocId) { fd.append('lettre_document_id', lettreDocId); }
 
-        post(route('etudiant.candidatures.store'), {
-            data: fd,
+        router.post(route('etudiant.candidatures.store'), fd, {
             forceFormData: true,
             onSuccess: () => { reset(); onClose(); },
         });

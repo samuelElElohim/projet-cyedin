@@ -208,26 +208,32 @@ class EntrepriseDashboardController extends Controller
             ->where('entreprises_id', $entreprise->id)
             ->firstOrFail();
 
-        $convention = Convention_stage::firstOrCreate(
-            ['stages_id' => $stage->id],
-            [
-                'signer_par_entreprise' => false,
-                'signer_par_tuteur'     => false,
-                'signer_par_etudiant'   => false,
-            ]
-        );
+        $convention = $stage->convention;
+        abort_unless($convention, 404, "Aucune convention trouvée pour ce stage.");
 
-        $convention->signer_par_entreprise = true;
-        $convention->save();
+        if ($convention->signer_par_entreprise) {
+            return back()->with('error', 'Vous avez déjà signé cette convention.');
+        }
+
+        $convention->update(['signer_par_entreprise' => true]);
+        $convention->refresh();
+        $convention->activerStageIfComplete();
 
         Notification::create([
             'proprietaire_id' => $stage->etudiants_id,
-            'message'         => "L'entreprise {$entreprise->nom_entreprise} a signé votre convention de stage.",
+            'message'         => "📄 L'entreprise {$entreprise->nom_entreprise} a signé votre convention de stage.",
         ]);
         if ($stage->tuteurs_id) {
             Notification::create([
                 'proprietaire_id' => $stage->tuteurs_id,
-                'message'         => "L'entreprise {$entreprise->nom_entreprise} a signé la convention du stage de l'étudiant #{$stage->etudiants_id}.",
+                'message'         => "📄 L'entreprise {$entreprise->nom_entreprise} a signé la convention de stage.",
+            ]);
+        }
+
+        if ($convention->estComplete()) {
+            Notification::create([
+                'proprietaire_id' => $stage->etudiants_id,
+                'message'         => "✅ Toutes les parties ont signé la convention. Votre stage est maintenant actif !",
             ]);
         }
 
