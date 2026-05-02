@@ -28,9 +28,9 @@ class ExpirerCandidatures extends Command
             ]);
 
             // Notifier l'entreprise
-            if ($candidature->offre->entreprise?->utilisateurs_id) {
+            if ($candidature->offre->entreprise?->utilisateur_id) {
                 Notification::create([
-                    'proprietaire_id' => $candidature->offre->entreprise->utilisateurs_id,
+                    'proprietaire_id' => $candidature->offre->entreprise->utilisateur_id,
                     'message'         => 'L\'étudiant n\'a pas répondu dans les délais pour « ' . $candidature->offre->titre . ' ».',
                 ]);
             }

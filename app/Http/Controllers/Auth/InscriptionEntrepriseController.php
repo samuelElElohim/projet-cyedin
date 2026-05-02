@@ -43,7 +43,7 @@ class InscriptionEntrepriseController extends Controller
         ]);
 
         Entreprise::create([
-            'utilisateurs_id' => $utilisateur->id,
+            'utilisateur_id' => $utilisateur->id,
             'nom_entreprise'  => $request->nom_entreprise,
             'addresse'        => $request->addresse,
             'secteur'         => $request->secteur,

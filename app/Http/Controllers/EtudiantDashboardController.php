@@ -98,7 +98,7 @@ class EtudiantDashboardController extends Controller
         abort_unless($stage && $stage->tuteur_id, 422, 'Aucun tuteur assigné à votre stage.');
 
         Notification::create([
-            'proprietaire_id' => $stage->tuteurs_id,
+            'proprietaire_id' => $stage->tuteur_id,
             'message'         => "📢 Message d'avancement de {$user->prenom} {$user->nom} : {$request->message}",
         ]);
 
@@ -113,7 +113,7 @@ class EtudiantDashboardController extends Controller
 
         TraceLogger::log('notify_tuteur', [
             'etudiant_id' => $user->id,
-            'tuteur_id'   => $stage->tuteurs_id,
+            'tuteur_id'   => $stage->tuteur_id,
             'stage_id'    => $stage->id,
         ]);
 
@@ -239,7 +239,7 @@ class EtudiantDashboardController extends Controller
 
         $stage = $etudiant?->stages()
             ->with('tuteur.utilisateur')
-            ->whereNotNull('tuteurs_id')
+            ->whereNotNull('tuteur_id')
             ->latest('id')
             ->first();
 
@@ -249,7 +249,7 @@ class EtudiantDashboardController extends Controller
 
         return Inertia::render('Etudiant/etudiant.cahier', [
             'entrees'    => $entrees,
-            'has_tuteur' => $stage && $stage->tuteurs_id !== null,
+            'has_tuteur' => $stage && $stage->tuteur_id !== null,
             'tuteur_nom' => $stage?->tuteur?->utilisateur
                 ? trim($stage->tuteur->utilisateur->prenom . ' ' . $stage->tuteur->utilisateur->nom)
                 : null,

@@ -114,7 +114,7 @@ class CandidatureController extends Controller
 
         if ($request->filled('lettre_document_id')) {
             $doc = Document::where('id', $request->lettre_document_id)
-                ->where('utilisateurs_id', $etudiantId)
+                ->where('utilisateur_id', $etudiantId)
                 ->firstOrFail();
             $lettrePath = $doc->chemin_fichier;
             $lettreName = $doc->nom;
@@ -210,9 +210,9 @@ class CandidatureController extends Controller
         });
 
         // Notifications et trace HORS transaction (effets de bord)
-        if ($candidature->offre->entreprise?->utilisateurs_id) {
+        if ($candidature->offre->entreprise?->utilisateur_id) {
             Notification::create([
-                'proprietaire_id' => $candidature->offre->entreprise->utilisateurs_id,
+                'proprietaire_id' => $candidature->offre->entreprise->utilisateur_id,
                 'message'         => 'L\'étudiant a confirmé sa candidature pour « ' . $candidature->offre->titre . ' ».',
             ]);
         }

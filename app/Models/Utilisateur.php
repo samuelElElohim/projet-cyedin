@@ -89,7 +89,7 @@ class Utilisateur extends Authenticatable implements MustVerifyEmail
 
     public function administrateur()
     {
-        return $this->hasOne(Administrateur::class, 'utilisateur_id');
+        return $this->hasOne(Administrateur::class, 'utilisateurs_id');
     }
 
     // ajouter les autres profils (tuteur, jury) 

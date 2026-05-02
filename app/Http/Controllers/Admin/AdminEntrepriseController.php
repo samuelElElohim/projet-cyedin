@@ -15,7 +15,7 @@ class AdminEntrepriseController extends Controller
 {
     public function index(): Response
     {
-        $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateurs_id')->get();
+        $entreprises = Entreprise::with('utilisateur')->orderBy('utilisateur_id')->get();
 
         return Inertia::render('Admin/admin.index.entreprise', [
             'entreprise' => $entreprises,
@@ -34,7 +34,7 @@ class AdminEntrepriseController extends Controller
             'nom_entreprise'  => 'required|string|max:255',
             'addresse'        => 'required|string|max:255',
             'secteur'         => 'required|string|max:255',
-            'utilisateurs_id' => 'required|integer',
+            'utilisateur_id' => 'required|integer',
         ]);
 
         Entreprise::create($validated);

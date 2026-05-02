@@ -77,13 +77,13 @@ class AdminUserController extends Controller
         match ($validated['role']) {
             'A' => Administrateur::create(['utilisateurs_id' => $utilisateur->id]),
             'S' => Etudiant::create([
-                'utilisateurs_id' => $utilisateur->id,
+                'utilisateur_id' => $utilisateur->id,
                 'filiere_id'      => $validated['filiere_id'],
                 'niveau_etud'     => $validated['niveau_etud'],
             ]),
             'E' => (function () use ($utilisateur, $validated, $secteursIds) {
                 $entreprise = Entreprise::create([
-                    'utilisateurs_id' => $utilisateur->id,
+                    'utilisateur_id' => $utilisateur->id,
                     'nom_entreprise'  => $validated['nom'],
                     'addresse'        => $validated['addresse'],
                 ]);
@@ -93,7 +93,7 @@ class AdminUserController extends Controller
             })(),
             'T' => (function () use ($utilisateur, $validated, $secteursIds) {
                 $tuteur = Tuteur::create([
-                    'utilisateurs_id' => $utilisateur->id,
+                    'utilisateur_id' => $utilisateur->id,
                     'filiere_id'      => $validated['filiere_id_tuteur'] ?? null,
                 ]);
                 $tuteur->secteurs()->sync($secteursIds);
@@ -126,18 +126,18 @@ class AdminUserController extends Controller
 
         match ($request->role) {
             'E' => (function () use ($request, $id, $secteursIds) {
-                $entreprise = Entreprise::where('utilisateurs_id', $id)->firstOrFail();
+                $entreprise = Entreprise::where('utilisateur_id', $id)->firstOrFail();
                 $entreprise->update(['addresse' => $request->addresse]);
                 $entreprise->secteurs()->sync($secteursIds);
                 $filiereIds = Secteur::whereIn('id', $secteursIds)->pluck('filiere_id')->unique()->toArray();
                 $entreprise->filieres()->sync($filiereIds);
             })(),
             'T' => (function () use ($request, $id, $secteursIds) {
-                $tuteur = Tuteur::where('utilisateurs_id', $id)->firstOrFail();
+                $tuteur = Tuteur::where('utilisateur_id', $id)->firstOrFail();
                 $tuteur->update(['filiere_id' => $request->filiere_id]);
                 $tuteur->secteurs()->sync($secteursIds);
             })(),
-            'S' => Etudiant::where('utilisateurs_id', $id)->update([
+            'S' => Etudiant::where('utilisateur_id', $id)->update([
                 'filiere_id'  => $request->filiere_id,
                 'niveau_etud' => $request->niveau_etud,
             ]),

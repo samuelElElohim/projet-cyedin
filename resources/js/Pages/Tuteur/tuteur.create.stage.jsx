@@ -4,8 +4,8 @@ import { Head, Link, useForm } from '@inertiajs/react';
 export default function TuteurCreateStage({ etudiants = [], entreprises = [] }) {
     const { data, setData, post, processing, errors } = useForm({
         sujet:            '',
-        etudiants_id:     '',
-        entreprises_id:   '',
+        etudiant_id:     '',
+        entreprise_id:   '',
         duree_en_semaine: '',
         dateDebut:        new Date().toISOString().slice(0, 10),
     });
@@ -28,8 +28,8 @@ export default function TuteurCreateStage({ etudiants = [], entreprises = [] }) 
                     <h2 className="text-base font-semibold text-slate-900 mb-6">Nouveau stage</h2>
 
                     <form onSubmit={submit} className="space-y-4">
-                        <Field label="Étudiant *" error={errors.etudiants_id}>
-                            <select value={data.etudiants_id} onChange={e => setData('etudiants_id', e.target.value)} required
+                        <Field label="Étudiant *" error={errors.etudiant_id}>
+                            <select value={data.etudiant_id} onChange={e => setData('etudiant_id', e.target.value)} required
                                 className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-100">
                                 <option value="">— Choisir un étudiant —</option>
                                 {etudiants.map(etu => (
@@ -40,8 +40,8 @@ export default function TuteurCreateStage({ etudiants = [], entreprises = [] }) 
                             </select>
                         </Field>
 
-                        <Field label="Entreprise *" error={errors.entreprises_id}>
-                            <select value={data.entreprises_id} onChange={e => setData('entreprises_id', e.target.value)} required
+                        <Field label="Entreprise *" error={errors.entreprise_id}>
+                            <select value={data.entreprise_id} onChange={e => setData('entreprise_id', e.target.value)} required
                                 className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-100">
                                 <option value="">— Choisir une entreprise —</option>
                                 {entreprises.map(ent => (

@@ -48,7 +48,7 @@ private function getEtudiantFlags(Request $request): array
         }
 
         $stage = Stage::with('convention')
-            ->where('etudiants_id', $user->id)
+            ->where('etudiant_id', $user->id)
             ->latest('id')
             ->first();
 
@@ -67,7 +67,7 @@ private function getEtudiantFlags(Request $request): array
             && $conv->signer_par_tuteur
             && $conv->signer_par_etudiant;
 
-        $dossier = Dossier_stage::where('etudiants_id', $user->id)->first();
+        $dossier = Dossier_stage::where('etudiant_id', $user->id)->first();
         $dossierValide = $dossier?->est_valide ?? false;
 
         return [

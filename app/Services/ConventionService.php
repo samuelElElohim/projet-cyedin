@@ -73,19 +73,19 @@ class ConventionService
 
         $msg = "📄 {$label} a signé la convention pour le stage « {$stage->sujet} ».";
 
-        if ($stage->etudiants_id && $role !== 'etudiant') {
-            Notification::create(['proprietaire_id' => $stage->etudiants_id, 'message' => $msg]);
+        if ($stage->etudiant_id && $role !== 'etudiant') {
+            Notification::create(['proprietaire_id' => $stage->etudiant_id, 'message' => $msg]);
         }
-        if ($stage->tuteurs_id && $role !== 'tuteur') {
-            Notification::create(['proprietaire_id' => $stage->tuteurs_id, 'message' => $msg]);
+        if ($stage->tuteur_id && $role !== 'tuteur') {
+            Notification::create(['proprietaire_id' => $stage->tuteur_id, 'message' => $msg]);
         }
-        if ($stage->entreprises_id && $role !== 'entreprise') {
-            Notification::create(['proprietaire_id' => $stage->entreprises_id, 'message' => $msg]);
+        if ($stage->entreprise_id && $role !== 'entreprise') {
+            Notification::create(['proprietaire_id' => $stage->entreprise_id, 'message' => $msg]);
         }
 
         if ($convention->estComplete()) {
             Notification::create([
-                'proprietaire_id' => $stage->etudiants_id,
+                'proprietaire_id' => $stage->etudiant_id,
                 'message'         => '✅ Toutes les parties ont signé la convention. Votre stage est maintenant actif !',
             ]);
         }

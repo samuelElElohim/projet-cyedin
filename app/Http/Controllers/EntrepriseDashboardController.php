@@ -244,7 +244,7 @@ class EntrepriseDashboardController extends Controller
         ]);
 
         Notification::create([
-            'proprietaire_id' => $stage->etudiants_id,
+            'proprietaire_id' => $stage->etudiant_id,
             'message'         => "L'entreprise {$entreprise->nom_entreprise} vous a attribué une nouvelle mission.",
         ]);
 

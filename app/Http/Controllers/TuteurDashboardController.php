@@ -30,7 +30,7 @@ class TuteurDashboardController extends Controller
             'entreprise',
             'convention',
         ])
-            ->where('tuteurs_id', $tuteur->utilisateurs_id)
+            ->where('tuteur_id', $tuteur->utilisateur_id)
             ->orderBy('id', 'desc')
             ->get()
             ->map(function ($stage) {
@@ -44,7 +44,7 @@ class TuteurDashboardController extends Controller
         ->get()
         ->map(function ($e) {
             return [
-                'id' => $e->utilisateurs_id,
+                'id' => $e->utilisateur_id,
                 'nom' => $e->utilisateur->nom,
                 'prenom' => $e->utilisateur->prenom,
                 'email' => $e->utilisateur->email,
@@ -79,7 +79,7 @@ class TuteurDashboardController extends Controller
         abort_unless($tuteur, 403);
 
         $stage = Stage::findOrFail($stageId);
-        abort_unless((int) $stage->tuteurs_id === (int) $tuteur->utilisateurs_id, 403, "Vous n'êtes pas le tuteur de ce stage.");
+        abort_unless((int) $stage->tuteur_id === (int) $tuteur->utilisateur_id, 403, "Vous n'êtes pas le tuteur de ce stage.");
 
         $result = app(\App\Services\ConventionService::class)->sign($stage, 'tuteur', auth()->id());
 
@@ -97,8 +97,8 @@ class TuteurDashboardController extends Controller
         abort_unless($tuteur, 403);
 
         // Vérifier que cet étudiant est bien assigné à ce tuteur
-        $stage = Stage::where('tuteurs_id', $tuteur->utilisateurs_id)
-            ->where('etudiants_id', $etudiantId)
+        $stage = Stage::where('tuteur_id', $tuteur->utilisateur_id)
+            ->where('etudiant_id', $etudiantId)
             ->with('etudiant.utilisateur', 'entreprise')
             ->firstOrFail();
 
@@ -120,12 +120,12 @@ class TuteurDashboardController extends Controller
         $tuteur = auth()->user()->tuteur;
         abort_unless($tuteur, 403);
 
-        $stage = Stage::where('tuteurs_id', $tuteur->utilisateurs_id)
-            ->where('etudiants_id', $etudiantId)
+        $stage = Stage::where('tuteur_id', $tuteur->utilisateur_id)
+            ->where('etudiant_id', $etudiantId)
             ->with('etudiant.utilisateur', 'entreprise')
             ->firstOrFail();
 
-        $documents = Document::where('utilisateurs_id', $etudiantId)
+        $documents = Document::where('utilisateur_id', $etudiantId)
             ->orderBy('date_depot', 'desc')
             ->get();
 
@@ -155,7 +155,7 @@ class TuteurDashboardController extends Controller
             ->get();
 
         $entreprises = \App\Models\Entreprise::where(
-            'utilisateurs_id',
+            'utilisateur_id',
             \App\Models\Utilisateur::where('role', 'E')->where('est_active', true)->pluck('id')
         )->get();
 
@@ -172,20 +172,20 @@ class TuteurDashboardController extends Controller
 
         $validated = $request->validate([
             'sujet'          => 'required|string|max:255',
-            'etudiants_id'   => 'required|integer|exists:etudiants,utilisateurs_id',
-            'entreprises_id' => 'required|integer|exists:entreprises,id',
+            'etudiant_id'   => 'required|integer|exists:etudiants,utilisateur_id',
+            'entreprise_id' => 'required|integer|exists:entreprises,id',
             'duree_en_semaine' => 'required|integer|min:1|max:52',
             'dateDebut'      => 'required|date',
         ]);
 
         $stage = Stage::create([
             ...$validated,
-            'tuteurs_id' => $tuteur->utilisateurs_id,
+            'tuteur_id' => $tuteur->utilisateur_id,
         ]);
 
         // Créer la convention associée
         Convention_stage::create([
-            'stages_id'             => $stage->id,
+            'stage_id'             => $stage->id,
             'signer_par_entreprise' => false,
             'signer_par_tuteur'     => false,
             'signer_par_etudiant'   => false,
@@ -193,14 +193,14 @@ class TuteurDashboardController extends Controller
 
         // Notifier l'étudiant
         Notification::create([
-            'proprietaire_id' => $validated['etudiants_id'],
+            'proprietaire_id' => $validated['etudiant_id'],
             'message'         => "Un stage a été créé pour vous : « {$validated['sujet']} ». La convention est en attente de signature.",
         ]);
 
         TraceLogger::log('store_stage', [
-            'tuteur_id'  => $tuteur->utilisateurs_id,
+            'tuteur_id'  => $tuteur->utilisateur_id,
             'stage_id'   => $stage->id,
-            'etudiant'   => $validated['etudiants_id'],
+            'etudiant'   => $validated['etudiant_id'],
         ]);
 
         return redirect()->route('tuteur.dashboard')->with('success', 'Stage créé avec succès.');
@@ -240,13 +240,13 @@ class TuteurDashboardController extends Controller
     $etudiants = Etudiant::with(['utilisateur', 'filiere'])
         ->get()
         ->map(fn ($e) => [
-            'id'      => $e->utilisateurs_id,
+            'id'      => $e->utilisateur_id,
             'nom'     => $e->utilisateur->nom,
             'prenom'  => $e->utilisateur->prenom,
             'email'   => $e->utilisateur->email,
             'filiere' => $e->filiere?->filiere,
             'niveau'  => $e->niveau_etud,
-            'suivi'   => $tuteur->etudiants->contains('utilisateurs_id', $e->utilisateurs_id),
+            'suivi'   => $tuteur->etudiants->contains('utilisateur_id', $e->utilisateur_id),
         ]);
 
     return Inertia::render('Tuteur/tuteur.etudiant.follow', [
@@ -257,7 +257,7 @@ class TuteurDashboardController extends Controller
     public function suivre(Etudiant $etudiant): RedirectResponse
     {
         $tuteur = auth()->user()->tuteur;
-        $tuteur->etudiants()->syncWithoutDetaching([$etudiant->utilisateurs_id]);
+        $tuteur->etudiants()->syncWithoutDetaching([$etudiant->utilisateur_id]);
 
         return back()->with('success', 'Étudiant ajouté à votre suivi.');
     }
@@ -265,7 +265,7 @@ class TuteurDashboardController extends Controller
     public function retirer(Etudiant $etudiant): RedirectResponse
     {
         $tuteur = auth()->user()->tuteur;
-        $tuteur->etudiants()->detach($etudiant->utilisateurs_id);
+        $tuteur->etudiants()->detach($etudiant->utilisateur_id);
 
         return back()->with('success', 'Étudiant retiré de votre suivi.');
     }

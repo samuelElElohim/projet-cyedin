@@ -90,7 +90,7 @@ class JuryDashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
  
-        $cahier = CahierStage::where('etudiant_id', $dossier->etudiants_id)
+        $cahier = CahierStage::where('etudiant_id', $dossier->etudiant_id)
             ->visibleJury()
             ->orderBy('date_entree', 'desc')
             ->get();
@@ -123,7 +123,7 @@ class JuryDashboardController extends Controller
 
         // Terminer le stage et archiver
         $stage = Stage::with(['convention', 'entreprise', 'tuteur.utilisateur'])
-            ->where('etudiants_id', $dossier->etudiants_id)
+            ->where('etudiant_id', $dossier->etudiant_id)
             ->where('etat', 'actif')
             ->latest('id')
             ->first();
@@ -134,7 +134,7 @@ class JuryDashboardController extends Controller
         }
 
         Notification::create([
-            'proprietaire_id' => $dossier->etudiants_id,
+            'proprietaire_id' => $dossier->etudiant_id,
             'message'         => 'Votre dossier de stage a été validé par le jury. Félicitations !',
         ]);
 
@@ -150,7 +150,7 @@ class JuryDashboardController extends Controller
             'stage'       => $stage->toArray(),
             'dossier'     => $dossier->toArray(),
             'documents'   => $dossier->documents->toArray(),
-            'cahier'      => CahierStage::where('etudiant_id', $stage->etudiants_id)->get()->toArray(),
+            'cahier'      => CahierStage::where('etudiant_id', $stage->etudiant_id)->get()->toArray(),
             'remarques'   => Remarque::pour('stage', $stage->id)->with('auteur')->get()->toArray(),
         ];
 
@@ -167,7 +167,7 @@ class JuryDashboardController extends Controller
         $dossier->save();
 
         Notification::create([
-            'proprietaire_id' => $dossier->etudiants_id,
+            'proprietaire_id' => $dossier->etudiant_id,
             'message'         => 'Votre dossier de stage a été retourné par le jury. Consultez les remarques.',
         ]);
 

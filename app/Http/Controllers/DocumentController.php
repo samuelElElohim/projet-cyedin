@@ -85,7 +85,7 @@ class DocumentController extends Controller
         $chemin     = $fichier->storeAs("documents/{$user->id}", $nomFichier, 'local');
 
         $document = Document::create([
-            'utilisateurs_id' => $user->id,
+            'utilisateur_id' => $user->id,
             'nom'             => $request->nom ?: $fichier->getClientOriginalName(),
             'type'            => $fichier->getClientMimeType(),
             'categorie'       => $categorie,
@@ -95,7 +95,7 @@ class DocumentController extends Controller
         // Rattacher au dossier de stage si convention
         if ($user->role === 'S' && $categorie === 'convention') {
             $dossier = Dossier_stage::firstOrCreate(
-                ['etudiants_id' => $user->id],
+                ['etudiant_id' => $user->id],
                 ['est_valide' => false]
             );
             $dossier->documents()->syncWithoutDetaching([$document->id]);
@@ -117,7 +117,7 @@ class DocumentController extends Controller
         abort_unless($document->utilisateur_id === $user->id, 403);
         abort_unless($user->role === 'S', 403);
 
-        Etudiant::where('utilisateurs_id', $user->id)->update([
+        Etudiant::where('utilisateur_id', $user->id)->update([
             'chemin_cv' => $document->chemin_fichier,
             'nom_cv'    => $document->nom,
         ]);
@@ -186,7 +186,7 @@ class DocumentController extends Controller
 
         if ($user->role === 'T') {
             $tuteur = $user->tuteur;
-            abort_unless($tuteur && $tuteur->stages()->where('etudiants_id', $document->utilisateur_id)->exists(), 403);
+            abort_unless($tuteur && $tuteur->stages()->where('etudiant_id', $document->utilisateur_id)->exists(), 403);
             return;
         }
 

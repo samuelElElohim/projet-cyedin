@@ -40,7 +40,7 @@ class Convention_stage extends Model
 
         $stage->update(['etat' => 'actif']);
 
-        Dossier_stage::where('etudiants_id', $stage->etudiants_id)
+        Dossier_stage::where('etudiant_id', $stage->etudiant_id)
             ->update(['est_valide' => true, 'date_soumission' => now()]);
     }
 

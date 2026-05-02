@@ -9,7 +9,7 @@ export default function TuteurDashboard({ tuteur, stages = [], notifications = [
 
     // Étudiants suivis sans stage
     const suivisSansStage = etudiantsSuivis.filter(e =>
-        !stages.some(s => s.etudiants_id === e.id)
+        !stages.some(s => s.etudiant_id === e.id)
     );
 
 
@@ -68,11 +68,11 @@ export default function TuteurDashboard({ tuteur, stages = [], notifications = [
                                 ✍ Signer convention
                             </button>
                         )}
-                        <Link href={route('tuteur.cahier', { etudiantId: stage.etudiants_id })}
+                        <Link href={route('tuteur.cahier', { etudiantId: stage.etudiant_id })}
                             className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg hover:bg-blue-100 transition">
                             📓 Cahier
                         </Link>
-                        <Link href={route('tuteur.etudiant', { etudiantId: stage.etudiants_id })}
+                        <Link href={route('tuteur.etudiant', { etudiantId: stage.etudiant_id })}
                             className="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-200 transition">
                             📄 Documents & Remarques
                         </Link>

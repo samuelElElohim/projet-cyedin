@@ -59,7 +59,7 @@ export default function TuteurEtudiant({ stage, documents = [], remarques = [] }
                     </div>
                 </div>
                 <Link
-                    href={route('tuteur.cahier', { etudiantId: stage?.etudiants_id })}
+                    href={route('tuteur.cahier', { etudiantId: stage?.etudiant_id })}
                     className="ml-auto px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-xl hover:bg-blue-100 transition"
                 >
                     📓 Cahier de stage

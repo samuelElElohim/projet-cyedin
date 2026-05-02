@@ -221,18 +221,18 @@ class AdminImportController extends Controller
         match ($user->role) {
             'A' => Administrateur::create(['utilisateurs_id' => $user->id]),
             'S' => Etudiant::create([
-                        'utilisateurs_id' => $user->id,
+                        'utilisateur_id' => $user->id,
                         'filiere'         => $row['filiere'],
                         'niveau_etud'     => (int) $row['niveau_etud'],
                     ]),
             'E' => Entreprise::create([
-                        'utilisateurs_id' => $user->id,
+                        'utilisateur_id' => $user->id,
                         'nom_entreprise'  => $row['nom'],
                         'addresse'        => $row['addresse'],
                         'secteur'         => $row['secteur'],
                     ]),
             'T' => Tuteur::create([
-                        'utilisateurs_id' => $user->id,
+                        'utilisateur_id' => $user->id,
                         'departement'     => $row['departement'],
                     ]),
             default => null,

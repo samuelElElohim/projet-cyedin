@@ -11,7 +11,7 @@ class CandidaturePolicy
     {
         return $user->role === 'A'
             || $candidature->etudiant_id === $user->id
-            || $candidature->offre?->entreprise?->utilisateurs_id === $user->id;
+            || $candidature->offre?->entreprise?->utilisateur_id === $user->id;
     }
 
     public function destroy(Utilisateur $user, Candidature $candidature): bool
