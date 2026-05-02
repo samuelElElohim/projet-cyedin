@@ -11,8 +11,10 @@ class Etudiant extends Model
     public $incrementing = false;
     protected $fillable = [
         'utilisateurs_id',
-        'filiere',
+        'filiere_id',
         'niveau_etud',
+        'chemin_cv',
+        'nom_cv',
     ];
 
 
@@ -27,9 +29,37 @@ class Etudiant extends Model
         return $this->hasMany(Stage::class, 'etudiants_id', 'utilisateurs_id');
     }
 
+    public function hasStage(): bool
+    {
+        return $this->stages()->exists();
+    }
+
     public function dossier()
     {
         return $this->hasOne(Dossier_stage::class, 'etudiants_id', 'utilisateurs_id');
+    }
+
+    public function filiere()
+    {
+        return $this->belongsTo(Filiere::class);
+    }
+
+    public function tuteur()
+    {
+        return $this->belongsToMany(
+            Tuteur::class,
+            'tuteur_etudiant',
+            'etudiant_id',
+            'tuteur_id',
+            'utilisateurs_id',
+            'utilisateurs_id'
+        )->withTimestamps();
+    }
+
+    // Utilitaire pour vérifier si l'étudiant a un tuteur assigné
+    public function hasTuteur(): bool
+    {
+        return $this->tuteur()->exists();
     }
 
 

@@ -4,28 +4,48 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-
 class Offre extends Model
 {
-   protected $fillable = [
-    'titre', 'description','entreprise_id', 'duree_semaines'
-   ] ;
+    protected $fillable = [
+        'titre', 'description', 'entreprise_id',
+        'duree_semaines', 'filiere_id', 'secteur_id', 'dateDebut',
+    ];
 
-   public function entreprise(){
-      return $this->belongsTo(Entreprise::class, 'entreprise_id');
+    public function entreprise()
+    {
+        return $this->belongsTo(Entreprise::class, 'entreprise_id');
     }
 
+    public function filiere()
+    {
+        return $this->belongsTo(Filiere::class);
+    }
 
-    //scopes
+    public function secteur()
+    {
+        return $this->belongsTo(Secteur::class);
+    }
 
-    // Scope pour filtrer les offres récentes (par défaut, les offres créées dans les 30 derniers jours)
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'offres_tags');
+    }
+
+    public function candidatures()
+    {
+        return $this->hasMany(\App\Models\Candidature::class, 'offre_id');
+    }
+
+    public function remarques()
+    {
+        return $this->morphMany(\App\Models\Remarque::class, 'cible');
+    }
+
     public function scopeRecente($query, int $jours = 30)
     {
         return $query->where('created_at', '>=', now()->subDays($jours));
     }
 
-
-   // Scope pour filtrer les offres par secteur d'activité de l'entreprise
     public function scopeDureeMax($query, int $semaines)
     {
         return $query->where('duree_semaines', '<=', $semaines);

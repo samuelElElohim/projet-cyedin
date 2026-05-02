@@ -4,22 +4,26 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Convention_stage extends Model  // probleme de extends, Model au lieu de Stage
+class Convention_stage extends Model
 {
-    
-    protected $fillable = ['stages_id', 'date_creation', 'signer_par_entreprise', 'signer_par_tuteur', 'signer_par_etudiant'];
+    public $timestamps   = false;
+    public $incrementing = false;
+    protected $primaryKey = 'stages_id';
 
+    protected $fillable = [
+        'stages_id',
+        'date_creation',
+        'signer_par_entreprise',
+        'signer_par_tuteur',
+        'signer_par_etudiant',
+    ];
 
-    // une convention appartient un stage
     public function stage()
     {
         return $this->belongsTo(Stage::class, 'stages_id');
     }
 
-
-    //scopes
-
-    // Scope pour les conventions completes
+    // Scopes
     public function scopeComplete($query)
     {
         return $query->where('signer_par_entreprise', true)
@@ -27,7 +31,6 @@ class Convention_stage extends Model  // probleme de extends, Model au lieu de S
                      ->where('signer_par_etudiant', true);
     }
 
-    // Scope pour les conventions en attente de signature
     public function scopeEnAttente($query)
     {
         return $query->where(fn($q) =>
@@ -37,10 +40,8 @@ class Convention_stage extends Model  // probleme de extends, Model au lieu de S
         );
     }
 
-    // Scope pour les conventions signees par l'etudiant
     public function scopeSigneeParEtudiant($query)
     {
         return $query->where('signer_par_etudiant', true);
     }
-    
 }
