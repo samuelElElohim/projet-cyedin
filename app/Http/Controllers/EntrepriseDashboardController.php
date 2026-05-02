@@ -40,13 +40,7 @@ class EntrepriseDashboardController extends Controller
             ->where('entreprises_id', $entreprise->id)
             ->get()
             ->map(function ($stage) {
-                $conv = $stage->convention;
-                $stage->convention_status = $conv ? [
-                    'entreprise' => $conv->signer_par_entreprise,
-                    'tuteur'     => $conv->signer_par_tuteur,
-                    'etudiant'   => $conv->signer_par_etudiant,
-                    'complete'   => $conv->signer_par_entreprise && $conv->signer_par_tuteur && $conv->signer_par_etudiant,
-                ] : null;
+                $stage->convention_status = \App\Services\ConventionService::status($stage->convention);
                 return $stage;
             });
 
@@ -171,18 +165,8 @@ class EntrepriseDashboardController extends Controller
                     ->first();
 
                 if ($stage) {
-                    $arr['stage_id'] = $stage->id;
-                    $conv = $stage->convention;
-                    if ($conv) {
-                        $arr['convention_status'] = [
-                            'entreprise' => $conv->signer_par_entreprise,
-                            'tuteur'     => $conv->signer_par_tuteur,
-                            'etudiant'   => $conv->signer_par_etudiant,
-                            'complete'   => $conv->signer_par_entreprise
-                                         && $conv->signer_par_tuteur
-                                         && $conv->signer_par_etudiant,
-                        ];
-                    }
+                    $arr['stage_id']          = $stage->id;
+                    $arr['convention_status'] = \App\Services\ConventionService::status($stage->convention);
                 }
 
                 return $arr;
@@ -208,41 +192,11 @@ class EntrepriseDashboardController extends Controller
             ->where('entreprises_id', $entreprise->id)
             ->firstOrFail();
 
-        $convention = $stage->convention;
-        abort_unless($convention, 404, "Aucune convention trouvée pour ce stage.");
+        $result = app(\App\Services\ConventionService::class)->sign($stage, 'entreprise', auth()->id());
 
-        if ($convention->signer_par_entreprise) {
-            return back()->with('error', 'Vous avez déjà signé cette convention.');
-        }
-
-        $convention->update(['signer_par_entreprise' => true]);
-        $convention->refresh();
-        $convention->activerStageIfComplete();
-
-        Notification::create([
-            'proprietaire_id' => $stage->etudiants_id,
-            'message'         => "📄 L'entreprise {$entreprise->nom_entreprise} a signé votre convention de stage.",
-        ]);
-        if ($stage->tuteurs_id) {
-            Notification::create([
-                'proprietaire_id' => $stage->tuteurs_id,
-                'message'         => "📄 L'entreprise {$entreprise->nom_entreprise} a signé la convention de stage.",
-            ]);
-        }
-
-        if ($convention->estComplete()) {
-            Notification::create([
-                'proprietaire_id' => $stage->etudiants_id,
-                'message'         => "✅ Toutes les parties ont signé la convention. Votre stage est maintenant actif !",
-            ]);
-        }
-
-        TraceLogger::log('signer_convention_entreprise', [
-            'entreprise_id' => $entreprise->id,
-            'stage_id'      => $stageId,
-        ]);
-
-        return back()->with('success', 'Convention signée.');
+        return $result === 'already_signed'
+            ? back()->with('error', 'Vous avez déjà signé cette convention.')
+            : back()->with('success', 'Convention signée.');
     }
 
     // ─── Stages & missions ───────────────────────────────────────────────────
@@ -259,13 +213,7 @@ class EntrepriseDashboardController extends Controller
             ->where('entreprises_id', $entreprise->id)
             ->get()
             ->map(function ($stage) {
-                $conv = $stage->convention;
-                $stage->convention_status = $conv ? [
-                    'entreprise' => $conv->signer_par_entreprise,
-                    'tuteur'     => $conv->signer_par_tuteur,
-                    'etudiant'   => $conv->signer_par_etudiant,
-                    'complete'   => $conv->signer_par_entreprise && $conv->signer_par_tuteur && $conv->signer_par_etudiant,
-                ] : null;
+                $stage->convention_status = \App\Services\ConventionService::status($stage->convention);
                 return $stage;
             });
 
@@ -332,17 +280,9 @@ class EntrepriseDashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $conv = $stage->convention;
-        $conventionStatus = $conv ? [
-            'entreprise' => $conv->signer_par_entreprise,
-            'tuteur'     => $conv->signer_par_tuteur,
-            'etudiant'   => $conv->signer_par_etudiant,
-            'complete'   => $conv->signer_par_entreprise && $conv->signer_par_tuteur && $conv->signer_par_etudiant,
-        ] : null;
-
         return Inertia::render('Entreprise/entreprise.stage.detail', [
             'stage'             => $stage,
-            'convention_status' => $conventionStatus,
+            'convention_status' => \App\Services\ConventionService::status($stage->convention),
             'missions'          => $missions,
             'remarques'         => $tous_remarques,
         ]);

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Remarque;
 
 class Stage extends Model
 {
@@ -62,7 +63,6 @@ class Stage extends Model
 
     public function remarques()
     {
-        return \App\Models\Remarque::where('cible_type', 'stage')
-                                    ->where('cible_id', $this->id);
+        return $this->morphMany(Remarque::class, 'cible');
     }
 }

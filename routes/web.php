@@ -1,6 +1,12 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminOffreController;
+use App\Http\Controllers\Admin\AdminEntrepriseController;
+use App\Http\Controllers\Admin\AdminDossierController;
+use App\Http\Controllers\Admin\AdminStageController;
+use App\Http\Controllers\Admin\AdminTraceController;
 use App\Http\Controllers\AdminHierarchieController;
 use App\Http\Controllers\DemandeHierarchieController;
 use App\Http\Controllers\EntrepriseDashboardController;
@@ -99,45 +105,38 @@ Route::middleware(['auth', 'role:A'])->prefix('admin')->name('admin.')->group(fu
     Route::get('/dashboard', [AdminDashboardController::class, 'dashboard'])->name('dashboard');
 
     // Gestion Utilisateurs
-    Route::get('/dashboard/user/show',          [AdminDashboardController::class, 'index_user'])->name('index.user');
-    Route::get('/dashboard/user/add',           [AdminDashboardController::class, 'create_user'])->name('create.user');
-    Route::post('/dashboard/user/add',          [AdminDashboardController::class, 'store_user'])->name('store.user');
-    Route::post('/dashboard/user/{id}',         [AdminDashboardController::class, 'edit_user'])->name('edit.user');
-    Route::post('/dashboard/user/toggle/{id}',  [AdminDashboardController::class, 'toggle_user'])->name('toggle.user');
-    // routes/web.php
-    Route::delete('/admin/users/{id}', [AdminDashboardController::class, 'destroy'])->name('delete.user');
-
-    Route::get('/dashboard/user', function () {
-        return Inertia::render('Admin/admin.main.user');
-    })->name('main.user');
+    Route::get('/dashboard/user/show',          [AdminUserController::class, 'index'])->name('index.user');
+    Route::get('/dashboard/user/add',           [AdminUserController::class, 'create'])->name('create.user');
+    Route::post('/dashboard/user/add',          [AdminUserController::class, 'store'])->name('store.user');
+    Route::post('/dashboard/user/{id}',         [AdminUserController::class, 'edit'])->name('edit.user');
+    Route::post('/dashboard/user/toggle/{id}',  [AdminUserController::class, 'toggle'])->name('toggle.user');
+    Route::delete('/admin/users/{id}',          [AdminUserController::class, 'destroy'])->name('delete.user');
+    Route::get('/dashboard/user',               fn() => redirect()->route('admin.index.user'))->name('main.user');
 
     // Gestion Offres
-    Route::get('/dashboard/offres/show',        [AdminDashboardController::class, 'index_offre'])->name('index.offre');
-    Route::post('/dashboard/offre/toggle/{id}', [AdminDashboardController::class, 'toggle_offre'])->name('toggle.offre');
+    Route::get('/dashboard/offres/show',        [AdminOffreController::class, 'index'])->name('index.offre');
+    Route::post('/dashboard/offre/toggle/{id}', [AdminOffreController::class, 'toggle'])->name('toggle.offre');
 
     // Gestion Entreprises
-    Route::get('/dashboard/entreprise/show',    [AdminDashboardController::class, 'index_entreprise'])->name('index.entreprise');
-    Route::post('/dashboard/entreprise/show',   [AdminDashboardController::class, 'store_entreprise'])->name('store.entreprise');
-    Route::get('/dashboard/entreprise/add',     [AdminDashboardController::class, 'create_entreprise'])->name('create.entreprise');
-    Route::post('/dashboard/entreprise/validate/{id}', [AdminDashboardController::class, 'validate_entreprise'])->name('validate.entreprise');
-    Route::get('/dashboard/entreprise', function () {
-        return Inertia::render('Admin/admin.main.entreprise');
-    })->name('main.entreprise');
+    Route::get('/dashboard/entreprise/show',           [AdminEntrepriseController::class, 'index'])->name('index.entreprise');
+    Route::post('/dashboard/entreprise/show',          [AdminEntrepriseController::class, 'store'])->name('store.entreprise');
+    Route::get('/dashboard/entreprise/add',            [AdminEntrepriseController::class, 'create'])->name('create.entreprise');
+    Route::post('/dashboard/entreprise/validate/{id}', [AdminEntrepriseController::class, 'validate'])->name('validate.entreprise');
+    Route::get('/dashboard/entreprise',                fn() => redirect()->route('admin.index.entreprise'))->name('main.entreprise');
 
     // Dossiers, Stages et Candidatures
-    Route::get('/dashboard/dossiers',            [AdminDashboardController::class, 'index_dossier'])->name('index.dossier');
-    Route::post('/dashboard/dossiers/toggle/{id}', [AdminDashboardController::class, 'toggle_dossier'])->name('toggle.dossier');
-    Route::get('/dashboard/stages',              [AdminDashboardController::class, 'index_stage'])->name('index.stage');
-    Route::get('/dashboard/candidatures',        [CandidatureController::class, 'indexAdmin'])->name('index.candidature');
+    Route::get('/dashboard/dossiers',              [AdminDossierController::class, 'index'])->name('index.dossier');
+    Route::post('/dashboard/dossiers/toggle/{id}', [AdminDossierController::class, 'toggle'])->name('toggle.dossier');
+    Route::get('/dashboard/stages',                [AdminStageController::class, 'index'])->name('index.stage');
+    Route::get('/dashboard/candidatures',          [CandidatureController::class, 'indexAdmin'])->name('index.candidature');
 
     // Traces et Archives
-    Route::get('/dashboard/trace',               [AdminDashboardController::class, 'trace'])->name('trace');
-    Route::get('/dashboard/trace/export',        [AdminDashboardController::class, 'export_trace'])->name('trace.export');
-    Route::post('/dashboard/archiver',           [AdminDashboardController::class, 'archiver_annee'])->name('archiver.annee');
-
-    Route::get('/dashboard/archives',           [AdminDashboardController::class, 'lister_archives'])->name('lister.archives');
-    Route::get('/dashboard/archives/download',  [AdminDashboardController::class, 'telecharger_archive'])->name('telecharger.archive');
-    Route::post('/dashboard/reset-annee',       [AdminDashboardController::class, 'reset_annee'])->name('reset.annee');
+    Route::get('/dashboard/trace',              [AdminTraceController::class, 'index'])->name('trace');
+    Route::get('/dashboard/trace/export',       [AdminTraceController::class, 'export'])->name('trace.export');
+    Route::post('/dashboard/archiver',          [AdminTraceController::class, 'archiver'])->name('archiver.annee');
+    Route::get('/dashboard/archives',           [AdminTraceController::class, 'listerArchives'])->name('lister.archives');
+    Route::get('/dashboard/archives/download',  [AdminTraceController::class, 'telechargerArchive'])->name('telecharger.archive');
+    Route::post('/dashboard/reset-annee',       [AdminTraceController::class, 'resetAnnee'])->name('reset.annee');
 
     Route::get('/dashboard/import',         [AdminImportController::class, 'create'])->name('import.user');
     Route::post('/dashboard/import/preview',[AdminImportController::class, 'preview'])->name('import.user.preview');

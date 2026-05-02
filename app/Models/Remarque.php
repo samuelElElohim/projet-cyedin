@@ -30,6 +30,11 @@ class Remarque extends Model
         return $this->belongsTo(Utilisateur::class, 'auteur_id');
     }
 
+    public function cible()
+    {
+        return $this->morphTo('cible');
+    }
+
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
     /**

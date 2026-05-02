@@ -133,6 +133,16 @@ class Utilisateur extends Authenticatable implements MustVerifyEmail
 
 
 
+    // ─── Mutator : centralise le hachage du mot de passe ────────────────────
+
+    public function setMotDePasseAttribute(string $value): void
+    {
+        // Avoid double-hashing if value is already a bcrypt/argon hash
+        $this->attributes['mot_de_passe'] = str_starts_with($value, '$2y$') || str_starts_with($value, '$argon')
+            ? $value
+            : \Illuminate\Support\Facades\Hash::make($value);
+    }
+
     // scopes
 
     // scope pour filtrer les utilisateurs actifs

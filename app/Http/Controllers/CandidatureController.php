@@ -10,9 +10,10 @@ use App\Models\Offre;
 use App\Services\TraceLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Facades\Storage;
 
 class CandidatureController extends Controller
 {
@@ -155,49 +156,52 @@ class CandidatureController extends Controller
         abort_unless($candidature->statut === 'accepted_pending_choice', 422, 'Cette candidature ne peut plus être confirmée.');
         abort_if($candidature->isExpired(), 422, 'Le délai de 7 jours est dépassé.');
 
-        // Créer le stage
-        // Récupérer le tuteur de l'étudiant (si déjà assigné)
+        // Créer le stage, convention, dossier et mettre à jour les candidatures dans une transaction
         $tuteurId = \App\Models\Etudiant::where('utilisateurs_id', auth()->id())
             ->first()
             ?->tuteur()
             ->first()
             ?->utilisateurs_id;
 
-        $stage = \App\Models\Stage::create([
-            'etudiants_id'     => auth()->id(),
-            'entreprises_id'   => $candidature->offre->entreprise_id,
-            'tuteurs_id'       => $tuteurId,
-            'sujet'            => $candidature->offre->titre,
-            'duree_en_semaine' => $candidature->offre->duree_semaines,
-            'dateDebut'        => $candidature->offre->dateDebut ?? now()->toDateString(),
-            'etat'             => 'en_attente_convention',
-        ]);
+        $stage = DB::transaction(function () use ($candidature, $tuteurId) {
+            $stage = \App\Models\Stage::create([
+                'etudiants_id'     => auth()->id(),
+                'entreprises_id'   => $candidature->offre->entreprise_id,
+                'tuteurs_id'       => $tuteurId,
+                'sujet'            => $candidature->offre->titre,
+                'duree_en_semaine' => $candidature->offre->duree_semaines,
+                'dateDebut'        => $candidature->offre->dateDebut ?? now()->toDateString(),
+                'etat'             => 'en_attente_convention',
+            ]);
 
-        // Créer la convention de stage (en attente des 3 signatures)
-        \App\Models\Convention_stage::create([
-            'stages_id'             => $stage->id,
-            'date_creation'         => now()->toDateString(),
-            'signer_par_entreprise' => false,
-            'signer_par_tuteur'     => false,
-            'signer_par_etudiant'   => false,
-        ]);
+            // Créer la convention de stage (en attente des 3 signatures)
+            \App\Models\Convention_stage::create([
+                'stages_id'             => $stage->id,
+                'date_creation'         => now()->toDateString(),
+                'signer_par_entreprise' => false,
+                'signer_par_tuteur'     => false,
+                'signer_par_etudiant'   => false,
+            ]);
 
-        // Créer le dossier de stage
-        \App\Models\Dossier_stage::create([
-            'etudiants_id' => auth()->id(),
-            'stage_id'     => $stage->id,
-        ]);
+            // Créer le dossier de stage
+            \App\Models\Dossier_stage::create([
+                'etudiants_id' => auth()->id(),
+                'stage_id'     => $stage->id,
+            ]);
 
-        // Valider cette candidature
-        $candidature->update(['statut' => 'acceptee']);
+            // Valider cette candidature
+            $candidature->update(['statut' => 'acceptee']);
 
-        // Annuler toutes les autres candidatures actives de l'étudiant
-        Candidature::where('etudiant_id', auth()->id())
-            ->where('id', '!=', $candidature->id)
-            ->whereIn('statut', ['en_attente', 'accepted_pending_choice'])
-            ->update(['statut' => 'annulee']);
+            // Annuler toutes les autres candidatures actives de l'étudiant
+            Candidature::where('etudiant_id', auth()->id())
+                ->where('id', '!=', $candidature->id)
+                ->whereIn('statut', ['en_attente', 'accepted_pending_choice'])
+                ->update(['statut' => 'annulee']);
 
-        // Notifier l'entreprise
+            return $stage;
+        });
+
+        // Notifications et trace HORS transaction (effets de bord)
         if ($candidature->offre->entreprise?->utilisateurs_id) {
             Notification::create([
                 'proprietaire_id' => $candidature->offre->entreprise->utilisateurs_id,

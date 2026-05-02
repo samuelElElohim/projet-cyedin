@@ -26,7 +26,7 @@ class PremierMotDePasseController extends Controller
     ]);
 
     $user = Auth::user();
-    $user->mot_de_passe        = Hash::make($request->mot_de_passe);
+    $user->mot_de_passe        = $request->mot_de_passe;
     $user->premier_mdp_changer = true;
     $user->save();
 

@@ -42,7 +42,7 @@ class RegisteredUserController extends Controller
             'nom'          => $request->nom,
             'prenom'       => $request->prenom,
             'email'        => $request->email,
-            'mot_de_passe' => Hash::make($request->mot_de_passe),
+            'mot_de_passe' => $request->mot_de_passe,
             'role'         => 'S', // étudiant par défaut
             'est_active'   => false,
             'premier_mdp_changer' => false,

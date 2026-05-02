@@ -89,7 +89,7 @@ class AdminImportController extends Controller
                     'nom'                 => trim($row['nom']),
                     'prenom'              => trim($row['prenom'] ?? '') ?: null,
                     'email'               => strtolower(trim($row['email'])),
-                    'mot_de_passe'        => Hash::make('password'),
+                    'mot_de_passe'        => 'password',
                     'role'                => strtoupper(trim($row['role'])),
                     'est_active'          => true,
                     'premier_mdp_changer' => false,
