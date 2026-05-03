@@ -65,43 +65,34 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
                     />
 
                     {/* Filière */}
-                    <div className="relative">
-                        <select
-                            value={filiereId}
-                            onChange={e => { setFiliereId(e.target.value); applyFilters({ filiere_id: e.target.value }); }}
-                            className="appearance-none border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
-                        >
-                            <option value="">Toutes les filières</option>
-                            {filieres.map(f => <option key={f.id} value={f.id}>{f.filiere}</option>)}
-                        </select>
-                        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">▼</span>
-                    </div>
+                    <select
+                        value={filiereId}
+                        onChange={e => { setFiliereId(e.target.value); applyFilters({ filiere_id: e.target.value }); }}
+                        className="border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
+                    >
+                        <option value="">Toutes les filières</option>
+                        {filieres.map(f => <option key={f.id} value={f.id}>{f.filiere}</option>)}
+                    </select>
 
                     {/* Secteur */}
-                    <div className="relative">
-                        <select
-                            value={secteurId}
-                            onChange={e => { setSecteurId(e.target.value); setTagId(''); applyFilters({ secteur_id: e.target.value, tag_id: '' }); }}
-                            className="appearance-none border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
-                        >
-                            <option value="">Tous les secteurs</option>
-                            {secteurs.map(s => <option key={s.id} value={s.id}>{s.filiere?.filiere} / {s.secteur}</option>)}
-                        </select>
-                        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">▼</span>
-                    </div>
+                    <select
+                        value={secteurId}
+                        onChange={e => { setSecteurId(e.target.value); setTagId(''); applyFilters({ secteur_id: e.target.value, tag_id: '' }); }}
+                        className="border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
+                    >
+                        <option value="">Tous les secteurs</option>
+                        {secteurs.map(s => <option key={s.id} value={s.id}>{s.filiere?.filiere} / {s.secteur}</option>)}
+                    </select>
 
                     {/* Tag */}
-                    <div className="relative">
-                        <select
-                            value={tagId}
-                            onChange={e => { setTagId(e.target.value); applyFilters({ tag_id: e.target.value }); }}
-                            className="appearance-none border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
-                        >
-                            <option value="">Tous les tags</option>
-                            {tagsVisible.map(t => <option key={t.id} value={t.id}>{t.tag}</option>)}
-                        </select>
-                        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">▼</span>
-                    </div>
+                    <select
+                        value={tagId}
+                        onChange={e => { setTagId(e.target.value); applyFilters({ tag_id: e.target.value }); }}
+                        className="border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
+                    >
+                        <option value="">Tous les tags</option>
+                        {tagsVisible.map(t => <option key={t.id} value={t.id}>{t.tag}</option>)}
+                    </select>
 
                     <div className="flex items-center gap-2">
                         <label className="text-xs text-slate-500 whitespace-nowrap">Durée (sem.)</label>
