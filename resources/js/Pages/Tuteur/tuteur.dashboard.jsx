@@ -27,12 +27,17 @@ export default function TuteurDashboard({ tuteur, stages = [], notifications = [
             {/* Profil */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-teal-100 flex items-center justify-center text-teal-700 font-black text-lg">
-                    {tuteur?.utilisateur?.prenom?.[0] ?? '👨‍🏫'}
+                    T
                 </div>
                 <div>
                     <div className="font-semibold text-slate-900">
                         {tuteur?.utilisateur?.prenom} {tuteur?.utilisateur?.nom}
                     </div>
+                    {tuteur?.filiere?.filiere && (
+                        <div className="text-xs text-slate-500">
+                            Filière <span className="font-semibold text-teal-600">{tuteur.filiere.filiere}</span>
+                        </div>
+                    )}
                     {tuteur?.departement && (
                         <div className="text-xs text-slate-500">
                             Département <span className="font-semibold text-teal-600">{tuteur.departement}</span>

@@ -30,14 +30,14 @@ export default function EtudiantDashboard({
             {/* Profil rapide */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-700 font-black text-lg">
-                    {etudiant?.utilisateur?.prenom?.[0] ?? '?'}
+                    S
                 </div>
                 <div>
                     <div className="font-semibold text-slate-900">
                         {etudiant?.utilisateur?.prenom} {etudiant?.utilisateur?.nom}
                     </div>
                     <div className="text-xs text-slate-500">
-                        Filière <span className="font-semibold text-blue-600">{etudiant?.filiere ?? '—'}</span>
+                        Filière <span className="font-semibold text-blue-600">{etudiant?.filiere?.filiere ?? '—'}</span>
                         {' · '}Niveau {etudiant?.niveau_etud ?? '—'}
                     </div>
                 </div>

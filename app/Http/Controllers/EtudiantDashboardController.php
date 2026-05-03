@@ -27,7 +27,7 @@ class EtudiantDashboardController extends Controller
     public function dashboard(): Response
     {
         $user    = auth()->user();
-        $etudiant = $user->etudiant;
+        $etudiant = $user->etudiant?->load('filiere', 'utilisateur');
 
         $stageEnCours = $etudiant?->stages()
             ->with(['entreprise', 'tuteur.utilisateur', 'convention'])

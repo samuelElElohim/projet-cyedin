@@ -22,7 +22,7 @@ class TuteurDashboardController extends Controller
 
     public function dashboard(): Response
     {
-        $tuteur = auth()->user()->tuteur;
+        $tuteur = auth()->user()->tuteur?->load('filiere', 'utilisateur');
         abort_unless($tuteur, 403, 'Profil tuteur introuvable.');
 
         $stages = Stage::with([
