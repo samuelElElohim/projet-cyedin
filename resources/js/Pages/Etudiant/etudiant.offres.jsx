@@ -11,11 +11,11 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
     const [filiereId, setFiliereId] = useState(filters.filiere_id ?? '');
     const [secteurId, setSecteurId] = useState(filters.secteur_id ?? '');
     const [tagId, setTagId]         = useState(filters.tag_id ?? '');
-    const [modalOffre, setModalOffre] = useState(null);
+    const [modalOffre, setModalOffre]         = useState(null);
+    const [showNoTuteurModal, setShowNoTuteurModal] = useState(false);
 
-    const { flash } = usePage().props;
-
-    const hasStage = usePage().props.etudiant_flags?.has_stage ?? false;
+    const hasStage  = usePage().props.etudiant_flags?.has_stage ?? false;
+    const hasTuteur = etudiant?.has_tuteur ?? true;
 
     // Tags filtrés selon le secteur sélectionné
     const tagsVisible = secteurId
@@ -37,11 +37,6 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
 
     return (
         <EtudiantLayout title="Offres de stage">
-            {flash?.error && (
-                <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-                    {flash.error}
-                </div>
-            )}
             <Head title="Offres — Étudiant" />
 
 
@@ -173,7 +168,7 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
                                 </span>
                             ) : (
                                 <button
-                                    onClick={() => setModalOffre(offre)}
+                                    onClick={() => hasTuteur ? setModalOffre(offre) : setShowNoTuteurModal(true)}
                                     className="w-full py-2 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition"
                                 >
                                     Postuler
@@ -192,10 +187,37 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
                     onClose={() => setModalOffre(null)}
                 />
             )}
+
+            {showNoTuteurModal && (
+                <NoTuteurModal onClose={() => setShowNoTuteurModal(false)} />
+            )}
         </EtudiantLayout>
     );
 }
 
+
+function NoTuteurModal({ onClose }) {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 z-10 mx-4 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center text-3xl mx-auto mb-4">
+                    🎓
+                </div>
+                <h2 className="text-base font-semibold text-slate-900 mb-2">Tuteur non assigné</h2>
+                <p className="text-sm text-slate-500 mb-5">
+                    Vous devez avoir un tuteur académique assigné avant de pouvoir postuler à une offre. Contactez votre administration.
+                </p>
+                <button
+                    onClick={onClose}
+                    className="w-full py-2.5 bg-amber-500 text-white text-sm font-semibold rounded-xl hover:bg-amber-600 transition"
+                >
+                    Compris
+                </button>
+            </div>
+        </div>
+    );
+}
 
 // Mode CV : 'main' | 'stash' | 'nouveau'
 // Mode lettre : 'aucune' | 'stash' | 'fichier' | 'texte'

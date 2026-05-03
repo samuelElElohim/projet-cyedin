@@ -175,7 +175,7 @@ class EtudiantDashboardController extends Controller
             'filieres'         => \App\Models\Filiere::orderBy('filiere')->get(),
             'tags'             => \App\Models\Tag::with('secteur')->orderBy('tag')->get(),
             'filters'          => $request->only(['search', 'duree_min', 'duree_max', 'secteur_id', 'filiere_id', 'tag_id']),
-            'etudiant'         => $etudiant ? ['chemin_cv' => $etudiant->chemin_cv, 'nom_cv' => $etudiant->nom_cv] : null,
+            'etudiant'         => $etudiant ? ['chemin_cv' => $etudiant->chemin_cv, 'nom_cv' => $etudiant->nom_cv, 'has_tuteur' => $etudiant->hasTuteur()] : null,
             'stash'            => $stash,
         ]);
     }
