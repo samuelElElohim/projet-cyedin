@@ -144,7 +144,7 @@ export default function EntrepriseOffres({ offres = [], secteurs = [], tags = []
                         )}
 
                         <p className="text-xs text-slate-400">
-                            L'offre sera publiée immédiatement et visible par les étudiants.
+                            L'offre sera soumise à validation par un administrateur avant d'être visible.
                         </p>
                         <button type="submit" disabled={processing}
                             className="px-6 py-2.5 bg-amber-500 text-white font-semibold rounded-xl hover:bg-amber-600 transition disabled:opacity-60 text-sm">

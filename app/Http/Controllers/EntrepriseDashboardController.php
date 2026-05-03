@@ -120,7 +120,7 @@ class EntrepriseDashboardController extends Controller
                 : null,
             'dateDebut'      => $request->dateDebut,
             'entreprise_id'  => $entreprise->id,
-            'est_active'     => true,
+            'est_active'     => false,
         ]);
 
         // Tags many-to-many
@@ -138,12 +138,12 @@ class EntrepriseDashboardController extends Controller
     {
         $entreprise = $this->entreprise();
         abort_unless($offre->entreprise_id === $entreprise->id, 403);
+        $etudiantIds = Candidature::where('offre_id', $offre->id)->pluck('etudiant_id');
+
         abort_if(
             Stage::where('entreprise_id', $entreprise->id)
                 ->whereIn('etat', ['en_attente_convention', 'actif'])
-                ->whereHas('etudiant', fn($q) =>
-                    $q->whereHas('candidatures', fn($sq) => $sq->where('offre_id', $offre->id))
-                )
+                ->whereIn('etudiant_id', $etudiantIds)
                 ->exists(),
             422,
             'Impossible de supprimer une offre liée à un stage actif.'
