@@ -5,7 +5,7 @@
 
 Plateforme multi-rôles de gestion et de suivi des stages étudiants : dépôt d'offres, candidatures, conventions, cahier de stage, documents et notifications.
 
-**Production** : https://projet-cyedin-production.up.railway.app/
+**Production** : https://projet-cyedin-production.up.railway.app/ (ne marche plus)
 
 ## Equipe
 
