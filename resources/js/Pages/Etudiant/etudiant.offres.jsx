@@ -207,22 +207,24 @@ export default function EtudiantOffres({ offres = [], deja_candidature = {}, sec
 
 
 // Mode CV : 'main' | 'stash' | 'nouveau'
-// Mode lettre : 'aucune' | 'stash' | 'texte'
+// Mode lettre : 'aucune' | 'stash' | 'fichier' | 'texte'
 function CandidatureModal({ offre, etudiant, stash = [], onClose }) {
-    const cvFileRef = useRef(null);
-    const [cvMode, setCvMode]         = useState(etudiant?.chemin_cv ? 'main' : 'nouveau');
-    const [cvDocId, setCvDocId]       = useState('');
-    const [cvFile, setCvFile]         = useState(null);
-    const [lettreMode, setLettreMode] = useState('aucune');
+    const cvFileRef     = useRef(null);
+    const lettreFileRef = useRef(null);
+    const [cvMode, setCvMode]           = useState(etudiant?.chemin_cv ? 'main' : 'nouveau');
+    const [cvDocId, setCvDocId]         = useState('');
+    const [cvFile, setCvFile]           = useState(null);
+    const [lettreMode, setLettreMode]   = useState('aucune');
     const [lettreDocId, setLettreDocId] = useState('');
+    const [lettreFile, setLettreFile]   = useState(null);
 
     const { data, setData, processing, errors, reset } = useForm({
         offre_id:          offre.id,
         lettre_motivation: '',
     });
 
-    const cvDocs     = stash.filter(d => d.categorie === 'cv');
-    const lettreDocs = stash.filter(d => d.categorie === 'lettre');
+    const cvDocs  = stash.filter(d => d.categorie === 'cv');
+    const allDocs = stash.filter(d => d.categorie !== 'cv');
 
     const canSubmit = cvMode === 'main'
         || (cvMode === 'stash' && cvDocId)
@@ -239,6 +241,7 @@ function CandidatureModal({ offre, etudiant, stash = [], onClose }) {
         else if (cvMode === 'nouveau' && cvFile) { fd.append('cv', cvFile); }
 
         if (lettreMode === 'stash' && lettreDocId) { fd.append('lettre_document_id', lettreDocId); }
+        if (lettreMode === 'fichier' && lettreFile) { fd.append('lettre_fichier', lettreFile); }
 
         router.post(route('etudiant.candidatures.store'), fd, {
             forceFormData: true,
@@ -330,6 +333,8 @@ function CandidatureModal({ offre, etudiant, stash = [], onClose }) {
                             Lettre de motivation <span className="font-normal text-slate-400">(optionnel)</span>
                         </label>
                         <div className="space-y-2">
+
+                            {/* Aucune */}
                             <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${
                                 lettreMode === 'aucune' ? 'border-blue-400 bg-blue-50' : 'border-slate-200 hover:border-slate-300'
                             }`}>
@@ -337,7 +342,8 @@ function CandidatureModal({ offre, etudiant, stash = [], onClose }) {
                                 <span className="text-sm text-slate-700">Aucune</span>
                             </label>
 
-                            {lettreDocs.length > 0 && (
+                            {/* Depuis mes documents enregistrés */}
+                            {allDocs.length > 0 && (
                                 <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${
                                     lettreMode === 'stash' ? 'border-blue-400 bg-blue-50' : 'border-slate-200 hover:border-slate-300'
                                 }`}>
@@ -348,13 +354,39 @@ function CandidatureModal({ offre, etudiant, stash = [], onClose }) {
                                             <select value={lettreDocId} onChange={e => setLettreDocId(e.target.value)}
                                                 className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
                                                 <option value="">— Choisir —</option>
-                                                {lettreDocs.map(d => <option key={d.id} value={d.id}>{d.nom}</option>)}
+                                                {allDocs.map(d => <option key={d.id} value={d.id}>{d.nom}</option>)}
                                             </select>
                                         )}
                                     </div>
                                 </label>
                             )}
 
+                            {/* Nouveau fichier */}
+                            <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${
+                                lettreMode === 'fichier' ? 'border-blue-400 bg-blue-50' : 'border-slate-200 hover:border-slate-300'
+                            }`}>
+                                <input type="radio" checked={lettreMode === 'fichier'} onChange={() => setLettreMode('fichier')} className="shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-slate-800 mb-1.5">Déposer un fichier</p>
+                                    {lettreMode === 'fichier' && (
+                                        lettreFile ? (
+                                            <div className="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg">
+                                                <span className="text-xs text-slate-700 flex-1 truncate">{lettreFile.name}</span>
+                                                <button type="button" onClick={() => { setLettreFile(null); lettreFileRef.current.value = ''; }}
+                                                    className="text-slate-400 hover:text-red-500 text-lg leading-none">×</button>
+                                            </div>
+                                        ) : (
+                                            <label className="flex flex-col items-center justify-center h-16 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-white transition">
+                                                <span className="text-xs text-slate-400">PDF, Word · 5 Mo max</span>
+                                                <input ref={lettreFileRef} type="file" accept=".pdf,.doc,.docx" className="hidden"
+                                                    onChange={e => setLettreFile(e.target.files[0])} />
+                                            </label>
+                                        )
+                                    )}
+                                </div>
+                            </label>
+
+                            {/* Texte libre */}
                             <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${
                                 lettreMode === 'texte' ? 'border-blue-400 bg-blue-50' : 'border-slate-200 hover:border-slate-300'
                             }`}>

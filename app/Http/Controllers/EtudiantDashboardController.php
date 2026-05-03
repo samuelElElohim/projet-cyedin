@@ -165,7 +165,6 @@ class EtudiantDashboardController extends Controller
         // Stash de docs pour le modal de candidature
         $etudiant = \App\Models\Etudiant::where('utilisateur_id', $user->id)->first();
         $stash    = \App\Models\Document::where('utilisateur_id', $user->id)
-            ->whereIn('categorie', ['cv', 'lettre'])
             ->orderBy('date_depot', 'desc')
             ->get(['id', 'nom', 'categorie', 'date_depot']);
 
