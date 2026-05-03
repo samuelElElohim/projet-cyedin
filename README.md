@@ -67,7 +67,7 @@ composer setup
 
 Cette commande enchaîne automatiquement : `composer install`, génération de la clé d'app, migrations, et `npm install`.
 
-### 4. (Optionnel) Charger des données de test
+### 4. Charger des données de test
 
 ```bash
 php artisan migrate:fresh --seed
