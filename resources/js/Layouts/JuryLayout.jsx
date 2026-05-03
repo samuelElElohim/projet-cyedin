@@ -2,10 +2,12 @@ import { Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import NotifDropdown from '@/Components/Shared/NotifDropdown';
 
+const ACCENT = { bg: '#FAF5FF', text: '#7C3AED', border: '#DDD6FE', stripe: '#EDE9FE' };
+
 const NAV_ITEMS = [
-    { label: 'Dashboard', href: 'jury.dashboard',      icon: '█' },
-    { label: 'Dossiers',  href: 'jury.index.dossiers', icon: '▤' },
-    { label: 'Stages',    href: 'jury.index.stages',   icon: '◉' },
+    { label: 'Tableau de bord', href: 'jury.dashboard',      icon: HomeIcon },
+    { label: 'Dossiers',        href: 'jury.index.dossiers', icon: FolderIcon },
+    { label: 'Stages',          href: 'jury.index.stages',   icon: BriefcaseIcon },
 ];
 
 export default function JuryLayout({ children, title = 'Espace Jury' }) {
@@ -14,105 +16,79 @@ export default function JuryLayout({ children, title = 'Espace Jury' }) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
 
     return (
-        <div className="min-h-screen flex" style={{ background: 'var(--c-black)', fontFamily: "'VT323', monospace" }}>
+        <div style={{ minHeight: '100vh', display: 'flex', background: 'var(--bg-page)', fontFamily: "'Inter', sans-serif" }}>
 
-            <aside
-                className="cyber-sidebar scanlines flex flex-col shrink-0 transition-all duration-150"
-                style={{ width: sidebarOpen ? 220 : 52, borderRightColor: '#440066' }}
-            >
-                <div style={{ borderBottom: '2px solid #440066', padding: '10px 12px', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <aside className="ds-sidebar" style={{ width: sidebarOpen ? 240 : 64 }}>
+
+                <div style={{ height: 60, display: 'flex', alignItems: 'center', padding: '0 16px', borderBottom: '1px solid var(--border)', gap: 12, flexShrink: 0 }}>
                     {sidebarOpen && (
-                        <Link href={route('jury.dashboard')} className="cyber-logo" style={{ fontSize: 22 }}>
-                            CY<span style={{ color: '#cc66ff', textShadow: '0 0 10px #cc66ff' }}>edin</span>
+                        <Link href={route('jury.dashboard')} className="ds-logo" style={{ flex: 1, color: ACCENT.text }}>
+                            CY<span style={{ color: ACCENT.text }}>edin</span>
                         </Link>
                     )}
-                    <button
-                        onClick={() => setSidebarOpen(p => !p)}
-                        style={{ background: 'none', border: '1px solid #440066', color: '#cc66ff', padding: '2px 6px', cursor: 'pointer', fontFamily: 'monospace', fontSize: 14, marginLeft: sidebarOpen ? 0 : 'auto' }}
-                    >
-                        {sidebarOpen ? '◄' : '►'}
+                    <button onClick={() => setSidebarOpen(p => !p)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 6, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', marginLeft: sidebarOpen ? 0 : 'auto' }}>
+                        <ChevronIcon direction={sidebarOpen ? 'left' : 'right'} />
                     </button>
                 </div>
 
                 {sidebarOpen && (
-                    <div style={{ padding: '4px 12px', background: '#0e0018', borderBottom: '1px solid #440066', fontSize: 11, color: '#cc66ff', letterSpacing: '0.2em', fontFamily: "'Share Tech Mono', monospace" }}>
-                        ■ JURY ■
+                    <div className="ds-role-stripe" style={{ background: ACCENT.stripe, color: ACCENT.text, borderBottom: `1px solid ${ACCENT.border}` }}>
+                        Espace Jury
                     </div>
                 )}
 
-                <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto' }}>
+                <nav style={{ flex: 1, padding: '12px 8px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
                     {NAV_ITEMS.map(item => {
                         const isActive = route().current(item.href);
+                        const Icon = item.icon;
                         return (
-                            <Link
-                                key={item.href}
-                                href={route(item.href)}
-                                className="nav-item"
-                                style={{
-                                    ...(isActive
-                                        ? { background: '#cc66ff', color: '#000', borderLeftColor: '#cc66ff', boxShadow: '0 0 10px #cc66ff' }
-                                        : { borderLeftColor: 'transparent', color: '#884499' }),
-                                    ...(!sidebarOpen ? { justifyContent: 'center', paddingLeft: 0, paddingRight: 0 } : {}),
-                                }}
+                            <Link key={item.href} href={route(item.href)}
+                                className={`ds-nav-item ${isActive ? 'active violet' : ''}`}
+                                title={!sidebarOpen ? item.label : undefined}
+                                style={!sidebarOpen ? { justifyContent: 'center', padding: '9px' } : {}}
                             >
-                                <span style={{ fontSize: 16, minWidth: 16, textAlign: 'center' }}>{item.icon}</span>
-                                {sidebarOpen && <span>{item.label}</span>}
+                                <Icon size={16} style={{ flexShrink: 0 }} />
+                                {sidebarOpen && <span style={{ fontSize: 14 }}>{item.label}</span>}
                             </Link>
                         );
                     })}
                 </nav>
 
-                <div style={{ margin: '0 12px', borderTop: '1px dashed #440066' }} />
-
-                <div style={{ padding: '10px 12px' }}>
+                <div style={{ padding: '12px 8px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {sidebarOpen && (
-                        <div style={{ fontSize: 13, color: '#664488', marginBottom: 6, fontFamily: "'Share Tech Mono', monospace" }}>
-                            <div style={{ color: '#cc88ff' }}>{user?.prenom} {user?.nom}</div>
-                            <div style={{ fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</div>
+                        <div style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--bg-page)', marginBottom: 4 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>{user?.prenom} {user?.nom}</div>
+                            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</div>
                         </div>
                     )}
-                    <button
-                        onClick={() => router.post(route('logout'))}
-                        className="nav-item"
-                        style={{ width: '100%', border: '1px solid #330011', color: 'var(--c-red)', background: 'none', fontSize: 14, justifyContent: sidebarOpen ? 'flex-start' : 'center' }}
+                    <button onClick={() => router.post(route('logout'))} className="ds-nav-item"
+                        style={{ color: 'var(--status-error)', width: '100%', background: 'none', border: 'none', ...(!sidebarOpen ? { justifyContent: 'center', padding: '9px' } : {}) }}
+                        title={!sidebarOpen ? 'Déconnexion' : undefined}
                     >
-                        <span>⏻</span>
-                        {sidebarOpen && <span>DECONNEXION</span>}
+                        <LogoutIcon size={16} style={{ flexShrink: 0 }} />
+                        {sidebarOpen && <span style={{ fontSize: 14 }}>Déconnexion</span>}
                     </button>
                 </div>
             </aside>
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-
-                <header style={{ display: 'flex', alignItems: 'center', padding: '0 20px', height: 52, gap: 16, background: 'var(--c-navy)', borderBottom: '2px solid #cc66ff', boxShadow: '0 0 15px #cc66ff33' }}>
-                    <span style={{ color: '#cc66ff', fontFamily: "'Share Tech Mono', monospace", fontSize: 12 }}>■</span>
-                    <h1 style={{ flex: 1, color: '#cc66ff', fontFamily: "'VT323', monospace", fontSize: 22, letterSpacing: '0.1em', textTransform: 'uppercase', textShadow: '0 0 8px #cc66ff', margin: 0 }}>
+                <header className="ds-header">
+                    <h1 style={{ flex: 1, fontFamily: "'Sora', sans-serif", fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
                         {title}
                     </h1>
                     <div style={{ marginLeft: 'auto' }}><NotifDropdown /></div>
                 </header>
 
-                <div className="cyber-marquee" style={{ borderColor: '#cc66ff', color: '#cc66ff' }}>
-                    <span className="cyber-marquee-inner">
-                        ★ ESPACE JURY — EVALUATION DES STAGES ★ &nbsp;&nbsp;&nbsp;
-                        ● CONSULTATION DES DOSSIERS ● VALIDATION ● NOTATION ●
-                        &nbsp;&nbsp;&nbsp; ★ CYEDIN v2.0 — MODULE JURY ★
-                    </span>
-                </div>
-
-                <main style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
-                    <div style={{ maxWidth: 1200, margin: '0 auto', color: 'var(--c-text)' }}>
-                        {children}
-                    </div>
+                <main style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+                    <div style={{ maxWidth: 1200, margin: '0 auto' }}>{children}</div>
                 </main>
-
-                <div className="cyber-statusbar">
-                    <span className="blink" style={{ color: '#cc66ff' }}>█</span>
-                    <span>CYEDIN v2.0</span>
-                    <span style={{ marginLeft: 'auto', fontFamily: "'Share Tech Mono', monospace", fontSize: 11 }}>SYS:OK</span>
-                    <span style={{ color: '#cc66ff', fontSize: 11 }}>■ JURY ■</span>
-                </div>
             </div>
         </div>
     );
 }
+
+function HomeIcon({ size = 16, style }) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>; }
+function FolderIcon({ size = 16, style }) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>; }
+function BriefcaseIcon({ size = 16, style }) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>; }
+function LogoutIcon({ size = 16, style }) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>; }
+function ChevronIcon({ direction = 'left', size = 16 }) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points={direction === 'left' ? '15,18 9,12 15,6' : '9,18 15,12 9,6'}/></svg>; }

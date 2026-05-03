@@ -5,71 +5,88 @@ export default function GuestLayout({ children }) {
         <div style={{
             minHeight: '100vh',
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'var(--c-black)',
-            fontFamily: "'VT323', monospace",
-            padding: '24px 16px',
+            fontFamily: "'Inter', sans-serif",
+            background: 'var(--bg-page)',
         }}>
-            {/* Scanlines overlay */}
+            {/* Left panel — brand */}
             <div style={{
-                position: 'fixed', inset: 0,
-                backgroundImage: 'repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px)',
-                pointerEvents: 'none', zIndex: 0,
-            }} />
+                display: 'none',
+                flex: 1,
+                background: 'linear-gradient(160deg, var(--brand-navy) 0%, #1F3C88 60%, #2F80ED 100%)',
+                padding: '48px',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+            }} className="guest-brand-panel">
 
-            {/* Logo */}
-            <Link href="/" style={{ textDecoration: 'none', marginBottom: 24, position: 'relative', zIndex: 1, display: 'block', textAlign: 'center' }}>
-                <div className="glow" style={{
-                    fontFamily: "'VT323', monospace",
-                    fontSize: 48,
-                    letterSpacing: '0.15em',
-                    textTransform: 'uppercase',
-                    color: 'var(--c-cyan)',
-                    textShadow: '0 0 10px var(--c-cyan), 0 0 30px var(--c-cyan), 0 0 60px #00ffff44',
-                    lineHeight: 1,
-                }}>
-                    CY<span style={{ color: 'var(--c-magenta)', textShadow: '0 0 10px var(--c-magenta), 0 0 30px var(--c-magenta)' }}>edin</span>
+                <div>
+                    <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 26, fontWeight: 700, color: '#fff', letterSpacing: '-0.03em', marginBottom: 48 }}>
+                        CY<span style={{ color: '#60A5FA' }}>edin</span>
+                    </div>
+                    <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 36, fontWeight: 700, color: '#fff', lineHeight: 1.2, letterSpacing: '-0.03em', marginBottom: 16 }}>
+                        Plateforme de gestion des stages
+                    </h2>
+                    <p style={{ color: 'rgba(255,255,255,.65)', fontSize: 16, lineHeight: 1.7, maxWidth: 380 }}>
+                        Gérez vos candidatures, conventions et dossiers de stage au sein de l'écosystème CY Tech.
+                    </p>
                 </div>
-                <div style={{ fontSize: 11, letterSpacing: '0.3em', color: 'var(--c-muted)', fontFamily: "'Share Tech Mono', monospace", marginTop: 4 }}>
-                    PLATEFORME OFFICIELLE CY TECH
+
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                    {['Étudiants', 'Tuteurs', 'Entreprises', 'Jury', 'Admins'].map(role => (
+                        <span key={role} style={{
+                            padding: '6px 14px',
+                            background: 'rgba(255,255,255,.1)',
+                            borderRadius: 99,
+                            fontSize: 12,
+                            fontWeight: 500,
+                            color: 'rgba(255,255,255,.75)',
+                            border: '1px solid rgba(255,255,255,.15)',
+                        }}>
+                            {role}
+                        </span>
+                    ))}
                 </div>
-            </Link>
-
-            {/* Card */}
-            <div style={{
-                position: 'relative', zIndex: 1,
-                width: '100%', maxWidth: 460,
-                background: '#00001a',
-                border: '2px ridge var(--c-cyan)',
-                boxShadow: '0 0 30px #00ffff22, inset 0 0 20px #000044',
-                padding: '28px 32px',
-            }}>
-                {/* Corner decorations */}
-                <span style={{ position: 'absolute', top: 6, left: 8, color: 'var(--c-cyan)', fontSize: 10, opacity: 0.5 }}>◄</span>
-                <span style={{ position: 'absolute', top: 6, right: 8, color: 'var(--c-cyan)', fontSize: 10, opacity: 0.5, transform: 'scaleX(-1)', display: 'inline-block' }}>◄</span>
-                <span style={{ position: 'absolute', bottom: 6, left: 8, color: 'var(--c-cyan)', fontSize: 10, opacity: 0.5, transform: 'rotate(180deg)', display: 'inline-block' }}>◄</span>
-                <span style={{ position: 'absolute', bottom: 6, right: 8, color: 'var(--c-cyan)', fontSize: 10, opacity: 0.5, transform: 'rotate(180deg) scaleX(-1)', display: 'inline-block' }}>◄</span>
-
-                {children}
             </div>
 
-            {/* Footer marquee */}
+            {/* Right panel — form */}
             <div style={{
-                position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2,
-                overflow: 'hidden', whiteSpace: 'nowrap',
-                background: '#000', borderTop: '1px solid var(--c-cyan)',
-                padding: '2px 0', fontSize: 12, color: 'var(--c-cyan)',
-                fontFamily: "'VT323', monospace",
+                width: '100%',
+                maxWidth: 480,
+                margin: '0 auto',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                padding: '40px 32px',
+                background: '#fff',
+                boxShadow: '-1px 0 0 var(--border)',
             }}>
-                <span style={{ display: 'inline-block', animation: 'marquee-scroll 30s linear infinite' }}>
-                    ★ CYEDIN — GESTION DES STAGES CY TECH PAU ★ &nbsp;&nbsp;
-                    ● ETUDIANTS ● TUTEURS ● ENTREPRISES ● JURY ● ADMINISTRATEURS ●
-                    &nbsp;&nbsp; ★ BEST VIEWED AT 1024x768 IN NETSCAPE NAVIGATOR 4.0 ★ &nbsp;&nbsp;
-                    ◄ CYEDIN v2.0 — CYBER EDITION — TOUS DROITS RESERVES ►
-                </span>
+                {/* Logo */}
+                <div style={{ marginBottom: 36 }}>
+                    <Link href="/" style={{ textDecoration: 'none', display: 'inline-block' }}>
+                        <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 24, fontWeight: 700, color: 'var(--brand-primary)', letterSpacing: '-0.03em' }}>
+                            CY<span style={{ color: 'var(--brand-accent)' }}>edin</span>
+                        </div>
+                        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 2, fontFamily: "'JetBrains Mono', monospace" }}>
+                            CY Tech · Gestion des stages
+                        </div>
+                    </Link>
+                </div>
+
+                {/* Slot */}
+                <div>{children}</div>
+
+                {/* Footer */}
+                <div style={{ marginTop: 40, paddingTop: 20, borderTop: '1px solid var(--border)', textAlign: 'center' }}>
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                        CYedin © {new Date().getFullYear()} · CY Tech Pau
+                    </p>
+                </div>
             </div>
+
+            <style>{`
+                @media (min-width: 900px) {
+                    .guest-brand-panel { display: flex !important; }
+                }
+            `}</style>
         </div>
     );
 }
