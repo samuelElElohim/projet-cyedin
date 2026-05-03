@@ -120,7 +120,7 @@ class EntrepriseDashboardController extends Controller
                 : null,
             'dateDebut'      => $request->dateDebut,
             'entreprise_id'  => $entreprise->id,
-            'est_active'     => false,
+            'est_active'     => true,
         ]);
 
         // Tags many-to-many
@@ -131,7 +131,27 @@ class EntrepriseDashboardController extends Controller
         TraceLogger::log('store_offre', ['entreprise_id' => $entreprise->id, 'offre_id' => $offre->id]);
 
         return redirect()->route('entreprise.index.offre')
-            ->with('success', 'Offre soumise, en attente de validation.');
+            ->with('success', 'Offre publiée avec succès.');
+    }
+
+    public function destroy_offre(Offre $offre): RedirectResponse
+    {
+        $entreprise = $this->entreprise();
+        abort_unless($offre->entreprise_id === $entreprise->id, 403);
+        abort_if(
+            Stage::where('entreprise_id', $entreprise->id)
+                ->whereIn('etat', ['en_attente_convention', 'actif'])
+                ->whereHas('etudiant', fn($q) =>
+                    $q->whereHas('candidatures', fn($sq) => $sq->where('offre_id', $offre->id))
+                )
+                ->exists(),
+            422,
+            'Impossible de supprimer une offre liée à un stage actif.'
+        );
+
+        $offre->delete();
+
+        return back()->with('success', 'Offre supprimée.');
     }
 
 
@@ -143,6 +163,7 @@ class EntrepriseDashboardController extends Controller
 
         $candidatures = Candidature::with(['etudiant', 'offre'])
             ->whereHas('offre', fn($q) => $q->where('entreprise_id', $entreprise->id))
+            ->whereNotIn('statut', ['annulee', 'expiree'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($c) use ($entreprise) {
@@ -154,13 +175,14 @@ class EntrepriseDashboardController extends Controller
                     ->get(['id', 'nom', 'type', 'date_depot'])
                     ->toArray();
 
-                // Stage + convention
+                // Stage + convention — uniquement pour les stages encore actifs
                 $arr['stage_id']          = null;
                 $arr['convention_status'] = null;
 
                 $stage = Stage::with('convention')
                     ->where('etudiant_id', $c->etudiant_id)
                     ->where('entreprise_id', $entreprise->id)
+                    ->whereIn('etat', ['en_attente_convention', 'actif'])
                     ->latest('id')
                     ->first();
 

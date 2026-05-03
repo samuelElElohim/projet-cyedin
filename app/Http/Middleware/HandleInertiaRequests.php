@@ -49,6 +49,7 @@ private function getEtudiantFlags(Request $request): array
 
         $stage = Stage::with('convention')
             ->where('etudiant_id', $user->id)
+            ->whereIn('etat', ['en_attente_convention', 'actif'])
             ->latest('id')
             ->first();
 

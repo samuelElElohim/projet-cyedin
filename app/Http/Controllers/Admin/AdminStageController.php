@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Candidature;
+use App\Models\Dossier_stage;
 use App\Models\Notification;
 use App\Models\Stage;
 use App\Services\ConventionService;
@@ -40,13 +42,7 @@ class AdminStageController extends Controller
         if ($request->filled('statut') && $request->statut !== 'all') {
             match ($request->statut) {
                 'termine'    => $query->where('etat', 'termine'),
-                'complet'    => $query->where('etat', 'actif')
-                                      ->whereHas('etudiant.dossier', fn($q) => $q->where('est_valide', true)),
-                'actif'      => $query->where('etat', 'actif')
-                                      ->where(fn($q) => $q
-                                          ->whereDoesntHave('etudiant.dossier')
-                                          ->orWhereHas('etudiant.dossier', fn($dq) => $dq->where('est_valide', false))
-                                      ),
+                'actif'      => $query->where('etat', 'actif'),
                 'en_attente' => $query->where('etat', 'en_attente_convention'),
                 default      => null,
             };
@@ -59,10 +55,9 @@ class AdminStageController extends Controller
             $stage->convention_status = ConventionService::status($stage->convention);
             $stage->dossier_valide    = $dossierValide;
             $stage->statut_global     = match(true) {
-                $stage->etat === 'termine'                           => 'termine',
-                $conventionComplete && $dossierValide                => 'dossier_valide',
-                $conventionComplete                                  => 'actif',
-                default                                              => 'en_attente',
+                $stage->etat === 'termine' => 'termine',
+                $conventionComplete        => 'actif',
+                default                    => 'en_attente',
             };
 
             return $stage;
@@ -81,6 +76,30 @@ class AdminStageController extends Controller
         abort_unless(in_array($stage->etat, ['en_attente_convention', 'actif']), 422, 'Stage déjà terminé.');
 
         $stage->update(['etat' => 'termine']);
+
+        // Reset dossier so the student can start a fresh cycle
+        Dossier_stage::where('etudiant_id', $stage->etudiant_id)
+            ->update(['est_valide' => false]);
+
+        // Archive all candidatures tied to this stage's offer
+        $acceptedCandidature = Candidature::where('etudiant_id', $stage->etudiant_id)
+            ->where('statut', 'acceptee')
+            ->whereHas('offre', fn($q) => $q->where('entreprise_id', $stage->entreprise_id))
+            ->latest()
+            ->first();
+
+        if ($acceptedCandidature) {
+            // Deactivate the offer so it disappears from the student feed
+            $acceptedCandidature->offre->update(['est_active' => false]);
+
+            // Archive the confirmed candidature itself
+            $acceptedCandidature->update(['statut' => 'annulee']);
+
+            // Cancel any remaining pending candidatures on the same offer
+            Candidature::where('offre_id', $acceptedCandidature->offre_id)
+                ->whereIn('statut', ['en_attente', 'accepted_pending_choice'])
+                ->update(['statut' => 'annulee']);
+        }
 
         Notification::create([
             'proprietaire_id' => $stage->etudiant_id,

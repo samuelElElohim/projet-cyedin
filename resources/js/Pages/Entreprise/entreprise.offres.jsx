@@ -1,5 +1,5 @@
 import EntrepriseLayout from '@/Layouts/EntrepriseLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
 
 export default function EntrepriseOffres({ offres = [], secteurs = [], tags = [] }) {
@@ -29,6 +29,11 @@ export default function EntrepriseOffres({ offres = [], secteurs = [], tags = []
             ? data.tags_ids.filter(x => x !== id)
             : [...data.tags_ids, id]
         );
+    }
+
+    function supprimer(id) {
+        if (!confirm('Supprimer cette offre définitivement ?')) return;
+        router.delete(route('entreprise.destroy.offre', id));
     }
 
     function submit(e) {
@@ -139,7 +144,7 @@ export default function EntrepriseOffres({ offres = [], secteurs = [], tags = []
                         )}
 
                         <p className="text-xs text-slate-400">
-                            L'offre sera soumise à validation par un administrateur avant d'être visible.
+                            L'offre sera publiée immédiatement et visible par les étudiants.
                         </p>
                         <button type="submit" disabled={processing}
                             className="px-6 py-2.5 bg-amber-500 text-white font-semibold rounded-xl hover:bg-amber-600 transition disabled:opacity-60 text-sm">
@@ -160,7 +165,7 @@ export default function EntrepriseOffres({ offres = [], secteurs = [], tags = []
                     <table className="w-full text-left">
                         <thead className="bg-slate-50 border-b border-slate-100">
                             <tr>
-                                {['Titre', 'Secteur', 'Tags', 'Durée', 'Candidatures', 'Statut'].map(h => (
+                                {['Titre', 'Secteur', 'Tags', 'Durée', 'Candidatures', 'Statut', ''].map(h => (
                                     <th key={h} className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>
                                 ))}
                             </tr>
@@ -199,6 +204,14 @@ export default function EntrepriseOffres({ offres = [], secteurs = [], tags = []
                                         }`}>
                                             {o.est_active ? 'Active' : 'En attente'}
                                         </span>
+                                    </td>
+                                    <td className="px-4 py-3 text-right">
+                                        <button
+                                            onClick={() => supprimer(o.id)}
+                                            className="px-2.5 py-1 text-xs font-semibold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition"
+                                        >
+                                            Supprimer
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

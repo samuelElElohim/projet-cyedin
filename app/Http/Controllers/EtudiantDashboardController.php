@@ -31,6 +31,7 @@ class EtudiantDashboardController extends Controller
 
         $stageEnCours = $etudiant?->stages()
             ->with(['entreprise', 'tuteur.utilisateur', 'convention'])
+            ->whereIn('etat', ['en_attente_convention', 'actif'])
             ->latest('id')
             ->first();
 
@@ -196,6 +197,7 @@ class EtudiantDashboardController extends Controller
 
         $stage = $user->etudiant?->stages()
             ->with(['convention', 'entreprise', 'tuteur.utilisateur'])
+            ->whereIn('etat', ['en_attente_convention', 'actif'])
             ->latest('id')
             ->first();
 
@@ -239,6 +241,7 @@ class EtudiantDashboardController extends Controller
 
         $stage = $etudiant?->stages()
             ->with('tuteur.utilisateur')
+            ->whereIn('etat', ['en_attente_convention', 'actif'])
             ->whereNotNull('tuteur_id')
             ->latest('id')
             ->first();

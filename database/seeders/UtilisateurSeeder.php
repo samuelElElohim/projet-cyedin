@@ -2,14 +2,13 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Utilisateur;
 use App\Models\Administrateur;
-use App\Models\Etudiant;
 use App\Models\Entreprise;
+use App\Models\Etudiant;
 use App\Models\Tuteur;
+use App\Models\Utilisateur;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
 
 class UtilisateurSeeder extends Seeder
 {
@@ -30,7 +29,7 @@ class UtilisateurSeeder extends Seeder
         );
         Administrateur::updateOrCreate(['utilisateurs_id' => $adminUser->id]);
 
-        // ─── Étudiant INFO / DevWeb ───────────────────────────────────────────
+        // ─── Étudiant ────────────────────────────────────────────────────────
         $etuUser = Utilisateur::updateOrCreate(
             ['email' => 'etu@test.fr'],
             [
@@ -43,12 +42,12 @@ class UtilisateurSeeder extends Seeder
                 'email_verified_at'   => now(),
             ]
         );
-        Etudiant::updateOrCreate(
+        $etudiant = Etudiant::updateOrCreate(
             ['utilisateur_id' => $etuUser->id],
             ['filiere_id' => 2, 'niveau_etud' => 1] // INFO
         );
 
-        // ─── Entreprise — secteurs DevWeb + IA ───────────────────────────────
+        // ─── Entreprise ──────────────────────────────────────────────────────
         $entUser = Utilisateur::updateOrCreate(
             ['email' => 'entreprise@test.fr'],
             [
@@ -65,12 +64,10 @@ class UtilisateurSeeder extends Seeder
             ['utilisateur_id' => $entUser->id],
             ['nom_entreprise' => 'Entreprise Test', 'addresse' => '42 rue test']
         );
+        $entr->secteurs()->syncWithoutDetaching([1, 2]); // DevWeb + IA
+        $entr->filieres()->syncWithoutDetaching([2]);     // INFO
 
-        // Secteurs DevWeb(1) + IA(2) → filières déduites INFO(2)
-        $entr->secteurs()->syncWithoutDetaching([1, 2]);
-        $entr->filieres()->syncWithoutDetaching([2]);
-
-        // ─── Tuteur — supervise DevWeb + IA ──────────────────────────────────
+        // ─── Tuteur ──────────────────────────────────────────────────────────
         $tuteurUser = Utilisateur::updateOrCreate(
             ['email' => 'tuteur@test.fr'],
             [
@@ -85,8 +82,11 @@ class UtilisateurSeeder extends Seeder
         );
         $tuteur = Tuteur::updateOrCreate(
             ['utilisateur_id' => $tuteurUser->id],
-            ['filiere_id' => 2] // filière principale INFO
+            ['filiere_id' => 2] // INFO
         );
         $tuteur->secteurs()->syncWithoutDetaching([1, 2]); // DevWeb + IA
+
+        // ─── Lien tuteur → étudiant ───────────────────────────────────────────
+        $etudiant->tuteur()->syncWithoutDetaching([$tuteurUser->id]);
     }
 }

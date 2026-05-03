@@ -3,10 +3,9 @@ import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 
 const STATUT = {
-    termine:       { label: '🏁 Stage terminé',          cls: 'bg-gray-200 text-gray-700' },
-    dossier_valide:{ label: '📋 Dossier validé',          cls: 'bg-teal-100 text-teal-800' },
-    actif:         { label: '🟢 Stage actif',             cls: 'bg-blue-100 text-blue-800' },
-    en_attente:    { label: '⏳ En attente convention',   cls: 'bg-amber-100 text-amber-700' },
+    termine:    { label: '🏁 Stage terminé',        cls: 'bg-gray-200 text-gray-700' },
+    actif:      { label: '🟢 Stage actif',           cls: 'bg-blue-100 text-blue-800' },
+    en_attente: { label: '⏳ En attente convention', cls: 'bg-amber-100 text-amber-700' },
 };
 
 export default function AdminIndexStage({ stages = [], count = 0, filters = {} }) {
@@ -30,22 +29,20 @@ export default function AdminIndexStage({ stages = [], count = 0, filters = {} }
         router.post(route('admin.stage.terminer', stageId));
     }
 
-    const termine      = stages.filter(s => s.statut_global === 'termine').length;
-    const dossierValide= stages.filter(s => s.statut_global === 'dossier_valide').length;
-    const actif        = stages.filter(s => s.statut_global === 'actif').length;
-    const enAttente    = stages.filter(s => s.statut_global === 'en_attente').length;
+    const termine   = stages.filter(s => s.statut_global === 'termine').length;
+    const actif     = stages.filter(s => s.statut_global === 'actif').length;
+    const enAttente = stages.filter(s => s.statut_global === 'en_attente').length;
 
     return (
         <AdminLayout title="Suivi des stages">
             <Head title="Stages — Admin" />
 
             {/* Stats */}
-            <div className="grid grid-cols-5 gap-4 mb-6">
-                <StatCard label="Total"             value={count}        color="blue" />
-                <StatCard label="Terminés"          value={termine}      color="gray" />
-                <StatCard label="Dossier validé"    value={dossierValide}color="teal" />
-                <StatCard label="Stage actif"       value={actif}        color="indigo" />
-                <StatCard label="En attente conv."  value={enAttente}    color="amber" />
+            <div className="grid grid-cols-4 gap-4 mb-6">
+                <StatCard label="Total"            value={count}    color="blue" />
+                <StatCard label="Terminés"         value={termine}  color="gray" />
+                <StatCard label="Actifs"           value={actif}    color="indigo" />
+                <StatCard label="En attente conv." value={enAttente}color="amber" />
             </div>
 
             {/* Filtres */}
@@ -60,11 +57,10 @@ export default function AdminIndexStage({ stages = [], count = 0, filters = {} }
                 />
                 <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
                     {[
-                        { value: 'all',           label: 'Tous' },
-                        { value: 'termine',       label: 'Terminés' },
-                        { value: 'complet',       label: 'Dossier validé' },
-                        { value: 'actif',         label: 'Actifs' },
-                        { value: 'en_attente',    label: 'En attente' },
+                        { value: 'all',        label: 'Tous' },
+                        { value: 'termine',    label: 'Terminés' },
+                        { value: 'actif',      label: 'Actifs' },
+                        { value: 'en_attente', label: 'En attente' },
                     ].map(f => (
                         <button key={f.value}
                             onClick={() => { setStatut(f.value); applyFilters({ statut: f.value }); }}

@@ -174,8 +174,9 @@ Route::middleware(['auth', 'role:E'])->prefix('entreprise')->name('entreprise.')
     Route::get('/dashboard', [EntrepriseDashboardController::class, 'dashboard'])->name('dashboard');
 
     // Offres
-    Route::get('/offres',        [EntrepriseDashboardController::class, 'index_offre'])->name('index.offre');
-    Route::post('/offres',       [EntrepriseDashboardController::class, 'store_offre'])->name('store.offre');
+    Route::get('/offres',           [EntrepriseDashboardController::class, 'index_offre'])->name('index.offre');
+    Route::post('/offres',          [EntrepriseDashboardController::class, 'store_offre'])->name('store.offre');
+    Route::delete('/offres/{offre}',[EntrepriseDashboardController::class, 'destroy_offre'])->name('destroy.offre');
 
     // Candidatures reçues
     Route::get('/candidatures',                          [EntrepriseDashboardController::class, 'index_candidatures'])->name('candidatures');
