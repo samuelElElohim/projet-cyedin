@@ -122,7 +122,7 @@ class TuteurDashboardController extends Controller
 
         $stage = Stage::where('tuteur_id', $tuteur->utilisateur_id)
             ->where('etudiant_id', $etudiantId)
-            ->with('etudiant.utilisateur', 'entreprise')
+            ->with('etudiant.utilisateur', 'entreprise', 'convention')
             ->firstOrFail();
 
         $documents = Document::where('utilisateur_id', $etudiantId)
@@ -237,17 +237,27 @@ class TuteurDashboardController extends Controller
     $tuteur = auth()->user()->tuteur;
 
     // Tous les étudiants — filtrables par filière si besoin
+    $stagesByEtudiant = Stage::with('convention')
+        ->where('tuteur_id', $tuteur->utilisateur_id)
+        ->get()
+        ->keyBy('etudiant_id');
+
     $etudiants = Etudiant::with(['utilisateur', 'filiere'])
         ->get()
-        ->map(fn ($e) => [
-            'id'      => $e->utilisateur_id,
-            'nom'     => $e->utilisateur->nom,
-            'prenom'  => $e->utilisateur->prenom,
-            'email'   => $e->utilisateur->email,
-            'filiere' => $e->filiere?->filiere,
-            'niveau'  => $e->niveau_etud,
-            'suivi'   => $tuteur->etudiants->contains('utilisateur_id', $e->utilisateur_id),
-        ]);
+        ->map(function ($e) use ($tuteur, $stagesByEtudiant) {
+            $stage = $stagesByEtudiant->get($e->utilisateur_id);
+            return [
+                'id'      => $e->utilisateur_id,
+                'nom'     => $e->utilisateur->nom,
+                'prenom'  => $e->utilisateur->prenom,
+                'email'   => $e->utilisateur->email,
+                'filiere' => $e->filiere?->filiere,
+                'niveau'  => $e->niveau_etud,
+                'suivi'   => $tuteur->etudiants->contains('utilisateur_id', $e->utilisateur_id),
+                'stage_id'                  => $stage?->id,
+                'convention_needs_signature' => $stage?->convention && !$stage->convention->signer_par_tuteur,
+            ];
+        });
 
     return Inertia::render('Tuteur/tuteur.etudiant.follow', [
         'etudiants' => $etudiants,

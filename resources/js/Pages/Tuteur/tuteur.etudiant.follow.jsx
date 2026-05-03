@@ -1,5 +1,5 @@
 import TuteurLayout from '@/Layouts/TuteurLayout';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function TuteurEtudiantsFollow({ etudiants = [] }) {
@@ -40,12 +40,32 @@ export default function TuteurEtudiantsFollow({ etudiants = [] }) {
                             {e.prenom?.[0]}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-slate-900">{e.prenom} {e.nom}</div>
+                            {e.suivi && e.stage_id ? (
+                                <Link
+                                    href={route('tuteur.etudiant', { etudiantId: e.id })}
+                                    className="text-sm font-medium text-teal-700 hover:underline"
+                                >
+                                    {e.prenom} {e.nom}
+                                </Link>
+                            ) : (
+                                <div className="text-sm font-medium text-slate-900">{e.prenom} {e.nom}</div>
+                            )}
                             <div className="text-xs text-slate-400">{e.email}</div>
                         </div>
                         <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-semibold">
                             {e.filiere} · Niv. {e.niveau}
                         </span>
+                        {e.suivi && e.convention_needs_signature && (
+                            <button
+                                onClick={() => {
+                                    if (!confirm('Signer la convention de ce stage ?')) return;
+                                    router.post(route('tuteur.signer.convention', e.stage_id));
+                                }}
+                                className="px-3 py-1.5 bg-teal-600 text-white text-xs font-semibold rounded-lg hover:bg-teal-700 transition"
+                            >
+                                ✍ Signer convention
+                            </button>
+                        )}
                         {e.suivi ? (
                             <button onClick={() => retirer(e.id)}
                                 className="px-3 py-1.5 bg-red-50 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-100 transition">
