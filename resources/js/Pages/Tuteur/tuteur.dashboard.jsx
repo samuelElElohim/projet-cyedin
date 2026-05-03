@@ -1,7 +1,14 @@
 import TuteurLayout from '@/Layouts/TuteurLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 
 export default function TuteurDashboard({ tuteur, stages = [], notifications = [], etudiantsSuivis = [], stats = {} }) {
+    const [expandedStages, setExpandedStages] = useState({});
+
+    function toggleStage(id) {
+        setExpandedStages(prev => ({ ...prev, [id]: !prev[id] }));
+    }
+
     function signerConvention(stageId) {
         if (!confirm('Signer la convention de ce stage ?')) return;
         router.post(route('tuteur.signer.convention', stageId));
@@ -26,9 +33,11 @@ export default function TuteurDashboard({ tuteur, stages = [], notifications = [
                     <div className="font-semibold text-slate-900">
                         {tuteur?.utilisateur?.prenom} {tuteur?.utilisateur?.nom}
                     </div>
-                    <div className="text-xs text-slate-500">
-                        Département <span className="font-semibold text-teal-600">{tuteur?.departement ?? '—'}</span>
-                    </div>
+                    {tuteur?.departement && (
+                        <div className="text-xs text-slate-500">
+                            Département <span className="font-semibold text-teal-600">{tuteur.departement}</span>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -47,36 +56,88 @@ export default function TuteurDashboard({ tuteur, stages = [], notifications = [
         {stages.map(stage => {
             const cv = stage.convention_status;
             const etudiant = stage.etudiant?.utilisateur;
+            const isExpanded = expandedStages[stage.id] ?? false;
             return (
-                <div key={stage.id} className="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-teal-100 transition">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                        <div>
+                <div key={stage.id} className="rounded-xl bg-slate-50 border border-slate-100 hover:border-teal-100 transition overflow-hidden">
+                    {/* Header cliquable */}
+                    <button
+                        onClick={() => toggleStage(stage.id)}
+                        className="w-full p-4 text-left flex items-start justify-between gap-2"
+                    >
+                        <div className="min-w-0">
                             <div className="font-semibold text-slate-900 text-sm">
                                 {etudiant ? `${etudiant.prenom} ${etudiant.nom}` : '—'}
                             </div>
-                            <div className="text-xs text-slate-500">{stage.sujet}</div>
+                            <div className="text-xs text-slate-500 truncate">{stage.sujet}</div>
                             <div className="text-xs text-slate-400 mt-0.5">
                                 {stage.entreprise?.nom_entreprise} · {stage.duree_en_semaine} sem.
                             </div>
                         </div>
-                        <ConventionMini cv={cv} />
-                    </div>
-                    <div className="flex gap-2 mt-3 flex-wrap">
-                        {cv && !cv.tuteur && (
-                            <button onClick={() => signerConvention(stage.id)}
-                                className="px-2 py-1 bg-teal-600 text-white text-xs font-semibold rounded-lg hover:bg-teal-700 transition">
-                                ✍ Signer convention
-                            </button>
-                        )}
-                        <Link href={route('tuteur.cahier', { etudiantId: stage.etudiant_id })}
-                            className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg hover:bg-blue-100 transition">
-                            📓 Cahier
-                        </Link>
-                        <Link href={route('tuteur.etudiant', { etudiantId: stage.etudiant_id })}
-                            className="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-200 transition">
-                            📄 Documents & Remarques
-                        </Link>
-                    </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <ConventionMini cv={cv} />
+                            <span className="text-slate-400 text-xs">{isExpanded ? '▲' : '▼'}</span>
+                        </div>
+                    </button>
+
+                    {/* Détails expandés */}
+                    {isExpanded && (
+                        <div className="px-4 pb-4 border-t border-slate-200 pt-3 space-y-2">
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600">
+                                {stage.dateDebut && (
+                                    <>
+                                        <span className="text-slate-400">Début</span>
+                                        <span>{new Date(stage.dateDebut).toLocaleDateString('fr-FR')}</span>
+                                    </>
+                                )}
+                                <span className="text-slate-400">Durée</span>
+                                <span>{stage.duree_en_semaine} semaines</span>
+                                {stage.etat && (
+                                    <>
+                                        <span className="text-slate-400">État</span>
+                                        <span className="capitalize">{stage.etat}</span>
+                                    </>
+                                )}
+                                {etudiant?.email && (
+                                    <>
+                                        <span className="text-slate-400">Email</span>
+                                        <span className="truncate">{etudiant.email}</span>
+                                    </>
+                                )}
+                            </div>
+                            {cv && (
+                                <div className="text-xs text-slate-500 mt-2">
+                                    Convention — Entreprise&nbsp;
+                                    <span className={cv.entreprise ? 'text-green-600 font-semibold' : 'text-slate-400'}>
+                                        {cv.entreprise ? '✓' : '✗'}
+                                    </span>
+                                    &nbsp;· Tuteur&nbsp;
+                                    <span className={cv.tuteur ? 'text-green-600 font-semibold' : 'text-slate-400'}>
+                                        {cv.tuteur ? '✓' : '✗'}
+                                    </span>
+                                    &nbsp;· Étudiant&nbsp;
+                                    <span className={cv.etudiant ? 'text-green-600 font-semibold' : 'text-slate-400'}>
+                                        {cv.etudiant ? '✓' : '✗'}
+                                    </span>
+                                </div>
+                            )}
+                            <div className="flex gap-2 mt-3 flex-wrap">
+                                {cv && !cv.tuteur && (
+                                    <button onClick={() => signerConvention(stage.id)}
+                                        className="px-2 py-1 bg-teal-600 text-white text-xs font-semibold rounded-lg hover:bg-teal-700 transition">
+                                        ✍ Signer convention
+                                    </button>
+                                )}
+                                <Link href={route('tuteur.cahier', { etudiantId: stage.etudiant_id })}
+                                    className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg hover:bg-blue-100 transition">
+                                    📓 Cahier
+                                </Link>
+                                <Link href={route('tuteur.etudiant', { etudiantId: stage.etudiant_id })}
+                                    className="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-200 transition">
+                                    📄 Documents & Remarques
+                                </Link>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         })}
