@@ -78,10 +78,19 @@ php artisan migrate:fresh --seed
 ```bash
 composer dev
 ```
-
+Ou bien : 
+```bash
+npm run dev (dans un terminal)
+php artisan serve (dans un autre)
+```
 Démarre en parallèle : serveur Laravel (`localhost:8000`), Vite (HMR), queue worker et log watcher.
 
 L'application est disponible sur **http://localhost:8000**.
+
+### 6. Ouvrir l'authentification à 2 facteurs
+```bash
+tail -f storage/logs/laravel.log | grep "2FA"
+```
 
 ## Structure du projet
 
