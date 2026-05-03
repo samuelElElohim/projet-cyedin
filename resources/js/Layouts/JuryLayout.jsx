@@ -1,11 +1,11 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import NotifDropdown from '@/Components/Shared/NotifDropdown';
 
 const NAV_ITEMS = [
-    { label: 'Tableau de bord', href: 'jury.dashboard',       icon: '▦' },
-    { label: 'Dossiers',        href: 'jury.index.dossiers',  icon: '📁' },
-    { label: 'Stages',          href: 'jury.index.stages',    icon: '🎓' },
+    { label: 'Dashboard', href: 'jury.dashboard',      icon: '█' },
+    { label: 'Dossiers',  href: 'jury.index.dossiers', icon: '▤' },
+    { label: 'Stages',    href: 'jury.index.stages',   icon: '◉' },
 ];
 
 export default function JuryLayout({ children, title = 'Espace Jury' }) {
@@ -14,71 +14,104 @@ export default function JuryLayout({ children, title = 'Espace Jury' }) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
 
     return (
-        <div className="min-h-screen bg-slate-50 flex">
-            <aside className={`${sidebarOpen ? 'w-56' : 'w-14'} bg-white border-r border-slate-100 flex flex-col transition-all duration-200 shrink-0 shadow-sm`}>
-                <div className="h-16 flex items-center px-4 border-b border-slate-100">
+        <div className="min-h-screen flex" style={{ background: 'var(--c-black)', fontFamily: "'VT323', monospace" }}>
+
+            <aside
+                className="cyber-sidebar scanlines flex flex-col shrink-0 transition-all duration-150"
+                style={{ width: sidebarOpen ? 220 : 52, borderRightColor: '#440066' }}
+            >
+                <div style={{ borderBottom: '2px solid #440066', padding: '10px 12px', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     {sidebarOpen && (
-                        <span className="text-lg font-black tracking-tight text-slate-900">
-                            CY<span className="text-purple-600">edin</span>
-                            <span className="text-xs font-normal text-slate-400 ml-2">Jury</span>
-                        </span>
+                        <Link href={route('jury.dashboard')} className="cyber-logo" style={{ fontSize: 22 }}>
+                            CY<span style={{ color: '#cc66ff', textShadow: '0 0 10px #cc66ff' }}>edin</span>
+                        </Link>
                     )}
                     <button
                         onClick={() => setSidebarOpen(p => !p)}
-                        className="ml-auto text-slate-300 hover:text-slate-600 text-xl transition"
+                        style={{ background: 'none', border: '1px solid #440066', color: '#cc66ff', padding: '2px 6px', cursor: 'pointer', fontFamily: 'monospace', fontSize: 14, marginLeft: sidebarOpen ? 0 : 'auto' }}
                     >
-                        {sidebarOpen ? '←' : '→'}
+                        {sidebarOpen ? '◄' : '►'}
                     </button>
                 </div>
 
-                <nav className="flex-1 py-4 space-y-0.5 px-2 overflow-y-auto">
+                {sidebarOpen && (
+                    <div style={{ padding: '4px 12px', background: '#0e0018', borderBottom: '1px solid #440066', fontSize: 11, color: '#cc66ff', letterSpacing: '0.2em', fontFamily: "'Share Tech Mono', monospace" }}>
+                        ■ JURY ■
+                    </div>
+                )}
+
+                <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto' }}>
                     {NAV_ITEMS.map(item => {
                         const isActive = route().current(item.href);
                         return (
                             <Link
                                 key={item.href}
                                 href={route(item.href)}
-                                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
-                                    isActive
-                                        ? 'bg-purple-50 text-purple-700'
-                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
-                                }`}
+                                className="nav-item"
+                                style={{
+                                    ...(isActive
+                                        ? { background: '#cc66ff', color: '#000', borderLeftColor: '#cc66ff', boxShadow: '0 0 10px #cc66ff' }
+                                        : { borderLeftColor: 'transparent', color: '#884499' }),
+                                    ...(!sidebarOpen ? { justifyContent: 'center', paddingLeft: 0, paddingRight: 0 } : {}),
+                                }}
                             >
-                                <span className="text-base shrink-0">{item.icon}</span>
-                                {sidebarOpen && <span className="truncate">{item.label}</span>}
+                                <span style={{ fontSize: 16, minWidth: 16, textAlign: 'center' }}>{item.icon}</span>
+                                {sidebarOpen && <span>{item.label}</span>}
                             </Link>
                         );
                     })}
                 </nav>
 
-                <div className="border-t border-slate-100 p-4">
+                <div style={{ margin: '0 12px', borderTop: '1px dashed #440066' }} />
+
+                <div style={{ padding: '10px 12px' }}>
                     {sidebarOpen && (
-                        <div className="text-xs text-slate-400 mb-2">
-                            <div className="font-semibold text-slate-700">{user?.prenom} {user?.nom}</div>
-                            <div className="truncate">{user?.email}</div>
+                        <div style={{ fontSize: 13, color: '#664488', marginBottom: 6, fontFamily: "'Share Tech Mono', monospace" }}>
+                            <div style={{ color: '#cc88ff' }}>{user?.prenom} {user?.nom}</div>
+                            <div style={{ fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</div>
                         </div>
                     )}
-                    <Link
-                        href={route('logout')}
-                        method="post"
-                        as="button"
-                        className="text-xs text-red-400 hover:text-red-600 transition"
+                    <button
+                        onClick={() => router.post(route('logout'))}
+                        className="nav-item"
+                        style={{ width: '100%', border: '1px solid #330011', color: 'var(--c-red)', background: 'none', fontSize: 14, justifyContent: sidebarOpen ? 'flex-start' : 'center' }}
                     >
-                        {sidebarOpen ? 'Déconnexion' : '⏻'}
-                    </Link>
+                        <span>⏻</span>
+                        {sidebarOpen && <span>DECONNEXION</span>}
+                    </button>
                 </div>
             </aside>
 
-            <div className="flex-1 flex flex-col min-w-0">
-                <header className="h-16 bg-white border-b border-slate-100 flex items-center px-6 shrink-0 shadow-sm">
-                    <h1 className="text-base font-semibold text-slate-800">{title}</h1>
-                    <div className="ml-auto">
-                        <NotifDropdown />
-                    </div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+
+                <header style={{ display: 'flex', alignItems: 'center', padding: '0 20px', height: 52, gap: 16, background: 'var(--c-navy)', borderBottom: '2px solid #cc66ff', boxShadow: '0 0 15px #cc66ff33' }}>
+                    <span style={{ color: '#cc66ff', fontFamily: "'Share Tech Mono', monospace", fontSize: 12 }}>■</span>
+                    <h1 style={{ flex: 1, color: '#cc66ff', fontFamily: "'VT323', monospace", fontSize: 22, letterSpacing: '0.1em', textTransform: 'uppercase', textShadow: '0 0 8px #cc66ff', margin: 0 }}>
+                        {title}
+                    </h1>
+                    <div style={{ marginLeft: 'auto' }}><NotifDropdown /></div>
                 </header>
-                <main className="flex-1 p-6 overflow-auto">
-                    {children}
+
+                <div className="cyber-marquee" style={{ borderColor: '#cc66ff', color: '#cc66ff' }}>
+                    <span className="cyber-marquee-inner">
+                        ★ ESPACE JURY — EVALUATION DES STAGES ★ &nbsp;&nbsp;&nbsp;
+                        ● CONSULTATION DES DOSSIERS ● VALIDATION ● NOTATION ●
+                        &nbsp;&nbsp;&nbsp; ★ CYEDIN v2.0 — MODULE JURY ★
+                    </span>
+                </div>
+
+                <main style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+                    <div style={{ maxWidth: 1200, margin: '0 auto', color: 'var(--c-text)' }}>
+                        {children}
+                    </div>
                 </main>
+
+                <div className="cyber-statusbar">
+                    <span className="blink" style={{ color: '#cc66ff' }}>█</span>
+                    <span>CYEDIN v2.0</span>
+                    <span style={{ marginLeft: 'auto', fontFamily: "'Share Tech Mono', monospace", fontSize: 11 }}>SYS:OK</span>
+                    <span style={{ color: '#cc66ff', fontSize: 11 }}>■ JURY ■</span>
+                </div>
             </div>
         </div>
     );

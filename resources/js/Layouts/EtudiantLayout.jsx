@@ -3,108 +3,146 @@ import { useState } from 'react';
 import NotifDropdown from '@/Components/Shared/NotifDropdown';
 
 const ALL_NAV_ITEMS = [
-    { label: 'Tableau de bord',  href: 'etudiant.dashboard',         icon: '▦',  always: true },
-    { label: 'Offres de stage',  href: 'etudiant.offres',            icon: '🔍', always: true },
-    { label: 'Mes candidatures', href: 'etudiant.candidatures',      icon: '📨', always: true },
-    { label: 'Porte-document',   href: 'etudiant.porte.document',    icon: '🗂️', always: true },
-    { label: 'Mon dossier',      href: 'etudiant.dossier',           icon: '📁', needsStage: true },
-    { label: 'Mon Stage',        href: 'etudiant.mon.stage',         icon: '🎓', needsStageActif: true },
-    { label: 'Suggérer',         href: 'demande.hierarchie',         icon: '💡', always: true },
+    { label: 'Dashboard',       href: 'etudiant.dashboard',      icon: '█', always: true },
+    { label: 'Offres',          href: 'etudiant.offres',         icon: '◈', always: true },
+    { label: 'Candidatures',    href: 'etudiant.candidatures',   icon: '✉', always: true },
+    { label: 'Documents',       href: 'etudiant.porte.document', icon: '▤', always: true },
+    { label: 'Dossier',         href: 'etudiant.dossier',        icon: '▣', needsStage: true },
+    { label: 'Mon Stage',       href: 'etudiant.mon.stage',      icon: '◉', needsStageActif: true },
+    { label: 'Suggerer',        href: 'demande.hierarchie',      icon: '◆', always: true },
 ];
 
-export default function EtudiantLayout({ children, title = 'Espace Étudiant' }) {
+const ROLE_COLORS = {
+    sidebar: '#0000cc',
+    accent:  '#00ffff',
+    label:   'ETUDIANT',
+};
+
+export default function EtudiantLayout({ children, title = 'Espace Etudiant' }) {
     const { auth, etudiant_flags } = usePage().props;
     const user = auth?.user;
     const [sidebarOpen, setSidebarOpen] = useState(true);
-
-    const hasStage  = etudiant_flags?.has_stage   ?? false;
+    const hasStage   = etudiant_flags?.has_stage   ?? false;
     const stageActif = etudiant_flags?.stage_actif ?? false;
 
     const visibleNavItems = ALL_NAV_ITEMS.filter(item => {
-        if (item.always)           return true;
-        if (item.needsStage)       return hasStage;
-        if (item.needsStageActif)  return stageActif;
+        if (item.always)          return true;
+        if (item.needsStage)      return hasStage;
+        if (item.needsStageActif) return stageActif;
         return true;
     });
 
-    return (
-        <div className="min-h-screen bg-slate-50 flex">
-            {/* Sidebar */}
-            <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-slate-100 flex flex-col transition-all duration-300 shrink-0 shadow-sm`}>
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-                {/* Logo & Toggle */}
-                <div className="h-16 flex items-center px-4 border-b border-slate-100">
+    return (
+        <div className="min-h-screen flex" style={{ background: 'var(--c-black)', fontFamily: "'VT323', monospace" }}>
+
+            {/* SIDEBAR */}
+            <aside
+                className="cyber-sidebar scanlines flex flex-col shrink-0 transition-all duration-150"
+                style={{ width: sidebarOpen ? 220 : 52 }}
+            >
+                {/* Logo */}
+                <div style={{ borderBottom: '2px solid var(--c-dim)', padding: '10px 12px', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     {sidebarOpen && (
-                        <Link href={route('etudiant.dashboard')} className="text-xl font-black tracking-tighter text-slate-900">
-                            CY<span className="text-blue-600">edin</span>
+                        <Link href={route('etudiant.dashboard')} className="cyber-logo" style={{ fontSize: 22 }}>
+                            CY<span>edin</span>
                         </Link>
                     )}
                     <button
-                        onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className={`text-slate-400 hover:text-blue-600 transition-colors ${sidebarOpen ? 'ml-auto' : 'mx-auto'}`}
+                        onClick={() => setSidebarOpen(p => !p)}
+                        style={{ background: 'none', border: '1px solid var(--c-dim)', color: 'var(--c-cyan)', padding: '2px 6px', cursor: 'pointer', fontFamily: 'monospace', fontSize: 14, marginLeft: sidebarOpen ? 0 : 'auto' }}
                     >
-                        {sidebarOpen ? '⇠' : '⇢'}
+                        {sidebarOpen ? '◄' : '►'}
                     </button>
                 </div>
 
-                {/* Navigation */}
-                <nav className="flex-1 py-6 space-y-1 px-3">
+                {/* Role badge */}
+                {sidebarOpen && (
+                    <div style={{ padding: '4px 12px', background: '#00001a', borderBottom: '1px solid var(--c-dim)', fontSize: 11, color: 'var(--c-cyan)', letterSpacing: '0.2em', fontFamily: "'Share Tech Mono', monospace" }}>
+                        ■ {ROLE_COLORS.label} ■
+                    </div>
+                )}
+
+                {/* Nav */}
+                <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto' }}>
                     {visibleNavItems.map(item => {
                         const isActive = route().current(item.href);
                         return (
                             <Link
                                 key={item.href}
                                 href={route(item.href)}
-                                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all ${
-                                    isActive
-                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-100'
-                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                                }`}
+                                className={`nav-item ${isActive ? 'active' : ''}`}
+                                style={!sidebarOpen ? { justifyContent: 'center', paddingLeft: 0, paddingRight: 0 } : {}}
                             >
-                                <span className="text-lg">{item.icon}</span>
-                                {sidebarOpen && <span className="truncate">{item.label}</span>}
+                                <span style={{ fontSize: 16, minWidth: 16, textAlign: 'center' }}>{item.icon}</span>
+                                {sidebarOpen && <span>{item.label}</span>}
                             </Link>
                         );
                     })}
                 </nav>
 
-                {/* User Section */}
-                <div className="p-4 border-t border-slate-50 bg-slate-50/50">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0">
-                            {user?.nom?.charAt(0)}
+                {/* Separator */}
+                <div style={{ margin: '0 12px', borderTop: '1px dashed var(--c-dim)' }} />
+
+                {/* User */}
+                <div style={{ padding: '10px 12px' }}>
+                    {sidebarOpen && (
+                        <div style={{ fontSize: 13, color: 'var(--c-muted)', marginBottom: 6, fontFamily: "'Share Tech Mono', monospace" }}>
+                            <div style={{ color: 'var(--c-text)' }}>{user?.prenom} {user?.nom}</div>
+                            <div style={{ fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</div>
                         </div>
-                        {sidebarOpen && (
-                            <div className="flex-1 min-w-0">
-                                <p className="text-xs font-bold text-slate-800 truncate">{user?.prenom} {user?.nom}</p>
-                                <p className="text-[10px] text-slate-500 truncate">{user?.email}</p>
-                            </div>
-                        )}
-                    </div>
+                    )}
                     <button
                         onClick={() => router.post(route('logout'))}
-                        className="mt-4 flex items-center gap-3 w-full px-3 py-2 text-xs font-bold text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        className="nav-item"
+                        style={{ width: '100%', border: '1px solid #330011', color: 'var(--c-red)', background: 'none', fontSize: 14, justifyContent: sidebarOpen ? 'flex-start' : 'center' }}
                     >
                         <span>⏻</span>
-                        {sidebarOpen && <span>Déconnexion</span>}
+                        {sidebarOpen && <span>DECONNEXION</span>}
                     </button>
                 </div>
             </aside>
 
-            {/* Main Area */}
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-8 sticky top-0 z-10">
-                    <h2 className="text-lg font-bold text-slate-800 truncate">{title}</h2>
-                    <div className="flex items-center gap-4">
+            {/* MAIN */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+
+                {/* Header */}
+                <header className="cyber-header" style={{ display: 'flex', alignItems: 'center', padding: '0 20px', height: 52, gap: 16 }}>
+                    <span style={{ color: 'var(--c-cyan)', fontFamily: "'Share Tech Mono', monospace", fontSize: 12 }}>■</span>
+                    <h1 style={{ flex: 1, color: 'var(--c-cyan)', fontFamily: "'VT323', monospace", fontSize: 22, letterSpacing: '0.1em', textTransform: 'uppercase', textShadow: '0 0 8px var(--c-cyan)', margin: 0 }}>
+                        {title}
+                    </h1>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                         <NotifDropdown />
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto p-8">
-                    <div className="max-w-7xl mx-auto text-slate-700">
+                {/* Marquee */}
+                <div className="cyber-marquee">
+                    <span className="cyber-marquee-inner">
+                        ★ BIENVENUE SUR CYEDIN — PLATEFORME DE GESTION DES STAGES CY TECH ★ &nbsp;&nbsp;&nbsp;
+                        ● ESPACE ETUDIANT ● CONSULTER LES OFFRES ● SUIVRE VOS CANDIDATURES ●
+                        &nbsp;&nbsp;&nbsp; ★ VERSION 2.0 — CYBER EDITION ★ &nbsp;&nbsp;&nbsp;
+                        ◄ UTILISEZ FIREFOX 3.0 OU NETSCAPE NAVIGATOR POUR UNE MEILLEURE EXPERIENCE ►
+                    </span>
+                </div>
+
+                {/* Content */}
+                <main style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+                    <div style={{ maxWidth: 1200, margin: '0 auto', color: 'var(--c-text)' }}>
                         {children}
                     </div>
                 </main>
+
+                {/* Status bar */}
+                <div className="cyber-statusbar">
+                    <span className="blink">█</span>
+                    <span>CYEDIN v2.0</span>
+                    <span style={{ marginLeft: 'auto', fontFamily: "'Share Tech Mono', monospace", fontSize: 11 }}>SYS:OK</span>
+                    <span style={{ color: 'var(--c-cyan)', fontSize: 11 }}>■ ETUDIANT ■</span>
+                </div>
             </div>
         </div>
     );

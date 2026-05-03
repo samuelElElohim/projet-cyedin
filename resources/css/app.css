@@ -1,9 +1,411 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   CYEDIN — LATE 90s CYBER THEME
+   ============================================================ */
+
+:root {
+    --c-black:   #000011;
+    --c-navy:    #00001a;
+    --c-panel:   #00002e;
+    --c-cyan:    #00ffff;
+    --c-magenta: #ff00ff;
+    --c-yellow:  #ffff00;
+    --c-green:   #00ff66;
+    --c-red:     #ff3366;
+    --c-dim:     #003366;
+    --c-text:    #aaccff;
+    --c-muted:   #556688;
+}
+
+/* ── BASE ─────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+    border-radius: 0 !important;
+    box-sizing: border-box;
+}
+
+html {
+    cursor: crosshair;
+    scroll-behavior: smooth;
+}
+
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'VT323', 'Share Tech Mono', 'Courier New', monospace !important;
+    font-size: 18px;
+    background-color: var(--c-black);
+    background-image:
+        radial-gradient(circle, #003366 1px, transparent 1px);
+    background-size: 32px 32px;
+    color: var(--c-text);
+    -webkit-font-smoothing: none;
+    image-rendering: pixelated;
+}
+
+/* ── SCROLLBAR ───────────────────────────────────────────── */
+
+::-webkit-scrollbar       { width: 10px; background: var(--c-black); }
+::-webkit-scrollbar-thumb { background: var(--neon, var(--c-cyan)); border: 1px solid var(--c-cyan); }
+::-webkit-scrollbar-track { background: #000022; }
+
+/* ── BACKGROUNDS ─────────────────────────────────────────── */
+
+.bg-white,
+.bg-slate-50, .bg-gray-50, .bg-gray-100,
+.bg-slate-100 {
+    background-color: var(--c-panel) !important;
+}
+
+.bg-slate-900 { background-color: #000008 !important; }
+
+/* ── TEXT ────────────────────────────────────────────────── */
+
+.text-slate-900, .text-slate-800,
+.text-gray-900,  .text-gray-800 { color: var(--c-cyan) !important; }
+
+.text-slate-700, .text-slate-600,
+.text-gray-700,  .text-gray-600 { color: var(--c-text) !important; }
+
+.text-slate-500, .text-slate-400,
+.text-gray-500,  .text-gray-400,
+.text-slate-300, .text-gray-300 { color: var(--c-muted) !important; }
+
+.text-blue-600, .text-blue-700   { color: var(--c-cyan) !important; }
+.text-teal-600, .text-teal-700   { color: var(--c-green) !important; }
+.text-amber-500, .text-amber-600, .text-amber-700 { color: var(--c-yellow) !important; }
+.text-green-700, .text-green-800 { color: var(--c-green) !important; }
+.text-red-500,   .text-red-600   { color: var(--c-red) !important; }
+.text-purple-600,.text-purple-700{ color: var(--c-magenta) !important; }
+.text-white                      { color: var(--c-cyan) !important; }
+
+/* ── BORDERS ─────────────────────────────────────────────── */
+
+.border, [class*="border-"] {
+    border-color: var(--c-dim) !important;
+}
+
+.border-blue-400, .border-blue-500      { border-color: var(--c-cyan) !important; }
+.border-teal-100, .border-teal-200      { border-color: #003322 !important; }
+.border-amber-100, .border-amber-200    { border-color: #332200 !important; }
+.border-green-200                       { border-color: #003322 !important; }
+.border-red-200                         { border-color: #330011 !important; }
+
+/* ── SHADOWS ─────────────────────────────────────────────── */
+
+[class*="shadow"] {
+    box-shadow: 0 0 8px var(--c-dim), inset 0 0 2px #000 !important;
+}
+
+/* ── BUTTONS ─────────────────────────────────────────────── */
+
+button, [type="submit"], [type="button"],
+.bg-blue-600, .bg-blue-700,
+.bg-teal-600, .bg-teal-700,
+.bg-amber-500, .bg-amber-600,
+.bg-green-600, .bg-green-700,
+.bg-slate-600, .bg-slate-700,
+.bg-indigo-600 {
+    background: #000033 !important;
+    border: 2px outset var(--c-cyan) !important;
+    color: var(--c-cyan) !important;
+    font-family: 'VT323', monospace !important;
+    font-size: 16px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: all 0.05s !important;
+}
+
+button:hover:not(:disabled),
+.bg-blue-600:hover, .bg-teal-600:hover,
+.bg-amber-500:hover, .bg-green-600:hover {
+    background: var(--c-cyan) !important;
+    color: #000011 !important;
+    border-style: inset !important;
+    box-shadow: 0 0 12px var(--c-cyan) !important;
+}
+
+button:disabled { opacity: 0.35 !important; cursor: not-allowed !important; }
+
+.bg-red-50, .bg-red-100 { background: #1a0008 !important; }
+.bg-green-50,.bg-green-100{ background: #001a0a !important; }
+.bg-blue-50,.bg-blue-100  { background: #00001a !important; }
+.bg-teal-50,.bg-teal-100  { background: #001a0f !important; }
+.bg-amber-50,.bg-amber-100{ background: #1a1200 !important; }
+.bg-slate-50,.bg-slate-100{ background: #00001a !important; }
+.bg-indigo-50             { background: #050018 !important; }
+.bg-purple-50             { background: #0e0018 !important; }
+
+/* ── INPUTS ──────────────────────────────────────────────── */
+
+input, textarea, select {
+    background: #000022 !important;
+    border: 2px inset var(--c-dim) !important;
+    color: var(--c-cyan) !important;
+    font-family: 'VT323', 'Share Tech Mono', monospace !important;
+    font-size: 18px !important;
+    caret-color: var(--c-cyan);
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--c-cyan) !important;
+    box-shadow: 0 0 8px var(--c-cyan) !important;
+    outline: none !important;
+}
+
+input::placeholder, textarea::placeholder {
+    color: var(--c-muted) !important;
+    opacity: 0.6;
+}
+
+select option { background: #000022; color: var(--c-cyan); }
+
+/* ── BADGES & PILLS ──────────────────────────────────────── */
+
+[class*="rounded-full"], [class*="rounded-lg"],
+[class*="rounded-xl"],   [class*="rounded-2xl"] {
+    border-radius: 0 !important;
+}
+
+.bg-green-100 { background: #001a0a !important; border: 1px solid var(--c-green) !important; }
+.bg-red-50    { background: #1a0008 !important; border: 1px solid var(--c-red)   !important; }
+.bg-amber-50  { background: #1a1200 !important; border: 1px solid var(--c-yellow)!important; }
+.bg-blue-50   { background: #00001a !important; border: 1px solid var(--c-cyan)  !important; }
+.bg-teal-50   { background: #001a0f !important; border: 1px solid var(--c-green) !important; }
+
+/* ── LINKS ───────────────────────────────────────────────── */
+
+a { color: var(--c-cyan) !important; }
+a:hover { color: var(--c-magenta) !important; text-decoration: underline; }
+
+/* ── TABLES ──────────────────────────────────────────────── */
+
+table { border-collapse: collapse; width: 100%; }
+th    { background: #000033; color: var(--c-yellow); border: 1px solid var(--c-dim); padding: 6px 10px; text-transform: uppercase; letter-spacing: 0.1em; }
+td    { border: 1px solid var(--c-dim); padding: 6px 10px; color: var(--c-text); }
+tr:hover td { background: #00001a; }
+
+/* ── CYBER PANEL (used in layouts) ──────────────────────── */
+
+.cyber-panel {
+    background: var(--c-panel);
+    border: 1px solid var(--c-dim);
+    box-shadow: inset 0 0 20px #000033, 0 0 6px var(--c-dim);
+}
+
+.cyber-panel-bright {
+    background: #000033;
+    border: 2px ridge var(--c-cyan);
+    box-shadow: 0 0 12px #00ffff44, inset 0 0 10px #000055;
+}
+
+.neon-border-cyan    { border: 1px solid var(--c-cyan)    !important; box-shadow: 0 0 6px var(--c-cyan)    !important; }
+.neon-border-magenta { border: 1px solid var(--c-magenta) !important; box-shadow: 0 0 6px var(--c-magenta) !important; }
+.neon-border-yellow  { border: 1px solid var(--c-yellow)  !important; box-shadow: 0 0 6px var(--c-yellow)  !important; }
+
+/* ── TYPOGRAPHY UTILS ────────────────────────────────────── */
+
+.cyber-title {
+    font-family: 'VT323', monospace;
+    color: var(--c-cyan);
+    text-shadow: 0 0 8px var(--c-cyan), 0 0 20px #00ffff88;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.cyber-label {
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--c-muted);
+}
+
+/* ── ANIMATIONS ──────────────────────────────────────────── */
+
+@keyframes blink-cursor {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+}
+
+@keyframes neon-pulse {
+    0%   { text-shadow: 0 0 4px var(--c-cyan), 0 0 10px var(--c-cyan); }
+    100% { text-shadow: 0 0 8px var(--c-cyan), 0 0 25px var(--c-cyan), 0 0 40px #00ffff44; }
+}
+
+@keyframes scan-line {
+    0%   { top: -5%; }
+    100% { top: 105%; }
+}
+
+@keyframes glitch {
+    0%   { transform: translate(0); }
+    20%  { transform: translate(-2px, 1px); filter: hue-rotate(90deg); }
+    40%  { transform: translate(2px, -1px); filter: hue-rotate(180deg); }
+    60%  { transform: translate(-1px, 2px); }
+    80%  { transform: translate(1px, -2px); filter: hue-rotate(0deg); }
+    100% { transform: translate(0); }
+}
+
+@keyframes marquee-scroll {
+    0%   { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+.blink    { animation: blink-cursor 1s step-end infinite; }
+.glow     { animation: neon-pulse 2s ease-in-out infinite alternate; }
+.glitch   { animation: glitch 0.4s infinite; }
+
+/* ── SCANLINE OVERLAY ────────────────────────────────────── */
+
+.scanlines {
+    position: relative;
+    overflow: hidden;
+}
+
+.scanlines::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 3px,
+        rgba(0, 0, 0, 0.15) 3px,
+        rgba(0, 0, 0, 0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+}
+
+/* ── MARQUEE BAR ─────────────────────────────────────────── */
+
+.cyber-marquee {
+    overflow: hidden;
+    white-space: nowrap;
+    background: #000;
+    border-top: 1px solid var(--c-cyan);
+    border-bottom: 1px solid var(--c-cyan);
+    padding: 2px 0;
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: var(--c-cyan);
+}
+
+.cyber-marquee-inner {
+    display: inline-block;
+    animation: marquee-scroll 28s linear infinite;
+}
+
+/* ── SIDEBAR NAV ITEMS ───────────────────────────────────── */
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    color: var(--c-muted);
+    border-left: 3px solid transparent;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.1s;
+    cursor: pointer;
+}
+
+.nav-item:hover {
+    color: var(--c-cyan) !important;
+    background: #00002a;
+    border-left-color: var(--c-cyan);
+    text-shadow: 0 0 8px var(--c-cyan);
+    text-decoration: none !important;
+}
+
+.nav-item.active {
+    color: #000 !important;
+    background: var(--c-cyan);
+    border-left-color: var(--c-cyan);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.4), 0 0 10px var(--c-cyan);
+    text-shadow: none;
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+
+.cyber-sidebar {
+    background: var(--c-navy);
+    border-right: 2px solid var(--c-dim);
+    box-shadow: inset -5px 0 15px #000033, 4px 0 15px #000033;
+}
+
+/* ── HEADER ──────────────────────────────────────────────── */
+
+.cyber-header {
+    background: var(--c-navy);
+    border-bottom: 2px solid var(--c-cyan);
+    box-shadow: 0 0 15px #00ffff33;
+}
+
+/* ── CORNER DECORATORS ───────────────────────────────────── */
+
+.corner-tl::before, .corner-br::after {
+    content: '◄';
+    position: absolute;
+    color: var(--c-cyan);
+    font-size: 10px;
+    opacity: 0.5;
+}
+
+.corner-tl::before { top: 4px; left: 4px; }
+.corner-br::after  { bottom: 4px; right: 4px; transform: rotate(180deg); }
+
+/* ── STATUS BAR ──────────────────────────────────────────── */
+
+.cyber-statusbar {
+    background: #000;
+    border-top: 1px solid var(--c-dim);
+    padding: 2px 12px;
+    font-size: 12px;
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--c-muted);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* ── LOGO ────────────────────────────────────────────────── */
+
+.cyber-logo {
+    font-family: 'VT323', monospace;
+    font-size: 28px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c-cyan);
+    text-shadow: 0 0 10px var(--c-cyan), 0 0 20px #00ffff66;
+    text-decoration: none !important;
+}
+
+.cyber-logo span { color: var(--c-magenta); text-shadow: 0 0 10px var(--c-magenta); }
+
+/* ── MISC FIXES ──────────────────────────────────────────── */
+
+/* Suppress backdrop blur (costly + doesn't fit 90s) */
+.backdrop-blur-sm, .backdrop-blur-md { backdrop-filter: none !important; }
+
+/* Fix modals */
+.fixed.inset-0 > .bg-white,
+.fixed > div > .bg-white {
+    background: var(--c-panel) !important;
+    border: 2px ridge var(--c-cyan) !important;
+    box-shadow: 0 0 30px var(--c-cyan) !important;
+}
+
+/* Horizontal rules */
+hr { border-color: var(--c-dim) !important; }
+
+/* Checkbox/radio */
+input[type="checkbox"], input[type="radio"] {
+    accent-color: var(--c-cyan);
 }
